@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct FieldGuideView: View {
+    @EnvironmentObject private var audio: WayfolioAudioEngine
     @Query private var creatures: [CreatureRecord]
     let creatureID: UUID
 
@@ -62,6 +63,18 @@ struct FieldGuideView: View {
                     .font(WayfolioTypography.caption)
                     .tracking(1)
                     .foregroundStyle(WayfolioPalette.ink.opacity(0.62))
+                Button {
+                    audio.playWorldSound(soundCue(for: creature), volume: 0.82)
+                } label: {
+                    Label("Hear Creature", systemImage: "speaker.wave.2.fill")
+                        .font(WayfolioTypography.headline)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(WayfolioPalette.brass)
+                .foregroundStyle(WayfolioPalette.navy)
+                .accessibilityHint("Plays this creature's characteristic sound")
+                .padding(.top, 8)
             }
             .frame(maxWidth: .infinity)
             .padding(14)
@@ -69,6 +82,16 @@ struct FieldGuideView: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .chromaGlow(active: creature.completion > 0.6, radius: 18)
+    }
+
+    private func soundCue(for creature: CreatureRecord) -> String {
+        switch creature.name {
+        case "Crown Hare": "creature_small_timid_startle"
+        case "Gloam Hound": "recorded_monster_growl_02"
+        case "Coppice Goblin": "recorded_monster_growl_01"
+        case "Mimic Slime": "creature_slime_curious_move"
+        default: "recorded_monster_growl_03"
+        }
     }
 
     private func fieldCard(_ title: String, _ value: String, symbol: String) -> some View {

@@ -17,6 +17,6 @@ All assets below are released under CC0 1.0.
 - Source: https://opengameart.org/content/monster-sound-effects-pack
 - Imported files: `recorded_monster_growl_01.wav`, `recorded_monster_growl_02.wav`, `recorded_monster_growl_03.wav`
 - Original files: `monster-1.wav`, `monster-6.wav`, `monster-8.wav`
-- Processing: filenames changed only.
+- Processing: converted to 16-bit mono PCM, then paired into 1.65–2.2 second encounter vocalizations with a short natural pause and fade.
 
 CC0 license: https://creativecommons.org/publicdomain/zero/1.0/
