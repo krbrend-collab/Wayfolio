@@ -4,6 +4,7 @@ import SwiftData
 struct EntriesView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \CreatureRecord.name) private var creatures: [CreatureRecord]
+    @Query private var discoveryRecords: [CreatureDiscoveryRecord]
 
     @State private var searchText = ""
     @State private var selectedFilter = "All"
@@ -15,14 +16,22 @@ struct EntriesView: View {
 
     private var visibleCreatures: [CreatureRecord] {
         creatures.filter { creature in
-            let matchesSearch = searchText.isEmpty || creature.name.localizedCaseInsensitiveContains(searchText)
+            let level = discoveryLevel(for: creature)
+            let matchesSearch = searchText.isEmpty || displayName(for: creature, level: level)
+                .localizedCaseInsensitiveContains(searchText)
+
             let matchesFilter: Bool
             switch selectedFilter {
-            case "Companions": matchesFilter = creature.isCompanion
-            case "Creatures": matchesFilter = creature.category == "Creature"
-            case "Materials": matchesFilter = creature.category == "Material"
-            default: matchesFilter = true
+            case "Companions":
+                matchesFilter = creature.isCompanion && level.progress >= CreatureDiscoveryLevel.identified.progress
+            case "Creatures":
+                matchesFilter = creature.category == "Creature"
+            case "Materials":
+                matchesFilter = creature.category == "Material"
+            default:
+                matchesFilter = true
             }
+
             return matchesSearch && matchesFilter
         }
     }
@@ -36,10 +45,11 @@ struct EntriesView: View {
 
                 LazyVGrid(columns: columns, spacing: 12) {
                     ForEach(visibleCreatures) { creature in
+                        let level = discoveryLevel(for: creature)
                         Button {
                             onOpenCreature(creature.id)
                         } label: {
-                            EntryCard(creature: creature)
+                            EntryCard(creature: creature, discoveryLevel: level)
                         }
                         .buttonStyle(.plain)
                     }
@@ -71,7 +81,6 @@ struct EntriesView: View {
         .padding(14)
         .parchmentSurface()
     }
-
 
     private var searchField: some View {
         HStack(spacing: 10) {
@@ -110,12 +119,48 @@ struct EntriesView: View {
         .scrollIndicators(.hidden)
     }
 
+    private func discoveryLevel(for creature: CreatureRecord) -> CreatureDiscoveryLevel {
+        discoveryRecords.first(where: { $0.creatureID == creature.id })?.level
+            ?? SampleData.initialDiscoveryLevel(for: creature)
+    }
+
+    private func displayName(for creature: CreatureRecord, level: CreatureDiscoveryLevel) -> String {
+        switch level {
+        case .unknown:
+            return "Unknown Creature"
+        case .sighted:
+            return "Unidentified Creature"
+        case .identified, .studied, .mastered:
+            return creature.name
+        }
+    }
+
     @MainActor
     private func seedIfNeeded() async {
-        guard creatures.isEmpty else { return }
-        for creature in SampleData.creatures {
-            modelContext.insert(creature)
+        for sample in SampleData.creatures {
+            let storedCreature: CreatureRecord
+
+            if let existing = creatures.first(where: { $0.name == sample.name }) {
+                storedCreature = existing
+            } else {
+                modelContext.insert(sample)
+                storedCreature = sample
+            }
+
+            let alreadyHasDiscovery = discoveryRecords.contains {
+                $0.creatureID == storedCreature.id
+            }
+
+            if !alreadyHasDiscovery {
+                modelContext.insert(
+                    CreatureDiscoveryRecord(
+                        creatureID: storedCreature.id,
+                        level: SampleData.initialDiscoveryLevel(for: storedCreature)
+                    )
+                )
+            }
         }
+
         try? modelContext.save()
     }
 }
