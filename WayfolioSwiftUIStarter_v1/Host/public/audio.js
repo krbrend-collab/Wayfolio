@@ -8,19 +8,24 @@ class WayfolioAudioDirector {
     this.catalog = new Map();
     this.profiles = null;
     this.voiceRegistry = null;
+    this.locationProfiles = null;
+    this.ambienceDetailTimer = null;
+    this.ambienceGeneration = 0;
     this.ready = false;
     this.busLevels = {voice:1, sfx:0.9, ambience:0.55, music:0.5, ui:0.75};
   }
 
   async load() {
-    const [catalog, profiles, voiceRegistry] = await Promise.all([
+    const [catalog, profiles, voiceRegistry, locationProfiles] = await Promise.all([
       fetch('/audio-catalog.json').then(response => response.json()),
       fetch('/creature-audio-profiles.json').then(response => response.json()),
       fetch('/character-voice-profiles.json').then(response => response.json()),
+      fetch('/location-ambience-profiles.json').then(response => response.json()),
     ]);
     this.catalog = new Map(catalog.cues.map(cue => [cue.id, cue]));
     this.profiles = profiles;
     this.voiceRegistry = voiceRegistry;
+    this.locationProfiles = locationProfiles;
   }
 
   async enable() {
@@ -106,6 +111,34 @@ class WayfolioAudioDirector {
     } catch (error) {
       this.setStatus(`Could not start ${cueID}: ${error.message}`);
     }
+  }
+
+  stopAmbienceDetails() {
+    this.ambienceGeneration += 1;
+    if (this.ambienceDetailTimer) clearTimeout(this.ambienceDetailTimer);
+    this.ambienceDetailTimer = null;
+  }
+
+  scheduleAmbienceDetail(profile, generation) {
+    if (!profile.details?.length || generation !== this.ambienceGeneration) return;
+    const detail = profile.details[Math.floor(Math.random() * profile.details.length)];
+    const delay = detail.min_delay + Math.random() * (detail.max_delay - detail.min_delay);
+    this.ambienceDetailTimer = setTimeout(async () => {
+      if (generation !== this.ambienceGeneration) return;
+      await this.oneShot(detail.cue);
+      this.scheduleAmbienceDetail(profile, generation);
+    }, delay * 1000);
+  }
+
+  async setLocationAmbience(event) {
+    this.stopAmbienceDetails();
+    if (event.action === 'stop') return this.setLoop('ambience', 'stop');
+    const profile = this.locationProfiles?.profiles?.[event.profile];
+    if (!profile) return this.setStatus(`Unknown ambience profile: ${event.profile}`);
+    await this.setLoop('ambience', 'play', profile.base_cue, event.volume ?? profile.default_volume, event.fade_duration);
+    const generation = this.ambienceGeneration;
+    this.scheduleAmbienceDetail(profile, generation);
+    this.setStatus(`Ambience: ${profile.label}`);
   }
 
   resolveCreature(event) {
@@ -203,6 +236,7 @@ class WayfolioAudioDirector {
   }
 
   stopAll() {
+    this.stopAmbienceDetails();
     for (const source of this.loops.values()) {
       try { source.stop(); } catch {}
     }
@@ -221,7 +255,10 @@ class WayfolioAudioDirector {
         const cue = this.resolveCreature(event);
         return cue ? this.oneShot(cue, event.volume) : this.setStatus('No matching creature sound');
       }
-      case 'ambience': return this.setLoop('ambience', event.action, event.cue, event.volume, event.fade_duration);
+      case 'ambience':
+        this.stopAmbienceDetails();
+        return this.setLoop('ambience', event.action, event.cue, event.volume, event.fade_duration);
+      case 'ambience_scene': return this.setLocationAmbience(event);
       case 'music': return this.setLoop('music', event.action, event.cue, event.volume, event.fade_duration);
       case 'dialogue': return this.speak(event);
       case 'audio_control': if (event.action === 'stop_all') this.stopAll();

@@ -15,6 +15,7 @@ const audioSpecRoot = join(starterRoot, 'Specifications', 'Audio');
 const audioCatalog = JSON.parse(await readFile(join(audioSpecRoot, 'AudioCueCatalog.json'), 'utf8'));
 const creatureProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'CreatureAudioProfiles.json'), 'utf8'));
 const characterVoiceProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'CharacterVoiceProfiles.json'), 'utf8'));
+const locationAmbienceProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'LocationAmbienceProfiles.json'), 'utf8'));
 const cueIDs = new Set(audioCatalog.cues.map(cue => cue.id));
 const renn = JSON.parse(await readFile(join(contentDirectory, 'renn.json'), 'utf8'));
 const bridgeEncounter = JSON.parse(await readFile(join(contentDirectory, 'hemlock-bridge.json'), 'utf8'));
@@ -68,9 +69,10 @@ async function saveSession() {
 const types = {'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.json':'application/json','.wav':'audio/wav','.m4a':'audio/mp4','.mp3':'audio/mpeg'};
 const server = http.createServer(async (request, response) => {
   const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
-  if (['/audio-catalog.json', '/creature-audio-profiles.json', '/character-voice-profiles.json'].includes(pathname)) {
+  if (['/audio-catalog.json', '/creature-audio-profiles.json', '/character-voice-profiles.json', '/location-ambience-profiles.json'].includes(pathname)) {
     const value = pathname === '/audio-catalog.json' ? audioCatalog
-      : pathname === '/creature-audio-profiles.json' ? creatureProfiles : characterVoiceProfiles;
+      : pathname === '/creature-audio-profiles.json' ? creatureProfiles
+      : pathname === '/character-voice-profiles.json' ? characterVoiceProfiles : locationAmbienceProfiles;
     response.writeHead(200, {'content-type':'application/json', 'cache-control':'no-store'});
     return response.end(JSON.stringify(value));
   }
@@ -134,6 +136,10 @@ function validPresentationEvent(event) {
   if (['ambience', 'music'].includes(event.type)) {
     return ['play', 'stop'].includes(event.action) && (event.action === 'stop' || cueIDs.has(event.cue));
   }
+  if (event.type === 'ambience_scene') {
+    return ['play', 'stop'].includes(event.action)
+      && (event.action === 'stop' || Boolean(locationAmbienceProfiles.profiles[event.profile]));
+  }
   if (event.type === 'dialogue') return typeof event.text === 'string' && event.text.trim().length > 0;
   return event.type === 'audio_control' && ['stop_all', 'pause', 'resume'].includes(event.action);
 }
@@ -141,7 +147,7 @@ function validPresentationEvent(event) {
 function emitPresentation(event) {
   if (!validPresentationEvent(event)) return false;
   session.presentationSequence += 1;
-  if (event.type === 'ambience') session.presentationState.ambience = event.action === 'play' ? event : null;
+  if (event.type === 'ambience' || event.type === 'ambience_scene') session.presentationState.ambience = event.action === 'play' ? event : null;
   if (event.type === 'music') session.presentationState.music = event.action === 'play' ? event : null;
   if (event.type === 'audio_control' && event.action === 'stop_all') {
     session.presentationState = {ambience:null, music:null};

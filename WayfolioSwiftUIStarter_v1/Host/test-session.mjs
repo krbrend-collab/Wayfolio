@@ -51,11 +51,16 @@ const renn = await open('wayfolio', true);
 
 const catalogResponse = await fetch(`${baseURL}/audio-catalog.json`);
 const voicesResponse = await fetch(`${baseURL}/character-voice-profiles.json`);
+const locationsResponse = await fetch(`${baseURL}/location-ambience-profiles.json`);
 const audioResponse = await fetch(`${baseURL}/Audio/SFX/Creature/Form/slime_curious_move.wav`);
 if (!catalogResponse.ok || !(await catalogResponse.json()).cues?.length) throw new Error('Audio catalog route failed.');
 const voices = await voicesResponse.json();
 if (!voicesResponse.ok || voices.default_profile !== 'narrator' || !voices.profiles?.renn || !voices.profiles?.koori) {
   throw new Error('Character voice registry route failed.');
+}
+const locations = await locationsResponse.json();
+if (!locationsResponse.ok || !locations.profiles?.tavern_busy || !locations.profiles?.river_calm) {
+  throw new Error('Location ambience profiles route failed.');
 }
 if (!audioResponse.ok || (await audioResponse.arrayBuffer()).byteLength < 1000) throw new Error('Audio asset route failed.');
 
@@ -68,6 +73,17 @@ const dialogueEvent = await screen.inbox.next(message =>
   message.type === 'presentation_event' && message.event.line_id === 'voice-registry-test'
 );
 if (dialogueEvent.event.speaker_id !== 'koori') throw new Error('Speaker identity was not preserved.');
+
+dm.socket.send(JSON.stringify({type:'dm_presentation', event:{
+  type:'ambience_scene', action:'play', profile:'tavern_busy', volume:0.4,
+}}));
+await screen.inbox.next(message => message.type === 'presentation_event' && message.event.type === 'ambience_scene');
+const ambienceReconnect = await open('screen');
+const ambienceRestored = await ambienceReconnect.inbox.next(message => message.type === 'session_snapshot');
+if (ambienceRestored.presentation_state?.ambience?.profile !== 'tavern_busy') {
+  throw new Error('Layered location ambience was not restored after reconnect.');
+}
+ambienceReconnect.socket.close();
 
 dm.socket.send(JSON.stringify({type:'dm_presentation', event:{
   type:'creature_sound', creature_id:'glimmer_slime', creature_type:'ooze',

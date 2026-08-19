@@ -18,6 +18,7 @@
         {"$ref":"#/$defs/dialogue"},
         {"$ref":"#/$defs/oneShot"},
         {"$ref":"#/$defs/creatureSound"},
+        {"$ref":"#/$defs/ambienceScene"},
         {"$ref":"#/$defs/loopState"},
         {"$ref":"#/$defs/audioControl"}
       ]
@@ -67,6 +68,15 @@
         "intensity":{"$ref":"#/$defs/volume"}, "fade_duration":{"type":"number","minimum":0,"maximum":30}
       },
       "allOf":[{"if":{"properties":{"action":{"const":"play"}}},"then":{"required":["cue"]}}]
+    },
+    "ambienceScene": {
+      "type":"object", "additionalProperties":false, "required":["type","action"],
+      "properties": {
+        "type":{"const":"ambience_scene"}, "action":{"enum":["play","stop"]},
+        "profile":{"type":"string","minLength":1}, "volume":{"$ref":"#/$defs/volume"},
+        "fade_duration":{"type":"number","minimum":0,"maximum":30}
+      },
+      "allOf":[{"if":{"properties":{"action":{"const":"play"}}},"then":{"required":["profile"]}}]
     },
     "audioControl": {
       "type":"object", "additionalProperties":false, "required":["type","action"],

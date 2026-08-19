@@ -275,6 +275,95 @@ def forest_ambience() -> list[float]:
     return samples
 
 
+def location_ambience(kind: str) -> list[float]:
+    """Create restrained, seamless beds intended to sit beneath music and voice."""
+    kinds = ("festival", "market", "river", "village", "cave", "ruins", "coast", "rain")
+    random.seed(500 + kinds.index(kind))
+    duration = 18.0
+    count = int(RATE * duration)
+    samples = [0.0] * count
+    low = mid = high = 0.0
+    for index in range(count):
+        t = index / RATE
+        raw = random.uniform(-1, 1)
+        low += 0.0015 * (raw - low)
+        mid += 0.012 * (raw - mid)
+        high += 0.18 * (raw - high)
+        if kind == "festival":
+            value = 0.045 * low * (1.5 + math.sin(2 * math.pi * t / 4.7)) + 0.004 * mid
+        elif kind == "market":
+            value = 0.05 * low * (1.4 + 0.45 * math.sin(2 * math.pi * t / 6.1)) + 0.006 * mid
+        elif kind == "river":
+            ripple = math.sin(2 * math.pi * (390 + 45 * math.sin(2 * math.pi * 0.13 * t)) * t)
+            value = 0.028 * mid + 0.009 * high + 0.006 * ripple
+        elif kind == "village":
+            value = 0.042 * low * (1.2 + 0.35 * math.sin(2 * math.pi * t / 7.3)) + 0.004 * mid
+        elif kind == "cave":
+            value = 0.05 * low + 0.008 * math.sin(2 * math.pi * 74 * t) * (0.5 + 0.5 * math.sin(2 * math.pi * 0.08 * t))
+        elif kind == "ruins":
+            gust = 0.55 + 0.45 * math.sin(2 * math.pi * t / 8.2)
+            value = 0.065 * low * gust + 0.004 * mid
+        elif kind == "coast":
+            wave = max(0, math.sin(2 * math.pi * t / 5.8)) ** 2
+            value = 0.035 * mid * (0.8 + 1.8 * wave) + 0.025 * low
+        else:
+            patter = max(0, high) * (0.65 + 0.35 * math.sin(2 * math.pi * 0.21 * t))
+            value = 0.032 * mid + 0.025 * patter + 0.025 * low
+        samples[index] = value
+
+    crossfade = int(RATE * 1.25)
+    for index in range(crossfade):
+        blend = index / crossfade
+        value = samples[index] * blend + samples[-crossfade + index] * (1 - blend)
+        samples[index] = value
+        samples[-crossfade + index] = value
+    return samples
+
+
+def ambient_detail(kind: str) -> list[float]:
+    kinds = (
+        "mug_clink", "tavern_laugh", "festival_cheer", "festival_bells",
+        "market_vendor", "cart_wheels", "river_splash", "river_bird",
+        "village_door", "village_dog", "cave_drip", "cave_stone",
+        "ruins_groan", "ruins_bird", "coast_gull", "harbor_rope",
+        "rain_thunder", "rain_runoff",
+    )
+    random.seed(600 + kinds.index(kind))
+    duration = 0.7 if kind not in {"tavern_laugh", "festival_cheer", "market_vendor", "rain_thunder", "rain_runoff"} else 1.8
+    samples = []
+    smooth = 0.0
+    for index in range(int(RATE * duration)):
+        t = index / RATE
+        raw = random.uniform(-1, 1)
+        smooth += 0.035 * (raw - smooth)
+        if kind in {"mug_clink", "festival_bells"}:
+            frequency = 1450 if kind == "mug_clink" else 880
+            value = sum(math.sin(2 * math.pi * frequency * ratio * t) for ratio in (1, 1.49, 2.08)) / 3 * math.exp(-6 * t)
+        elif kind in {"tavern_laugh", "festival_cheer", "market_vendor"}:
+            pulse = 0.45 + 0.55 * abs(math.sin(2 * math.pi * (3.2 if kind == "festival_cheer" else 2.1) * t))
+            value = smooth * pulse + 0.2 * math.sin(2 * math.pi * (190 + 35 * math.sin(2 * math.pi * 2 * t)) * t)
+        elif kind == "cart_wheels":
+            value = smooth + 0.35 * math.sin(2 * math.pi * (105 + 22 * math.sin(2 * math.pi * 3 * t)) * t)
+        elif kind in {"river_splash", "rain_runoff"}:
+            value = smooth + 0.35 * raw * math.exp(-4 * t)
+        elif kind in {"river_bird", "ruins_bird", "coast_gull"}:
+            base = {"river_bird":1800, "ruins_bird":1150, "coast_gull":920}[kind]
+            value = math.sin(2 * math.pi * (base + 420 * t) * t) * (0.5 + 0.5 * math.sin(2 * math.pi * 3.4 * t))
+        elif kind in {"village_door", "cave_stone", "ruins_groan", "harbor_rope"}:
+            base = {"village_door":170, "cave_stone":120, "ruins_groan":82, "harbor_rope":145}[kind]
+            value = 0.65 * smooth + 0.55 * math.sin(2 * math.pi * (base - 18 * t) * t)
+        elif kind == "village_dog":
+            value = math.sin(2 * math.pi * (310 - 75 * t) * t) * (1 if t < 0.24 or 0.38 < t < 0.58 else 0.04)
+        elif kind == "cave_drip":
+            value = (math.sin(2 * math.pi * 1250 * t) + 0.4 * math.sin(2 * math.pi * 1810 * t)) * math.exp(-12 * t)
+        elif kind == "rain_thunder":
+            value = 0.8 * smooth + 0.5 * math.sin(2 * math.pi * (52 - 8 * t) * t)
+        else:
+            value = smooth
+        samples.append(0.24 * value * envelope(t, duration, 0.012, 0.16))
+    return samples
+
+
 def exploration_music() -> list[float]:
     duration = 24.0
     samples = [0.0] * int(RATE * duration)
@@ -342,6 +431,16 @@ def main() -> None:
         write_cue(f"SFX/Creature/Form/{profile}.wav", unusual_creature_sound(profile))
     write_cue("Ambience/hemlock_forest.wav", forest_ambience())
     write_cue("Ambience/hemlock_tavern.wav", tavern_ambience())
+    for location in ("festival", "market", "river", "village", "cave", "ruins", "coast", "rain"):
+        write_cue(f"Ambience/{location}.wav", location_ambience(location))
+    for detail in (
+        "mug_clink", "tavern_laugh", "festival_cheer", "festival_bells",
+        "market_vendor", "cart_wheels", "river_splash", "river_bird",
+        "village_door", "village_dog", "cave_drip", "cave_stone",
+        "ruins_groan", "ruins_bird", "coast_gull", "harbor_rope",
+        "rain_thunder", "rain_runoff",
+    ):
+        write_cue(f"Ambience/Details/{detail}.wav", ambient_detail(detail))
     write_cue("Music/forest_exploration.wav", exploration_music())
 
 

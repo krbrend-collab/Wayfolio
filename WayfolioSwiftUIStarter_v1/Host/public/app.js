@@ -97,6 +97,10 @@ if (role === 'dm') {
     const cue = button.dataset.ambience;
     present({type:'ambience', action:cue ? 'play' : 'stop', ...(cue ? {cue, volume:0.5} : {}), fade_duration:1.5});
   }));
+  document.querySelectorAll('[data-ambience-profile]').forEach(button => button.addEventListener('click', () => {
+    const profile = button.dataset.ambienceProfile;
+    present({type:'ambience_scene', action:profile ? 'play' : 'stop', ...(profile ? {profile} : {}), fade_duration:1.5});
+  }));
   document.querySelectorAll('[data-music]').forEach(button => button.addEventListener('click', () => {
     const cue = button.dataset.music;
     present({type:'music', action:cue ? 'play' : 'stop', ...(cue ? {cue, volume:0.42, intensity:0.3} : {}), fade_duration:2});

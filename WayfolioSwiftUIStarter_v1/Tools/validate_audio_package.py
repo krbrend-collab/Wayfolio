@@ -106,6 +106,7 @@ def main() -> int:
     catalog = load_json("AudioCueCatalog.json")
     profiles = load_json("CreatureAudioProfiles.json")
     voice_registry = load_json("CharacterVoiceProfiles.json")
+    location_profiles = load_json("LocationAmbienceProfiles.json")
     fixture = load_json("hemlock_presentation_fixture.json")
     creature_fixture = load_json("creature_resolution_fixture.json")
     load_json("PresentationEvent.schema.json")
@@ -113,10 +114,12 @@ def main() -> int:
     validate_voice_registry(voice_registry, errors)
 
     cue_ids: set[str] = set()
+    cue_by_id: dict[str, dict] = {}
     for cue in catalog["cues"]:
         cue_id = cue["id"]
         if cue_id in cue_ids: fail(errors, f"Duplicate cue ID: {cue_id}")
         cue_ids.add(cue_id)
+        cue_by_id[cue_id] = cue
         if cue["bus"] not in catalog["buses"]: fail(errors, f"Invalid bus for {cue_id}")
         if cue["audience"] not in {"shared", "player"}: fail(errors, f"Invalid audience for {cue_id}")
         if not 0 <= cue["default_volume"] <= 1: fail(errors, f"Invalid volume for {cue_id}")
@@ -125,6 +128,19 @@ def main() -> int:
             fail(errors, f"Missing asset for {cue_id}: {path}")
         elif path.suffix.lower() == ".wav":
             validate_wav(path, cue["loop"], errors)
+
+    for profile_id, profile in location_profiles.get("profiles", {}).items():
+        base = cue_by_id.get(profile.get("base_cue"))
+        if not base or base.get("bus") != "ambience" or not base.get("loop"):
+            fail(errors, f"{profile_id}: base cue must be a looping ambience cue")
+        if not 0 <= profile.get("default_volume", -1) <= 1:
+            fail(errors, f"{profile_id}: invalid default volume")
+        for detail in profile.get("details", []):
+            cue = cue_by_id.get(detail.get("cue"))
+            if not cue or cue.get("bus") != "ambience" or cue.get("loop"):
+                fail(errors, f"{profile_id}: detail must be a one-shot ambience cue")
+            if not 0 < detail.get("min_delay", 0) <= detail.get("max_delay", 0):
+                fail(errors, f"{profile_id}: invalid detail delay")
 
     for profile_name, behavior_map in profiles["profiles"].items():
         for behavior, cue_id in behavior_map.items():
@@ -163,7 +179,7 @@ def main() -> int:
         print("Audio package validation failed:", file=sys.stderr)
         for error in errors: print(f"- {error}", file=sys.stderr)
         return 1
-    print(f"Audio package valid: {len(cue_ids)} cues, {len(profiles['profiles'])} type profiles, {len(profiles['body_form_profiles'])} body forms, {len(voice_registry['profiles'])} character voices, {len(creature_fixture['cases'])} creature cases, {len(fixture['events'])} presentation events.")
+    print(f"Audio package valid: {len(cue_ids)} cues, {len(profiles['profiles'])} type profiles, {len(profiles['body_form_profiles'])} body forms, {len(voice_registry['profiles'])} character voices, {len(location_profiles['profiles'])} location soundscapes, {len(creature_fixture['cases'])} creature cases, {len(fixture['events'])} presentation events.")
     return 0
 
 
