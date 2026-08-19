@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wayfolio.local/schemas/presentation-event-v1.json",
+  "title": "Wayfolio Presentation Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol", "event_id", "sequence", "session_code", "scene_id", "audience", "event"],
+  "properties": {
+    "protocol": {"const":"wayfolio.presentation.v1"},
+    "event_id": {"type":"string", "minLength":1},
+    "sequence": {"type":"integer", "minimum":0},
+    "session_code": {"type":"string", "minLength":1},
+    "scene_id": {"type":"string", "minLength":1},
+    "sent_at": {"type":"string", "format":"date-time"},
+    "audience": {"$ref":"#/$defs/audience"},
+    "event": {
+      "oneOf": [
+        {"$ref":"#/$defs/dialogue"},
+        {"$ref":"#/$defs/oneShot"},
+        {"$ref":"#/$defs/creatureSound"},
+        {"$ref":"#/$defs/loopState"},
+        {"$ref":"#/$defs/audioControl"}
+      ]
+    }
+  },
+  "$defs": {
+    "audience": {
+      "oneOf": [
+        {"type":"object", "additionalProperties":false, "required":["kind"], "properties":{"kind":{"const":"shared"}}},
+        {"type":"object", "additionalProperties":false, "required":["kind","player_id"], "properties":{"kind":{"const":"player"},"player_id":{"type":"string","minLength":1}}},
+        {"type":"object", "additionalProperties":false, "required":["kind","player_ids"], "properties":{"kind":{"const":"players"},"player_ids":{"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string","minLength":1}}}}
+      ]
+    },
+    "volume": {"type":"number", "minimum":0, "maximum":1},
+    "dialogue": {
+      "type":"object", "additionalProperties":false,
+      "required":["type","line_id","speaker_id","text","priority","interrupt","caption"],
+      "properties": {
+        "type":{"const":"dialogue"}, "line_id":{"type":"string","minLength":1},
+        "speaker_id":{"type":"string","minLength":1}, "text":{"type":"string","minLength":1},
+        "performance":{"type":"string"}, "priority":{"enum":["background","normal","important","critical"]},
+        "interrupt":{"enum":["queue","replace_lower_priority","immediate"]}, "caption":{"type":"boolean"}
+      }
+    },
+    "oneShot": {
+      "type":"object", "additionalProperties":false, "required":["type","cue"],
+      "properties":{"type":{"enum":["ui_sound","sound_effect"]},"cue":{"type":"string","minLength":1},"volume":{"$ref":"#/$defs/volume"}}
+    },
+    "creatureSound": {
+      "type":"object", "additionalProperties":false,
+      "required":["type","creature_id","creature_type","behavior"],
+      "properties": {
+        "type":{"const":"creature_sound"}, "creature_id":{"type":"string","minLength":1},
+        "creature_type":{"type":"string","minLength":1}, "behavior":{"type":"string","minLength":1},
+        "volume":{"$ref":"#/$defs/volume"}
+      }
+    },
+    "loopState": {
+      "type":"object", "additionalProperties":false, "required":["type","action"],
+      "properties": {
+        "type":{"enum":["ambience","music"]}, "action":{"enum":["play","stop"]},
+        "cue":{"type":"string","minLength":1}, "volume":{"$ref":"#/$defs/volume"},
+        "intensity":{"$ref":"#/$defs/volume"}, "fade_duration":{"type":"number","minimum":0,"maximum":30}
+      },
+      "allOf":[{"if":{"properties":{"action":{"const":"play"}}},"then":{"required":["cue"]}}]
+    },
+    "audioControl": {
+      "type":"object", "additionalProperties":false, "required":["type","action"],
+      "properties":{"type":{"const":"audio_control"},"action":{"enum":["stop_all","pause","resume"]},"fade_duration":{"type":"number","minimum":0,"maximum":30}}
+    }
+  }
+}

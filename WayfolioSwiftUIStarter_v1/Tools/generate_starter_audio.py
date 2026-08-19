@@ -109,6 +109,87 @@ def wooden_creak() -> list[float]:
     return samples
 
 
+def creature_call(kind: str) -> list[float]:
+    seeds = {"beast": 101, "avian": 102, "reptile": 103, "insect": 104, "ooze": 105,
+             "construct": 106, "undead": 107, "dragon": 108, "plant": 109, "elemental": 110}
+    random.seed(seeds[kind])
+    durations = {"beast": 0.7, "avian": 0.55, "reptile": 1.1, "insect": 0.8, "ooze": 0.9,
+                 "construct": 0.75, "undead": 1.35, "dragon": 1.8, "plant": 1.0, "elemental": 1.1}
+    duration = durations[kind]
+    samples = []
+    noise = 0.0
+    for index in range(int(RATE * duration)):
+        t = index / RATE
+        raw = random.uniform(-1, 1)
+        smoothing = 0.04 if kind in {"beast", "dragon", "ooze"} else 0.2
+        noise += smoothing * (raw - noise)
+        if kind == "beast":
+            value = math.sin(2 * math.pi * (270 - 90 * t) * t + 0.5 * math.sin(2 * math.pi * 9 * t))
+        elif kind == "avian":
+            value = math.sin(2 * math.pi * (1500 + 1800 * t) * t) * (0.4 + 0.6 * abs(math.sin(2 * math.pi * 7 * t)))
+        elif kind == "reptile":
+            value = noise * (0.55 + 0.45 * math.sin(2 * math.pi * 18 * t))
+        elif kind == "insect":
+            value = math.sin(2 * math.pi * 3100 * t) * (1 if math.sin(2 * math.pi * 28 * t) > 0 else 0.08)
+        elif kind == "ooze":
+            value = noise + 0.5 * math.sin(2 * math.pi * (85 + 18 * math.sin(2 * math.pi * 3 * t)) * t)
+        elif kind == "construct":
+            value = 0.7 * math.sin(2 * math.pi * 180 * t) + noise * math.exp(-22 * (t % 0.24))
+        elif kind == "undead":
+            value = noise + 0.35 * math.sin(2 * math.pi * 115 * t) * math.sin(2 * math.pi * 2.2 * t)
+        elif kind == "dragon":
+            value = 0.65 * math.sin(2 * math.pi * (92 - 22 * t) * t) + 0.6 * noise
+        elif kind == "plant":
+            value = noise * (0.45 + 0.55 * abs(math.sin(2 * math.pi * 4.5 * t)))
+        else:
+            value = noise + 0.35 * math.sin(2 * math.pi * (620 + 420 * t) * t)
+        samples.append(0.28 * value * envelope(t, duration, 0.025, 0.16))
+    return samples
+
+
+def physical_effect(kind: str) -> list[float]:
+    seeds = {"footsteps": 201, "door": 202, "splash": 203, "dice": 204}
+    random.seed(seeds[kind])
+    duration = {"footsteps": 1.4, "door": 0.65, "splash": 0.9, "dice": 1.0}[kind]
+    samples = [0.0] * int(RATE * duration)
+    events = {
+        "footsteps": [0.05, 0.48, 0.91, 1.28],
+        "door": [0.04, 0.22],
+        "splash": [0.03, 0.18, 0.34],
+        "dice": [0.02, 0.13, 0.25, 0.38, 0.55, 0.73],
+    }[kind]
+    for start in events:
+        length = 0.18 if kind != "splash" else 0.3
+        for offset in range(int(RATE * length)):
+            index = int(start * RATE) + offset
+            if index >= len(samples): break
+            t = offset / RATE
+            noise = random.uniform(-1, 1)
+            resonance = math.sin(2 * math.pi * ({"footsteps":120,"door":240,"splash":520,"dice":780}[kind]) * t)
+            samples[index] += 0.22 * (0.65 * noise + 0.35 * resonance) * math.exp(-18 * t)
+    return samples
+
+
+def tavern_ambience() -> list[float]:
+    random.seed(205)
+    duration = 16.0
+    samples = []
+    murmur = 0.0
+    for index in range(int(RATE * duration)):
+        t = index / RATE
+        murmur += 0.003 * (random.uniform(-1, 1) - murmur)
+        room = 0.05 * murmur * (1.1 + 0.4 * math.sin(2 * math.pi * t / 5.2))
+        fire = 0.012 * random.uniform(-1, 1) * (0.4 + 0.6 * abs(math.sin(2 * math.pi * 3.7 * t)))
+        samples.append(room + fire)
+    crossfade = int(RATE)
+    for index in range(crossfade):
+        blend = index / crossfade
+        value = samples[index] * blend + samples[-crossfade + index] * (1 - blend)
+        samples[index] = value
+        samples[-crossfade + index] = value
+    return samples
+
+
 def forest_ambience() -> list[float]:
     random.seed(83)
     duration = 20.0
@@ -191,7 +272,15 @@ def main() -> None:
     write_cue("UI/settings_open.wav", parchment_tap(bright=False))
     write_cue("UI/profile_open.wav", tone_sequence((392, 494), 0.07, 0.17))
     write_cue("SFX/wood_bridge_creak.wav", wooden_creak())
+    write_cue("SFX/footsteps_wood.wav", physical_effect("footsteps"))
+    write_cue("SFX/door_latch.wav", physical_effect("door"))
+    write_cue("SFX/water_splash.wav", physical_effect("splash"))
+    write_cue("SFX/dice_roll.wav", physical_effect("dice"))
+    write_cue("SFX/spell_chime.wav", magical_reveal())
+    for creature_type in ("beast", "avian", "reptile", "insect", "ooze", "construct", "undead", "dragon", "plant", "elemental"):
+        write_cue(f"SFX/Creature/{creature_type}_alert.wav", creature_call(creature_type))
     write_cue("Ambience/hemlock_forest.wav", forest_ambience())
+    write_cue("Ambience/hemlock_tavern.wav", tavern_ambience())
     write_cue("Music/forest_exploration.wav", exploration_music())
 
 

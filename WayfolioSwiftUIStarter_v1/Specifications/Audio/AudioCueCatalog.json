@@ -19,7 +19,23 @@
     {"id":"settings_open","bus":"ui","file":"Audio/UI/settings_open.wav","audience":"player","loop":false,"default_volume":0.6},
     {"id":"profile_open","bus":"ui","file":"Audio/UI/profile_open.wav","audience":"player","loop":false,"default_volume":0.65},
     {"id":"wood_bridge_creak","bus":"sfx","file":"Audio/SFX/wood_bridge_creak.wav","audience":"shared","loop":false,"default_volume":0.7},
+    {"id":"footsteps_wood","bus":"sfx","file":"Audio/SFX/footsteps_wood.wav","audience":"shared","loop":false,"default_volume":0.55},
+    {"id":"door_latch","bus":"sfx","file":"Audio/SFX/door_latch.wav","audience":"shared","loop":false,"default_volume":0.65},
+    {"id":"water_splash","bus":"sfx","file":"Audio/SFX/water_splash.wav","audience":"shared","loop":false,"default_volume":0.65},
+    {"id":"dice_roll","bus":"sfx","file":"Audio/SFX/dice_roll.wav","audience":"shared","loop":false,"default_volume":0.6},
+    {"id":"spell_chime","bus":"sfx","file":"Audio/SFX/spell_chime.wav","audience":"shared","loop":false,"default_volume":0.7},
+    {"id":"creature_beast_alert","bus":"sfx","file":"Audio/SFX/Creature/beast_alert.wav","audience":"shared","loop":false,"default_volume":0.7},
+    {"id":"creature_avian_alert","bus":"sfx","file":"Audio/SFX/Creature/avian_alert.wav","audience":"shared","loop":false,"default_volume":0.65},
+    {"id":"creature_reptile_alert","bus":"sfx","file":"Audio/SFX/Creature/reptile_alert.wav","audience":"shared","loop":false,"default_volume":0.65},
+    {"id":"creature_insect_alert","bus":"sfx","file":"Audio/SFX/Creature/insect_alert.wav","audience":"shared","loop":false,"default_volume":0.6},
+    {"id":"creature_ooze_alert","bus":"sfx","file":"Audio/SFX/Creature/ooze_alert.wav","audience":"shared","loop":false,"default_volume":0.65},
+    {"id":"creature_construct_alert","bus":"sfx","file":"Audio/SFX/Creature/construct_alert.wav","audience":"shared","loop":false,"default_volume":0.7},
+    {"id":"creature_undead_alert","bus":"sfx","file":"Audio/SFX/Creature/undead_alert.wav","audience":"shared","loop":false,"default_volume":0.6},
+    {"id":"creature_dragon_alert","bus":"sfx","file":"Audio/SFX/Creature/dragon_alert.wav","audience":"shared","loop":false,"default_volume":0.75},
+    {"id":"creature_plant_alert","bus":"sfx","file":"Audio/SFX/Creature/plant_alert.wav","audience":"shared","loop":false,"default_volume":0.6},
+    {"id":"creature_elemental_alert","bus":"sfx","file":"Audio/SFX/Creature/elemental_alert.wav","audience":"shared","loop":false,"default_volume":0.7},
     {"id":"hemlock_forest","bus":"ambience","file":"Audio/Ambience/hemlock_forest.wav","audience":"shared","loop":true,"default_volume":0.5},
+    {"id":"hemlock_tavern","bus":"ambience","file":"Audio/Ambience/hemlock_tavern.wav","audience":"shared","loop":true,"default_volume":0.45},
     {"id":"forest_exploration","bus":"music","file":"Audio/Music/forest_exploration.wav","audience":"shared","loop":true,"default_volume":0.45}
   ]
 }

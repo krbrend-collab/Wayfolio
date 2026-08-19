@@ -68,6 +68,18 @@ text so captions remain available when voice generation fails.
 Use `ui_sound` only for phone-local presentation feedback. Public world effects
 use `sound_effect` and normally target `shared`.
 
+### Creature sound
+
+```json
+{"type":"creature_sound","creature_id":"lanternshell_tortoise","creature_type":"reptile","behavior":"alert","volume":0.65}
+```
+
+The renderer resolves the cue using `CreatureAudioProfiles.json`: named-creature
+override first, then creature type, then the fallback profile. This keeps DM
+events semantic and allows one creature to gain a unique voice later without
+rewriting scene events. Unknown behaviors produce no sound rather than playing
+an unrelated call.
+
 ### Ambience
 
 ```json

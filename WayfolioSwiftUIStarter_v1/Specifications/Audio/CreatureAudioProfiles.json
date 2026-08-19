@@ -1,0 +1,22 @@
+{
+  "profile_version": 1,
+  "selection_precedence": ["creature_override", "creature_type", "fallback"],
+  "fallback_profile": "beast",
+  "profiles": {
+    "beast": {"alert":"creature_beast_alert"},
+    "avian": {"alert":"creature_avian_alert"},
+    "reptile": {"alert":"creature_reptile_alert"},
+    "insect": {"alert":"creature_insect_alert"},
+    "ooze": {"alert":"creature_ooze_alert"},
+    "construct": {"alert":"creature_construct_alert"},
+    "undead": {"alert":"creature_undead_alert"},
+    "dragon": {"alert":"creature_dragon_alert"},
+    "plant": {"alert":"creature_plant_alert"},
+    "elemental": {"alert":"creature_elemental_alert"}
+  },
+  "creature_overrides": {
+    "mossglow_sprinter": {"profile":"beast"},
+    "lanternshell_tortoise": {"profile":"reptile"}
+  },
+  "planned_behaviors": ["idle", "alert", "attack", "hurt", "defeat", "friendly"]
+}

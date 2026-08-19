@@ -7,6 +7,7 @@
       "protocol": "wayfolio.presentation.v1",
       "event_id": "hemlock-001",
       "sequence": 1,
+      "session_code": "HEMLOCK",
       "scene_id": "lantern-road-01",
       "audience": {"kind":"shared"},
       "event": {"type":"ambience","action":"play","cue":"hemlock_forest","volume":0.5,"fade_duration":1.5}
@@ -15,6 +16,7 @@
       "protocol": "wayfolio.presentation.v1",
       "event_id": "hemlock-002",
       "sequence": 2,
+      "session_code": "HEMLOCK",
       "scene_id": "lantern-road-01",
       "audience": {"kind":"shared"},
       "event": {"type":"music","action":"play","cue":"forest_exploration","volume":0.42,"intensity":0.25,"fade_duration":2.0}
@@ -23,6 +25,7 @@
       "protocol": "wayfolio.presentation.v1",
       "event_id": "hemlock-003",
       "sequence": 3,
+      "session_code": "HEMLOCK",
       "scene_id": "lantern-road-01",
       "audience": {"kind":"shared"},
       "event": {
@@ -40,6 +43,7 @@
       "protocol": "wayfolio.presentation.v1",
       "event_id": "hemlock-004",
       "sequence": 4,
+      "session_code": "HEMLOCK",
       "scene_id": "lantern-road-01",
       "audience": {"kind":"shared"},
       "event": {"type":"sound_effect","cue":"wood_bridge_creak","volume":0.7}
@@ -48,6 +52,22 @@
       "protocol": "wayfolio.presentation.v1",
       "event_id": "hemlock-005",
       "sequence": 5,
+      "session_code": "HEMLOCK",
+      "scene_id": "lantern-road-01",
+      "audience": {"kind":"shared"},
+      "event": {
+        "type": "creature_sound",
+        "creature_id": "lanternshell_tortoise",
+        "creature_type": "reptile",
+        "behavior": "alert",
+        "volume": 0.65
+      }
+    },
+    {
+      "protocol": "wayfolio.presentation.v1",
+      "event_id": "hemlock-006",
+      "sequence": 6,
+      "session_code": "HEMLOCK",
       "scene_id": "lantern-road-01",
       "audience": {"kind":"player","player_id":"renn"},
       "event": {
@@ -63,8 +83,9 @@
     },
     {
       "protocol": "wayfolio.presentation.v1",
-      "event_id": "hemlock-006",
-      "sequence": 6,
+      "event_id": "hemlock-007",
+      "sequence": 7,
+      "session_code": "HEMLOCK",
       "scene_id": "lantern-road-01",
       "audience": {"kind":"player","player_id":"renn"},
       "event": {"type":"ui_sound","cue":"discovery_reveal","volume":0.75}
