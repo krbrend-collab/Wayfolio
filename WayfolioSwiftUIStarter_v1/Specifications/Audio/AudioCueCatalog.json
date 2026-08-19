@@ -79,6 +79,10 @@
     {"id":"ambience_harbor_rope","bus":"ambience","file":"Audio/Ambience/Details/harbor_rope.wav","audience":"shared","loop":false,"default_volume":0.27},
     {"id":"ambience_rain_thunder","bus":"ambience","file":"Audio/Ambience/Details/rain_thunder.wav","audience":"shared","loop":false,"default_volume":0.34},
     {"id":"ambience_rain_runoff","bus":"ambience","file":"Audio/Ambience/Details/rain_runoff.wav","audience":"shared","loop":false,"default_volume":0.29},
-    {"id":"forest_exploration","bus":"music","file":"Audio/Music/forest_exploration.wav","audience":"shared","loop":true,"default_volume":0.45}
+    {"id":"forest_exploration","bus":"music","file":"Audio/Music/forest_exploration.wav","audience":"shared","loop":true,"default_volume":0.45},
+    {"id":"market_day","bus":"music","file":"Audio/Music/market_day.mp3","audience":"shared","loop":true,"default_volume":0.27},
+    {"id":"crowded_pub","bus":"music","file":"Audio/Music/crowded_pub.mp3","audience":"shared","loop":true,"default_volume":0.24},
+    {"id":"harvest_season","bus":"music","file":"Audio/Music/harvest_season.mp3","audience":"shared","loop":true,"default_volume":0.24},
+    {"id":"cave_exploration","bus":"music","file":"Audio/Music/cave_exploration.mp3","audience":"shared","loop":true,"default_volume":0.2}
   ]
 }

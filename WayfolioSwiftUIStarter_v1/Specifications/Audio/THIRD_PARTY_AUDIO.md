@@ -27,3 +27,11 @@ CC0 license: https://creativecommons.org/publicdomain/zero/1.0/
 - Source: https://opengameart.org/content/rpg-sound-pack
 - Imported use: the complete creature-family and body-form cue library
 - Processing: paired performed creature vocals, beetle clicks, slime movement, shade voices, metal, cloth, wood, and magic recordings into encounter cues of at least 1.65 seconds.
+
+## Location music
+
+- `market_day.mp3` — “Medieval: Market Day” by RandomMind: https://opengameart.org/content/medieval-market-day
+- `crowded_pub.mp3` — “Crowded Pub” by Bobjt: https://opengameart.org/content/crowded-pub
+- `harvest_season.mp3` — “Medieval: Harvest Season” by RandomMind: https://opengameart.org/content/medieval-harvest-season
+- `cave_exploration.mp3` — “Nuclear Cave (Loop)” by Hazmat Harry: https://opengameart.org/content/nuclear-cave-loop
+- Imported use: low-volume, looping music paired with location ambience profiles. Music remains on its independent mix bus.

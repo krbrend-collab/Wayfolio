@@ -163,10 +163,18 @@ class WayfolioAudioDirector {
 
   async setLocationAmbience(event) {
     this.stopAmbienceDetails();
-    if (event.action === 'stop') return this.setLoop('ambience', 'stop');
+    if (event.action === 'stop') {
+      await this.setLoop('ambience', 'stop');
+      return this.setLoop('music', 'stop');
+    }
     const profile = this.locationProfiles?.profiles?.[event.profile];
     if (!profile) return this.setStatus(`Unknown ambience profile: ${event.profile}`);
     await this.setLoop('ambience', 'play', profile.base_cue, event.volume ?? profile.default_volume, event.fade_duration);
+    if (profile.music?.cue) {
+      await this.setLoop('music', 'play', profile.music.cue, profile.music.volume, event.fade_duration ?? 2);
+    } else {
+      await this.setLoop('music', 'stop');
+    }
     const generation = this.ambienceGeneration;
     this.scheduleAmbienceDetail(profile, generation);
     this.setStatus(`Ambience: ${profile.label}`);
