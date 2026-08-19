@@ -22,6 +22,7 @@ const spellAudioProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'SpellA
 const movementAudioProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'MovementAudioProfiles.json'), 'utf8'));
 const sceneTransitionProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'SceneTransitionProfiles.json'), 'utf8'));
 const audioDirectorRules = JSON.parse(await readFile(join(audioSpecRoot, 'AudioDirectorRules.json'), 'utf8'));
+const npcPresentationProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'NPCPresentationProfiles.json'), 'utf8'));
 const cueIDs = new Set(audioCatalog.cues.map(cue => cue.id));
 const audioDirectorState = {lastByKey:new Map(), sceneSurface:movementAudioProfiles.fallback_surface};
 const renn = JSON.parse(await readFile(join(contentDirectory, 'renn.json'), 'utf8'));
@@ -274,6 +275,42 @@ function directAudio(context, text, overrides = {}) {
   return directorAllows(resolvedSurface, 'movement') && emitMovementSound(resolvedSurface, mode, overrides);
 }
 
+function resolveNPCPresentation(event) {
+  const named = npcPresentationProfiles.profiles[event.npc_id];
+  const requestedArchetype = ['hostile', 'hidden'].includes(event.arrival_style)
+    ? event.arrival_style : (event.archetype || named?.archetype);
+  const archetype = npcPresentationProfiles.archetypes[requestedArchetype]
+    || npcPresentationProfiles.archetypes[npcPresentationProfiles.fallback_archetype];
+  return {...archetype, ...named, ...(event.arrival_style && npcPresentationProfiles.archetypes[event.arrival_style]),
+    voice_profile:named?.voice_profile || archetype.voice_profile};
+}
+
+function emitNPCArrival(event) {
+  const profile = resolveNPCPresentation(event);
+  if (!profile) return false;
+  const identity = event.npc_id || event.archetype || npcPresentationProfiles.fallback_archetype;
+  const now = Date.now();
+  const lastArrival = audioDirectorState.lastByKey.get(`npc:${identity}`) || 0;
+  let accepted = false;
+  if (now - lastArrival >= npcPresentationProfiles.arrival_cooldown_ms && cueIDs.has(profile.entrance_cue)) {
+    audioDirectorState.lastByKey.set(`npc:${identity}`, now);
+    accepted = emitPresentation({type:'sound_effect', cue:profile.entrance_cue,
+      volume:Math.min(0.62, Math.max(0, event.volume ?? profile.volume))});
+  }
+  if (typeof event.text === 'string' && event.text.trim()) {
+    const speakerID = characterVoiceProfiles.profiles[profile.voice_profile]
+      ? profile.voice_profile : characterVoiceProfiles.default_profile;
+    const line = {line_id:event.line_id || `npc-${identity}-${crypto.randomUUID()}`,
+      speaker_id:speakerID, speaker_name:profile.display_name || event.display_name || 'Unknown Voice',
+      text:event.text.trim(), performance:event.performance || 'natural, conversational',
+      pronunciations:profile.pronunciations || {}};
+    const timer = setTimeout(() => emitDialogue([line]), Math.max(0, Number(profile.speech_delay_ms) || 0));
+    timer.unref?.();
+    accepted = true;
+  }
+  return accepted;
+}
+
 function broadcastSnapshots() {
   for (const client of sockets.clients) {
     send(client, snapshot(client.meta.role, client.meta.playerID));
@@ -358,6 +395,8 @@ sockets.on('connection', socket => {
           ? emitSceneTransition(message.event.transition, message.event)
         : message.event?.type === 'audio_director'
           ? directAudio(message.event.context === 'scene' ? 'scene' : 'action', message.event.text, message.event)
+        : message.event?.type === 'npc_arrival'
+          ? emitNPCArrival(message.event)
         : emitPresentation(message.event);
       if (!accepted) {
         return send(socket, {type:'error', message:'Invalid presentation event or unknown cue.'});
