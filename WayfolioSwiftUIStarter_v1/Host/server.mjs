@@ -18,6 +18,7 @@ const characterVoiceProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'Ch
 const locationAmbienceProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'LocationAmbienceProfiles.json'), 'utf8'));
 const actionSoundProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'ActionSoundProfiles.json'), 'utf8'));
 const encounterAudioProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'EncounterAudioProfiles.json'), 'utf8'));
+const spellAudioProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'SpellAudioProfiles.json'), 'utf8'));
 const cueIDs = new Set(audioCatalog.cues.map(cue => cue.id));
 const renn = JSON.parse(await readFile(join(contentDirectory, 'renn.json'), 'utf8'));
 const bridgeEncounter = JSON.parse(await readFile(join(contentDirectory, 'hemlock-bridge.json'), 'utf8'));
@@ -208,6 +209,15 @@ function emitEncounterAudio(state) {
   return accepted;
 }
 
+function emitSpellSound(family, overrides = {}) {
+  const fallback = spellAudioProfiles.families[spellAudioProfiles.fallback_family];
+  const profile = spellAudioProfiles.families[family] || fallback;
+  if (!profile) return false;
+  const intensity = Math.max(0.25, Math.min(1, Number(overrides.intensity) || 0.6));
+  const volume = Math.min(0.72, (overrides.volume ?? profile.volume) * (0.72 + intensity * 0.28));
+  return emitPresentation({type:'sound_effect', cue:profile.cue, volume});
+}
+
 function broadcastSnapshots() {
   for (const client of sockets.clients) {
     send(client, snapshot(client.meta.role, client.meta.playerID));
@@ -283,6 +293,8 @@ sockets.on('connection', socket => {
         ? emitActionSound(message.event.action, message.event)
         : message.event?.type === 'encounter_audio'
           ? emitEncounterAudio(message.event.state)
+        : message.event?.type === 'spell_sound'
+          ? emitSpellSound(message.event.family, message.event)
         : emitPresentation(message.event);
       if (!accepted) {
         return send(socket, {type:'error', message:'Invalid presentation event or unknown cue.'});
