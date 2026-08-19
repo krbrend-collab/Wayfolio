@@ -4,19 +4,23 @@ class WayfolioAudioDirector {
     this.master = null;
     this.gains = new Map();
     this.loops = new Map();
+    this.buffers = new Map();
     this.catalog = new Map();
     this.profiles = null;
+    this.voiceRegistry = null;
     this.ready = false;
     this.busLevels = {voice:1, sfx:0.9, ambience:0.55, music:0.5, ui:0.75};
   }
 
   async load() {
-    const [catalog, profiles] = await Promise.all([
+    const [catalog, profiles, voiceRegistry] = await Promise.all([
       fetch('/audio-catalog.json').then(response => response.json()),
       fetch('/creature-audio-profiles.json').then(response => response.json()),
+      fetch('/character-voice-profiles.json').then(response => response.json()),
     ]);
     this.catalog = new Map(catalog.cues.map(cue => [cue.id, cue]));
     this.profiles = profiles;
+    this.voiceRegistry = voiceRegistry;
   }
 
   async enable() {
@@ -47,42 +51,61 @@ class WayfolioAudioDirector {
     this.gains.get(bus)?.gain.setTargetAtTime(normalized, this.context.currentTime, 0.03);
   }
 
-  mediaFor(cue, loop = false) {
-    const media = new Audio(`/${cue.file}`);
-    media.loop = loop;
-    media.preload = 'auto';
-    media.volume = Math.max(0, Math.min(1, cue.default_volume ?? 1));
-    const source = this.context.createMediaElementSource(media);
-    source.connect(this.gains.get(cue.bus));
-    return media;
+  async bufferFor(cue) {
+    if (!this.buffers.has(cue.id)) {
+      const pending = fetch(`/${cue.file}`)
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.arrayBuffer();
+        })
+        .then(data => this.context.decodeAudioData(data));
+      this.buffers.set(cue.id, pending);
+    }
+    return this.buffers.get(cue.id);
+  }
+
+  async sourceFor(cue, loop = false, requestedVolume) {
+    const source = this.context.createBufferSource();
+    source.buffer = await this.bufferFor(cue);
+    source.loop = loop;
+    const cueGain = this.context.createGain();
+    cueGain.gain.value = Math.max(0, Math.min(1, requestedVolume ?? cue.default_volume ?? 1));
+    source.connect(cueGain);
+    cueGain.connect(this.gains.get(cue.bus));
+    return source;
   }
 
   async oneShot(cueID, requestedVolume) {
     if (!this.ready) return this.setStatus(`Enable audio to play ${cueID}`);
     const cue = this.catalog.get(cueID);
     if (!cue) return this.setStatus(`Unknown cue: ${cueID}`);
-    const media = this.mediaFor(cue);
-    if (requestedVolume != null) media.volume = Math.max(0, Math.min(1, requestedVolume));
-    media.addEventListener('ended', () => media.remove());
-    await media.play().catch(() => this.setStatus(`Could not play ${cueID}`));
-    this.setStatus(`Playing ${cueID}`);
+    try {
+      const source = await this.sourceFor(cue, false, requestedVolume);
+      source.start();
+      this.setStatus(`Playing ${cueID}`);
+    } catch (error) {
+      this.setStatus(`Could not play ${cueID}: ${error.message}`);
+    }
   }
 
   async setLoop(bus, action, cueID, requestedVolume, fadeDuration = 0.4) {
     const existing = this.loops.get(bus);
     if (existing) {
-      existing.pause();
+      try { existing.stop(); } catch {}
       this.loops.delete(bus);
     }
     if (action === 'stop') return this.setStatus(`${bus} stopped`);
     if (!this.ready) return this.setStatus(`Enable audio to start ${cueID}`);
     const cue = this.catalog.get(cueID);
     if (!cue || cue.bus !== bus) return this.setStatus(`Invalid ${bus} cue: ${cueID}`);
-    const media = this.mediaFor(cue, true);
-    if (requestedVolume != null) media.volume = Math.max(0, Math.min(1, requestedVolume));
-    this.loops.set(bus, media);
-    await media.play().catch(() => this.setStatus(`Could not start ${cueID}`));
-    this.setStatus(`${bus}: ${cueID}${fadeDuration ? ` · ${fadeDuration}s transition` : ''}`);
+    try {
+      const source = await this.sourceFor(cue, true, requestedVolume);
+      this.loops.set(bus, source);
+      source.start();
+      this.setStatus(`${bus}: ${cueID}${fadeDuration ? ` · ${fadeDuration}s transition` : ''}`);
+    } catch (error) {
+      this.setStatus(`Could not start ${cueID}: ${error.message}`);
+    }
   }
 
   resolveCreature(event) {
@@ -103,6 +126,48 @@ class WayfolioAudioDirector {
       || null;
   }
 
+  resolveVoice(speakerID) {
+    const registry = this.voiceRegistry;
+    if (!registry) return {id:'narrator', profile:null};
+    const normalized = String(speakerID || '').trim().toLowerCase();
+    if (registry.profiles[normalized]) return {id:normalized, profile:registry.profiles[normalized]};
+    const match = Object.entries(registry.profiles)
+      .find(([, profile]) => profile.aliases?.some(alias => alias.toLowerCase() === normalized));
+    const id = match?.[0] || registry.default_profile;
+    return {id, profile:registry.profiles[id]};
+  }
+
+  browserVoiceFor(settings) {
+    const voices = speechSynthesis.getVoices();
+    const language = settings.language.toLowerCase();
+    const matching = voices.filter(voice => voice.lang.toLowerCase().startsWith(language));
+    const candidates = matching.length ? matching : voices;
+    if (!candidates.length) return null;
+    return candidates[settings.voice_index % candidates.length];
+  }
+
+  performanceFor(event, profile) {
+    const settings = profile?.browser_voice || {language:'en-US', voice_index:0, rate:0.9, pitch:1};
+    const text = `${event.performance || ''} ${event.emotion || ''}`.toLowerCase();
+    let rate = settings.rate;
+    let pitch = settings.pitch;
+    for (const [name, modifier] of Object.entries(this.voiceRegistry?.performance_modifiers || {})) {
+      if (!text.includes(name)) continue;
+      rate *= modifier.rate_multiplier;
+      pitch += modifier.pitch_delta;
+    }
+    const form = profile?.forms?.[event.form];
+    if (form) {
+      rate *= form.rate_multiplier;
+      pitch += form.pitch_delta;
+    }
+    return {
+      ...settings,
+      rate:Math.max(0.5, Math.min(2, rate)),
+      pitch:Math.max(0, Math.min(2, pitch)),
+    };
+  }
+
   speak(event) {
     const caption = document.getElementById('dialogue-caption');
     if (caption) {
@@ -111,8 +176,13 @@ class WayfolioAudioDirector {
     }
     if (!this.ready || !('speechSynthesis' in window)) return;
     speechSynthesis.cancel();
+    const resolved = this.resolveVoice(event.speaker_id);
+    const settings = this.performanceFor(event, resolved.profile);
     const utterance = new SpeechSynthesisUtterance(event.text);
-    utterance.rate = event.performance?.includes('measured') ? 0.88 : 0.96;
+    utterance.lang = settings.language;
+    utterance.voice = this.browserVoiceFor(settings);
+    utterance.rate = settings.rate;
+    utterance.pitch = settings.pitch;
     utterance.volume = this.busLevels.voice;
     this.duck(true);
     utterance.onend = () => {
@@ -121,7 +191,7 @@ class WayfolioAudioDirector {
     };
     utterance.onerror = () => this.duck(false);
     speechSynthesis.speak(utterance);
-    this.setStatus(`Dialogue: ${event.speaker_id}`);
+    this.setStatus(`Dialogue: ${resolved.profile?.display_name || resolved.id}`);
   }
 
   duck(active) {
@@ -133,7 +203,9 @@ class WayfolioAudioDirector {
   }
 
   stopAll() {
-    for (const media of this.loops.values()) media.pause();
+    for (const source of this.loops.values()) {
+      try { source.stop(); } catch {}
+    }
     this.loops.clear();
     if ('speechSynthesis' in window) speechSynthesis.cancel();
     this.duck(false);

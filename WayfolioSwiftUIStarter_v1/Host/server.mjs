@@ -14,6 +14,7 @@ const audioRoot = join(starterRoot, 'Wayfolio', 'Resources', 'Audio');
 const audioSpecRoot = join(starterRoot, 'Specifications', 'Audio');
 const audioCatalog = JSON.parse(await readFile(join(audioSpecRoot, 'AudioCueCatalog.json'), 'utf8'));
 const creatureProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'CreatureAudioProfiles.json'), 'utf8'));
+const characterVoiceProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'CharacterVoiceProfiles.json'), 'utf8'));
 const cueIDs = new Set(audioCatalog.cues.map(cue => cue.id));
 const renn = JSON.parse(await readFile(join(contentDirectory, 'renn.json'), 'utf8'));
 const bridgeEncounter = JSON.parse(await readFile(join(contentDirectory, 'hemlock-bridge.json'), 'utf8'));
@@ -67,8 +68,9 @@ async function saveSession() {
 const types = {'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.json':'application/json','.wav':'audio/wav','.m4a':'audio/mp4','.mp3':'audio/mpeg'};
 const server = http.createServer(async (request, response) => {
   const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
-  if (pathname === '/audio-catalog.json' || pathname === '/creature-audio-profiles.json') {
-    const value = pathname === '/audio-catalog.json' ? audioCatalog : creatureProfiles;
+  if (['/audio-catalog.json', '/creature-audio-profiles.json', '/character-voice-profiles.json'].includes(pathname)) {
+    const value = pathname === '/audio-catalog.json' ? audioCatalog
+      : pathname === '/creature-audio-profiles.json' ? creatureProfiles : characterVoiceProfiles;
     response.writeHead(200, {'content-type':'application/json', 'cache-control':'no-store'});
     return response.end(JSON.stringify(value));
   }

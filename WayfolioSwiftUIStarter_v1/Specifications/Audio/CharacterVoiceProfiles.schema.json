@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wayfolio.local/schemas/character-voice-profiles-v1.json",
+  "title": "Wayfolio Character Voice Profiles v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["registry_version", "default_profile", "profiles", "performance_modifiers"],
+  "properties": {
+    "registry_version": {"const": 1},
+    "default_profile": {"type": "string", "minLength": 1},
+    "profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/profile"}
+    },
+    "performance_modifiers": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/modifier"}
+    }
+  },
+  "$defs": {
+    "modifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rate_multiplier", "pitch_delta"],
+      "properties": {
+        "rate_multiplier": {"type": "number", "minimum": 0.5, "maximum": 2},
+        "pitch_delta": {"type": "number", "minimum": -1, "maximum": 1}
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["display_name", "role", "status", "aliases", "direction", "boundaries", "browser_voice", "provider"],
+      "properties": {
+        "display_name": {"type": "string", "minLength": 1},
+        "role": {"type": "string", "minLength": 1},
+        "status": {"enum": ["draft", "approved"]},
+        "aliases": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "direction": {"type": "string", "minLength": 1},
+        "boundaries": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "browser_voice": {
+          "type": "object", "additionalProperties": false,
+          "required": ["language", "voice_index", "rate", "pitch"],
+          "properties": {
+            "language": {"type": "string", "minLength": 2},
+            "voice_index": {"type": "integer", "minimum": 0},
+            "rate": {"type": "number", "minimum": 0.5, "maximum": 2},
+            "pitch": {"type": "number", "minimum": 0, "maximum": 2}
+          }
+        },
+        "provider": {
+          "type": "object", "additionalProperties": false,
+          "required": ["name", "model", "voice_id"],
+          "properties": {
+            "name": {"type": ["string", "null"]},
+            "model": {"type": ["string", "null"]},
+            "voice_id": {"type": ["string", "null"]}
+          }
+        },
+        "forms": {"type": "object", "additionalProperties": {"$ref": "#/$defs/modifier"}}
+      }
+    }
+  }
+}

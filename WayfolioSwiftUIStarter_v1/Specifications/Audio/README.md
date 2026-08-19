@@ -5,6 +5,9 @@ shared presentation screen, and player Wayfolios.
 
 - `AudioCueCatalog.json`: available semantic cues and playback defaults.
 - `CreatureAudioProfiles.json`: creature type and named-creature cue routing.
+- `CharacterVoiceProfiles.json`: canonical speaker direction plus browser and
+  future provider mappings, keyed by stable `speaker_id`.
+- `CharacterVoiceProfiles.schema.json`: validation contract for that registry.
 - `PresentationEvent.schema.json`: machine-readable event validation contract.
 - `creature_resolution_fixture.json`: expected routing for wolves, bunnies,
   slimes, spirits, named creatures, and fallbacks.

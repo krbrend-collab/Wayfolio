@@ -77,13 +77,40 @@ def resolve_creature_cue(properties: dict, profiles: dict) -> str | None:
     return profiles["profiles"][profiles["fallback_profile"]].get(behavior)
 
 
+def validate_voice_registry(registry: dict, errors: list[str]) -> None:
+    profiles = registry.get("profiles", {})
+    if registry.get("registry_version") != 1: fail(errors, "Unexpected voice registry version")
+    if registry.get("default_profile") not in profiles: fail(errors, "Unknown default voice profile")
+    identities: set[str] = set(profiles)
+    for profile_id, profile in profiles.items():
+        if not profile.get("display_name"): fail(errors, f"{profile_id}: missing display name")
+        if profile.get("status") not in {"draft", "approved"}: fail(errors, f"{profile_id}: invalid status")
+        browser = profile.get("browser_voice", {})
+        if not 0.5 <= browser.get("rate", -1) <= 2: fail(errors, f"{profile_id}: invalid browser rate")
+        if not 0 <= browser.get("pitch", -1) <= 2: fail(errors, f"{profile_id}: invalid browser pitch")
+        if not isinstance(browser.get("voice_index"), int) or browser["voice_index"] < 0:
+            fail(errors, f"{profile_id}: invalid browser voice index")
+        for alias in profile.get("aliases", []):
+            normalized = alias.lower()
+            if normalized in identities: fail(errors, f"Duplicate voice identity: {alias}")
+            identities.add(normalized)
+    for name, modifier in registry.get("performance_modifiers", {}).items():
+        if not 0.5 <= modifier.get("rate_multiplier", -1) <= 2:
+            fail(errors, f"{name}: invalid performance rate multiplier")
+        if not -1 <= modifier.get("pitch_delta", -2) <= 1:
+            fail(errors, f"{name}: invalid performance pitch delta")
+
+
 def main() -> int:
     errors: list[str] = []
     catalog = load_json("AudioCueCatalog.json")
     profiles = load_json("CreatureAudioProfiles.json")
+    voice_registry = load_json("CharacterVoiceProfiles.json")
     fixture = load_json("hemlock_presentation_fixture.json")
     creature_fixture = load_json("creature_resolution_fixture.json")
     load_json("PresentationEvent.schema.json")
+    load_json("CharacterVoiceProfiles.schema.json")
+    validate_voice_registry(voice_registry, errors)
 
     cue_ids: set[str] = set()
     for cue in catalog["cues"]:
@@ -136,7 +163,7 @@ def main() -> int:
         print("Audio package validation failed:", file=sys.stderr)
         for error in errors: print(f"- {error}", file=sys.stderr)
         return 1
-    print(f"Audio package valid: {len(cue_ids)} cues, {len(profiles['profiles'])} type profiles, {len(profiles['body_form_profiles'])} body forms, {len(creature_fixture['cases'])} creature cases, {len(fixture['events'])} presentation events.")
+    print(f"Audio package valid: {len(cue_ids)} cues, {len(profiles['profiles'])} type profiles, {len(profiles['body_form_profiles'])} body forms, {len(voice_registry['profiles'])} character voices, {len(creature_fixture['cases'])} creature cases, {len(fixture['events'])} presentation events.")
     return 0
 
 

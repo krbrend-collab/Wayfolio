@@ -7,7 +7,16 @@ speech while keeping dialogue text authoritative and speech optional. The DM
 chooses what is said; the Voice Director chooses the established voice and safe
 performance parameters.
 
-## Initial voice registry
+## Shared voice registry
+
+`CharacterVoiceProfiles.json` is the machine-readable source of truth used by
+the live host. Dialogue events select a profile with `speaker_id`; aliases are
+accepted at the boundary, while an unknown ID safely falls back to `narrator`.
+The registry stores direction and provider slots as well as temporary browser
+speech settings, so casting a production TTS voice does not change the event
+contract. Browser voices are previews and may differ between devices.
+
+## Initial Wayfolio speakers
 
 | Speaker ID | Role | Baseline delivery | Fallback |
 |---|---|---|---|

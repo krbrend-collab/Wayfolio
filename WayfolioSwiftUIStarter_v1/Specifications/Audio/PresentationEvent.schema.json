@@ -38,7 +38,8 @@
       "properties": {
         "type":{"const":"dialogue"}, "line_id":{"type":"string","minLength":1},
         "speaker_id":{"type":"string","minLength":1}, "text":{"type":"string","minLength":1},
-        "performance":{"type":"string"}, "priority":{"enum":["background","normal","important","critical"]},
+        "performance":{"type":"string"}, "emotion":{"type":"string"}, "form":{"type":"string"},
+        "priority":{"enum":["background","normal","important","critical"]},
         "interrupt":{"enum":["queue","replace_lower_priority","immediate"]}, "caption":{"type":"boolean"}
       }
     },
