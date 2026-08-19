@@ -137,6 +137,22 @@ Transitions cover doors, entering buildings, camp setup, discoveries, danger
 reveals, combat starts, victories, rests, travel departures and arrivals, and
 quest completion. They remain transient presentation events.
 
+### Audio director
+
+The host may infer at most one world cue from a public action or public scene
+change. Major transitions outrank ordinary transitions, which outrank movement.
+Per-category and per-cue cooldowns suppress repetition. Low-confidence text
+produces silence. Private player declarations are never inspected for shared
+audio, preventing presentation from leaking a hidden action.
+
+The DM may also request the same bounded director explicitly:
+
+```json
+{"type":"audio_director","context":"action","text":"I sneak across the wooden bridge."}
+```
+
+This produces only presentation events and cannot mutate campaign state.
+
 ### Presentation control
 
 ```json

@@ -20,6 +20,8 @@ shared presentation screen, and player Wayfolios.
   footstep sequences.
 - `SceneTransitionProfiles.json`: semantic cues for travel, rest, discoveries,
   danger, combat, victory, camp, doors, and building entry.
+- `AudioDirectorRules.json`: conservative public-context inference, priority,
+  privacy, and cooldown rules for automatic live-play triggering.
 - `PresentationEvent.schema.json`: machine-readable event validation contract.
 - `creature_resolution_fixture.json`: expected routing for wolves, bunnies,
   slimes, spirits, named creatures, and fallbacks.

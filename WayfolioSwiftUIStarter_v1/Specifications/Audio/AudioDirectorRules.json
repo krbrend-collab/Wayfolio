@@ -1,0 +1,36 @@
+{
+  "profile_version": 1,
+  "cooldowns_ms": {"movement":3000,"transition":8000,"major_transition":15000},
+  "movement_verbs": ["walk","step","move","approach","cross","climb","run","sprint","sneak","creep","tiptoe","march","charge"],
+  "modes": {
+    "sneak": ["sneak","creep","tiptoe","quietly","carefully","stealth"],
+    "run": ["run","sprint","rush","dash","flee"],
+    "heavy": ["march","stomp","charge","heavy","armor"]
+  },
+  "surfaces": {
+    "grass": ["grass","meadow","field","leaves","forest floor"],
+    "gravel": ["gravel","rubble","pebbles","shingle"],
+    "stone": ["stone","cobble","cobblestone","tile","ruins","cave floor"],
+    "wood": ["wood","wooden","plank","bridge","dock","floorboard"],
+    "metal": ["metal","iron","steel","grate"],
+    "water": ["water","river","stream","puddle","shallows"],
+    "mud": ["mud","mire","bog","swamp"],
+    "snow": ["snow","ice","frost"],
+    "bones": ["bones","skeleton","ossuary"],
+    "dirt": ["dirt","earth","soil","path","trail","road"]
+  },
+  "transitions": {
+    "combat_start": ["roll initiative","combat begins","attack begins","battle begins","draw my weapon","charge into battle"],
+    "danger_reveal": ["danger appears","ambush","threat emerges","trap springs","monster appears"],
+    "victory": ["victory","battle is won","enemy defeated","combat ends"],
+    "travel_arrival": ["arrive","arrival","reach our destination","come to the"],
+    "travel_departure": ["depart","set out","begin the journey","leave for","take the road"],
+    "enter_building": ["enter the tavern","enter the inn","enter the shop","enter the house","step inside"],
+    "door": ["open the door","unlock the door","push the door","door opens"],
+    "camp_setup": ["make camp","set up camp","pitch the tent","light the campfire"],
+    "rest": ["take a rest","long rest","short rest","go to sleep","settle down to rest"],
+    "discovery": ["discover","reveal","hidden passage","secret door"],
+    "quest_complete": ["quest complete","mission complete","chapter complete"]
+  },
+  "major_transitions": ["combat_start","danger_reveal","victory","quest_complete"]
+}

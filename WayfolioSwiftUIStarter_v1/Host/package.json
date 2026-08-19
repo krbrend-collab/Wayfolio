@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node test-session.mjs"
+    "test": "node test-session.mjs",
+    "test:audio-director": "node test-audio-director.mjs"
   },
   "dependencies": {
     "ws": "^8.18.0"
