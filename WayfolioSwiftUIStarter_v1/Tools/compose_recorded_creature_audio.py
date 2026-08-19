@@ -31,7 +31,12 @@ def compose(first: Path, second: Path, destination: Path) -> None:
     rate, opening = read_mono(first)
     second_rate, response = read_mono(second)
     if second_rate != rate:
-        raise ValueError("Recordings must have matching sample rates")
+        source = response
+        target_count = round(len(source) * rate / second_rate)
+        response = array("h", (
+            source[min(len(source) - 1, round(index * second_rate / rate))]
+            for index in range(target_count)
+        ))
 
     # A brief pause followed by a lower-volume response reads as an encounter
     # vocalization instead of a UI notification.

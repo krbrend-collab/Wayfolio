@@ -41,6 +41,7 @@
 		A10000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift */; };
 		A10000000000000000000009 /* Presentation/PresentationRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* Presentation/PresentationRuntime.swift */; };
 		A10000000000000000000010 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* Audio */; };
+		A10000000000000000000014 /* Features/FieldGuide/CreatureSoundLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* Features/FieldGuide/CreatureSoundLibraryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -80,6 +81,7 @@
 		A20000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/PresentationAudioCoordinator.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* Presentation/PresentationRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/PresentationRuntime.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Audio; path = Resources/Audio; sourceTree = "<group>"; };
+		A20000000000000000000014 /* Features/FieldGuide/CreatureSoundLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/FieldGuide/CreatureSoundLibraryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,6 +122,7 @@
 				02E04D64867B18EB7B4BBB4A /* DesignSystem/WayfolioTypography.swift */,
 				EF13B7F3F8B0343AD0B5E2E7 /* Features/Entries/EntriesView.swift */,
 				35573AA89571D3E16E197762 /* Features/FieldGuide/FieldGuideView.swift */,
+				A20000000000000000000014 /* Features/FieldGuide/CreatureSoundLibraryView.swift */,
 				B4EFE08EEB3E1F52FE0F4B1E /* Features/Placeholders/GuideHomeView.swift */,
 				E77EA4FC7F7D2EC1DD89E684 /* Features/Placeholders/MapPlaceholderView.swift */,
 				6663E7A453742F05263D50BE /* Features/Placeholders/MorePlaceholderView.swift */,
@@ -233,6 +236,7 @@
 				8167A6E95C14EA7D6376AB1B /* DesignSystem/WayfolioTypography.swift in Sources */,
 				62BE3EF2FCDC983CA651F349 /* Features/Entries/EntriesView.swift in Sources */,
 				92CC5C79B1961B5378C13AD3 /* Features/FieldGuide/FieldGuideView.swift in Sources */,
+				A10000000000000000000014 /* Features/FieldGuide/CreatureSoundLibraryView.swift in Sources */,
 				3277E767BEC55BD4D95405FF /* Features/Placeholders/GuideHomeView.swift in Sources */,
 				FCD2176FBD871C4DD7DC4540 /* Features/Placeholders/MapPlaceholderView.swift in Sources */,
 				665F8EE93EA6A9266A4E0717 /* Features/Placeholders/MorePlaceholderView.swift in Sources */,

@@ -20,3 +20,10 @@ All assets below are released under CC0 1.0.
 - Processing: converted to 16-bit mono PCM, then paired into 1.65–2.2 second encounter vocalizations with a short natural pause and fade.
 
 CC0 license: https://creativecommons.org/publicdomain/zero/1.0/
+
+## RPG Sound Pack
+
+- Creator: artisticdude
+- Source: https://opengameart.org/content/rpg-sound-pack
+- Imported use: the complete creature-family and body-form cue library
+- Processing: paired performed creature vocals, beetle clicks, slime movement, shade voices, metal, cloth, wood, and magic recordings into encounter cues of at least 1.65 seconds.

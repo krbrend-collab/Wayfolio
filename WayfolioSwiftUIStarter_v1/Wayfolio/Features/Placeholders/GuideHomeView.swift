@@ -21,6 +21,8 @@ struct GuideHomeView: View {
                     }
                     .buttonStyle(.plain)
                 }
+
+                CreatureSoundLibraryView()
             }
             .padding(WayfolioMetrics.contentInset)
             .parchmentSurface()
