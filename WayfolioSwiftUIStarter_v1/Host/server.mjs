@@ -16,6 +16,7 @@ const audioCatalog = JSON.parse(await readFile(join(audioSpecRoot, 'AudioCueCata
 const creatureProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'CreatureAudioProfiles.json'), 'utf8'));
 const characterVoiceProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'CharacterVoiceProfiles.json'), 'utf8'));
 const locationAmbienceProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'LocationAmbienceProfiles.json'), 'utf8'));
+const actionSoundProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'ActionSoundProfiles.json'), 'utf8'));
 const cueIDs = new Set(audioCatalog.cues.map(cue => cue.id));
 const renn = JSON.parse(await readFile(join(contentDirectory, 'renn.json'), 'utf8'));
 const bridgeEncounter = JSON.parse(await readFile(join(contentDirectory, 'hemlock-bridge.json'), 'utf8'));
@@ -162,7 +163,7 @@ function resolveCreatureCue(event) {
     || null;
 }
 
-function emitPresentation(event) {
+function emitPresentation(event, audience = {kind:'shared'}) {
   if (event?.type === 'creature_sound') {
     const cue = resolveCreatureCue(event);
     if (!cue || !cueIDs.has(cue)) return false;
@@ -179,9 +180,20 @@ function emitPresentation(event) {
     type:'presentation_event', protocol:'wayfolio.presentation.v1',
     event_id:crypto.randomUUID(), sequence:session.presentationSequence,
     session_code:session.code, scene_id:session.activeEncounter?.id || 'hemlock-open',
-    audience:{kind:'shared'}, event,
-  }, client => client.meta.role === 'screen' || client.meta.role === 'dm');
+    audience, event,
+  }, client => audience.kind === 'player'
+    ? client.meta.role === 'wayfolio' && client.meta.playerID === audience.player_id
+    : client.meta.role === 'screen' || client.meta.role === 'dm');
   return true;
+}
+
+function emitActionSound(action, overrides = {}) {
+  const profile = actionSoundProfiles.actions[action];
+  if (!profile) return false;
+  const kind = overrides.audience || profile.audience;
+  const player_id = overrides.player_id;
+  const event = {type:profile.type, cue:profile.cue, volume:overrides.volume ?? profile.volume};
+  return emitPresentation(event, {kind, ...(player_id ? {player_id} : {})});
 }
 
 function broadcastSnapshots() {
@@ -208,9 +220,11 @@ function resolveRoll(pending, die, mode) {
     session.activeEncounter = {...session.activeEncounter, status:'resolved', succeeded};
     if (outcome.discovery && !session.characterState.discoveries.includes(outcome.discovery)) {
       session.characterState.discoveries.push(outcome.discovery);
+      emitActionSound('discovery_reveal');
     }
     if (outcome.journal && !session.characterState.journal.includes(outcome.journal)) {
       session.characterState.journal.push(outcome.journal);
+      emitActionSound('journal_update', {player_id:pending.playerID});
     }
     broadcast({type:'scene_update', scene_title:session.sceneTitle, scene_text:session.sceneText},
       client => client.meta.role === 'screen' || client.meta.role === 'dm');
@@ -253,7 +267,10 @@ sockets.on('connection', socket => {
     }
 
     if (message.type === 'dm_presentation' && socket.meta.role === 'dm') {
-      if (!emitPresentation(message.event)) {
+      const accepted = message.event?.type === 'action_sound'
+        ? emitActionSound(message.event.action, message.event)
+        : emitPresentation(message.event);
+      if (!accepted) {
         return send(socket, {type:'error', message:'Invalid presentation event or unknown cue.'});
       }
       void saveSession();
@@ -327,7 +344,7 @@ sockets.on('connection', socket => {
       if (!Number.isInteger(die) || die < 1 || die > 20) {
         return send(socket, {type:'error', message:'A physical d20 result must be from 1 through 20.'});
       }
-      if (mode === 'digital') emitPresentation({type:'sound_effect', cue:'dice_roll', volume:0.55});
+      if (mode === 'digital') emitActionSound('dice_roll');
       resolveRoll(pending, die, mode);
     }
 
