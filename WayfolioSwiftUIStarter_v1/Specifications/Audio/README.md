@@ -22,6 +22,8 @@ shared presentation screen, and player Wayfolios.
   danger, combat, victory, camp, doors, and building entry.
 - `AudioDirectorRules.json`: conservative public-context inference, priority,
   privacy, and cooldown rules for automatic live-play triggering.
+- `NPCPresentationProfiles.json`: stable NPC entrance, voice, timing, and
+  pronunciation profiles with generic archetype fallbacks.
 - `PresentationEvent.schema.json`: machine-readable event validation contract.
 - `creature_resolution_fixture.json`: expected routing for wolves, bunnies,
   slimes, spirits, named creatures, and fallbacks.

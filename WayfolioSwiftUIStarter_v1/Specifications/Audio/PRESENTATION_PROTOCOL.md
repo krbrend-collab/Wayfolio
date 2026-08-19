@@ -153,6 +153,25 @@ The DM may also request the same bounded director explicitly:
 
 This produces only presentation events and cannot mutate campaign state.
 
+### NPC arrival and speech
+
+```json
+{
+  "type":"npc_arrival",
+  "npc_id":"koori",
+  "archetype":"spellcaster",
+  "text":"The lanterns are waking up.",
+  "performance":"joyful"
+}
+```
+
+The host resolves a named NPC first, then the requested archetype, then the
+ordinary fallback. It plays one restrained entrance cue and queues speech after
+the profile's short entrance delay. Named profiles always retain their stable
+voice and pronunciation notes. Unknown NPCs use `unknown_voice` until assigned
+a permanent profile. Arrival cooldowns prevent repeated entrances, and captions
+remain available if speech playback fails.
+
 ### Presentation control
 
 ```json

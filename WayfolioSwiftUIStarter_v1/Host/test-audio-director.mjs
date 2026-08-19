@@ -47,6 +47,17 @@ await screen.next(message => message.type === 'presentation_event' && message.ev
 dm.socket.send(JSON.stringify({type:'dm_presentation', event:{type:'audio_director', context:'action', text:'I inspect the old carving.'}}));
 await dm.next(message => message.type === 'error' && message.message.includes('Invalid presentation'));
 
+dm.socket.send(JSON.stringify({type:'dm_presentation', event:{
+  type:'npc_arrival', npc_id:'koori', archetype:'spellcaster',
+  text:'The lanterns are waking up.', performance:'joyful',
+}}));
+await screen.next(message => message.type === 'presentation_event' && message.event.cue === 'spell_frost');
+const npcDialogue = await screen.next(message => message.type === 'presentation_event' &&
+  message.event.type === 'dialogue' && message.event.text === 'The lanterns are waking up.');
+if (npcDialogue.event.speaker_id !== 'koori' || npcDialogue.event.pronunciations?.Koori !== 'KOO-ree') {
+  throw new Error('Named NPC voice or pronunciation continuity was not preserved.');
+}
+
 dm.socket.close();
 screen.socket.close();
-console.log('Audio director surface context, priority, and silence fallback passed.');
+console.log('Audio director context, silence fallback, and NPC presentation passed.');

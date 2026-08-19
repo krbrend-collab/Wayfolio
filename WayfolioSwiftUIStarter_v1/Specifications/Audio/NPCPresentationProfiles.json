@@ -1,0 +1,27 @@
+{
+  "profile_version": 1,
+  "fallback_archetype": "ordinary",
+  "arrival_cooldown_ms": 8000,
+  "archetypes": {
+    "ordinary": {"entrance_cue":"transition_enter_building","volume":0.42,"voice_profile":"unknown_voice","speech_delay_ms":700},
+    "armored": {"entrance_cue":"movement_metal","volume":0.4,"voice_profile":"unknown_voice","speech_delay_ms":800},
+    "merchant": {"entrance_cue":"ambience_cart_wheels","volume":0.34,"voice_profile":"unknown_voice","speech_delay_ms":750},
+    "artisan": {"entrance_cue":"container_open","volume":0.38,"voice_profile":"unknown_voice","speech_delay_ms":650},
+    "spellcaster": {"entrance_cue":"spell_chime","volume":0.42,"voice_profile":"unknown_voice","speech_delay_ms":850},
+    "spirit": {"entrance_cue":"creature_spirit_mournful_appear","volume":0.46,"voice_profile":"unknown_voice","speech_delay_ms":1000},
+    "undead": {"entrance_cue":"creature_skeletal_idle_rattle","volume":0.44,"voice_profile":"unknown_voice","speech_delay_ms":900},
+    "creature": {"entrance_cue":"creature_beast_alert","volume":0.46,"voice_profile":"unknown_voice","speech_delay_ms":850},
+    "hidden": {"entrance_cue":"movement_wood","volume":0.28,"voice_profile":"unknown_voice","speech_delay_ms":700},
+    "hostile": {"entrance_cue":"transition_danger_reveal","volume":0.54,"voice_profile":"unknown_voice","speech_delay_ms":950}
+  },
+  "profiles": {
+    "soren": {"display_name":"Soren Hazel","archetype":"ordinary","entrance_cue":"movement_grass","volume":0.34,"voice_profile":"soren","speech_delay_ms":600,"pronunciations":{}},
+    "lupin": {"display_name":"Lupin","archetype":"armored","entrance_cue":"movement_gravel","volume":0.34,"voice_profile":"lupin","speech_delay_ms":650,"pronunciations":{}},
+    "koori": {"display_name":"Koori","archetype":"ordinary","entrance_cue":"spell_frost","volume":0.34,"voice_profile":"koori","speech_delay_ms":750,"pronunciations":{"Koori":"KOO-ree"}},
+    "maro": {"display_name":"Maro","archetype":"spellcaster","entrance_cue":"spell_psychic","volume":0.34,"voice_profile":"maro","speech_delay_ms":800,"pronunciations":{"Maro":"MAH-roh"}},
+    "amia": {"display_name":"Amia","archetype":"spellcaster","entrance_cue":"spell_nature","volume":0.34,"voice_profile":"amia","speech_delay_ms":800,"pronunciations":{"Amia":"AH-mee-ah"}},
+    "pudding_chan": {"display_name":"Pudding-Chan","archetype":"creature","entrance_cue":"creature_slime_curious_move","volume":0.38,"voice_profile":"pudding_chan","speech_delay_ms":700,"pronunciations":{"Pudding-Chan":"PUH-ding chahn"}},
+    "enishi": {"display_name":"Enishi","archetype":"spirit","entrance_cue":"creature_spirit_mournful_appear","volume":0.38,"voice_profile":"enishi","speech_delay_ms":950,"pronunciations":{"Enishi":"eh-NEE-shee"}},
+    "puchii": {"display_name":"Puchii","archetype":"creature","entrance_cue":"creature_floating_arcane_pulse","volume":0.36,"voice_profile":"puchii","speech_delay_ms":700,"pronunciations":{"Puchii":"POO-chee"}}
+  }
+}
