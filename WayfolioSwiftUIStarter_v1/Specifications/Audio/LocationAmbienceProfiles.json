@@ -1,11 +1,11 @@
 {
   "profile_version": 1,
   "profiles": {
-    "forest_day": {"label":"Forest · Day","base_cue":"hemlock_forest","default_volume":0.48,"details":[]},
+    "forest_day": {"label":"Forest · Day (recorded)","base_cue":"recorded_forest_wind","default_volume":0.42,"details":[]},
     "tavern_busy": {"label":"Tavern · Busy","base_cue":"hemlock_tavern","default_volume":0.44,"details":[{"cue":"ambience_mug_clink","min_delay":7,"max_delay":18},{"cue":"ambience_tavern_laugh","min_delay":12,"max_delay":28}]},
     "festival_lively": {"label":"Festival · Lively","base_cue":"festival","default_volume":0.48,"details":[{"cue":"ambience_festival_cheer","min_delay":10,"max_delay":24},{"cue":"ambience_festival_bells","min_delay":7,"max_delay":18}]},
     "market_busy": {"label":"Market · Busy","base_cue":"market","default_volume":0.46,"details":[{"cue":"ambience_market_vendor","min_delay":9,"max_delay":21},{"cue":"ambience_cart_wheels","min_delay":12,"max_delay":27}]},
-    "river_calm": {"label":"River · Calm","base_cue":"river","default_volume":0.5,"details":[{"cue":"ambience_river_splash","min_delay":8,"max_delay":22},{"cue":"ambience_river_bird","min_delay":13,"max_delay":31}]},
+    "river_calm": {"label":"River · Calm (recorded)","base_cue":"recorded_river","default_volume":0.44,"details":[{"cue":"ambience_river_splash","min_delay":8,"max_delay":22}]},
     "village_day": {"label":"Village · Day","base_cue":"village","default_volume":0.43,"details":[{"cue":"ambience_village_door","min_delay":11,"max_delay":26},{"cue":"ambience_village_dog","min_delay":16,"max_delay":38}]},
     "cave_dripping": {"label":"Cave · Dripping","base_cue":"cave","default_volume":0.42,"details":[{"cue":"ambience_cave_drip","min_delay":5,"max_delay":14},{"cue":"ambience_cave_stone","min_delay":18,"max_delay":42}]},
     "ruins_windy": {"label":"Ruins · Windy","base_cue":"ruins","default_volume":0.44,"details":[{"cue":"ambience_ruins_groan","min_delay":15,"max_delay":36},{"cue":"ambience_ruins_bird","min_delay":17,"max_delay":39}]},
