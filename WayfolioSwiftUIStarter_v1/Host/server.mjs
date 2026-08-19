@@ -19,6 +19,8 @@ const locationAmbienceProfiles = JSON.parse(await readFile(join(audioSpecRoot, '
 const actionSoundProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'ActionSoundProfiles.json'), 'utf8'));
 const encounterAudioProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'EncounterAudioProfiles.json'), 'utf8'));
 const spellAudioProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'SpellAudioProfiles.json'), 'utf8'));
+const movementAudioProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'MovementAudioProfiles.json'), 'utf8'));
+const sceneTransitionProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'SceneTransitionProfiles.json'), 'utf8'));
 const cueIDs = new Set(audioCatalog.cues.map(cue => cue.id));
 const renn = JSON.parse(await readFile(join(contentDirectory, 'renn.json'), 'utf8'));
 const bridgeEncounter = JSON.parse(await readFile(join(contentDirectory, 'hemlock-bridge.json'), 'utf8'));
@@ -218,6 +220,22 @@ function emitSpellSound(family, overrides = {}) {
   return emitPresentation({type:'sound_effect', cue:profile.cue, volume});
 }
 
+function emitMovementSound(surface, mode = 'walk', overrides = {}) {
+  const profile = movementAudioProfiles.surfaces[surface]
+    || movementAudioProfiles.surfaces[movementAudioProfiles.fallback_surface];
+  const movementMode = movementAudioProfiles.modes[mode] || movementAudioProfiles.modes.walk;
+  if (!profile) return false;
+  const volume = Math.min(0.62, Math.max(0, (overrides.volume ?? profile.volume) * movementMode.volume_multiplier));
+  return emitPresentation({type:'sound_effect', cue:profile.cue, volume});
+}
+
+function emitSceneTransition(transition, overrides = {}) {
+  const profile = sceneTransitionProfiles.transitions[transition];
+  if (!profile) return false;
+  return emitPresentation({type:profile.type || 'sound_effect', cue:profile.cue,
+    volume:Math.min(0.72, Math.max(0, overrides.volume ?? profile.volume))});
+}
+
 function broadcastSnapshots() {
   for (const client of sockets.clients) {
     send(client, snapshot(client.meta.role, client.meta.playerID));
@@ -295,6 +313,10 @@ sockets.on('connection', socket => {
           ? emitEncounterAudio(message.event.state)
         : message.event?.type === 'spell_sound'
           ? emitSpellSound(message.event.family, message.event)
+        : message.event?.type === 'movement_sound'
+          ? emitMovementSound(message.event.surface, message.event.mode, message.event)
+        : message.event?.type === 'scene_transition'
+          ? emitSceneTransition(message.event.transition, message.event)
         : emitPresentation(message.event);
       if (!accepted) {
         return send(socket, {type:'error', message:'Invalid presentation event or unknown cue.'});
