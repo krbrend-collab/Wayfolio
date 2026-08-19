@@ -39,6 +39,7 @@
 		A10000000000000000000006 /* Audio/MusicState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* Audio/MusicState.swift */; };
 		A10000000000000000000007 /* Audio/WayfolioAudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* Audio/WayfolioAudioEngine.swift */; };
 		A10000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift */; };
+		A10000000000000000000009 /* Presentation/PresentationRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* Presentation/PresentationRuntime.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -76,6 +77,7 @@
 		A20000000000000000000006 /* Audio/MusicState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Audio/MusicState.swift; sourceTree = "<group>"; };
 		A20000000000000000000007 /* Audio/WayfolioAudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Audio/WayfolioAudioEngine.swift; sourceTree = "<group>"; };
 		A20000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/PresentationAudioCoordinator.swift; sourceTree = "<group>"; };
+		A20000000000000000000009 /* Presentation/PresentationRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/PresentationRuntime.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -126,6 +128,7 @@
 				A20000000000000000000002 /* Presentation/PresentationEventChannel.swift */,
 				A20000000000000000000003 /* Presentation/WebSocketPresentationTransport.swift */,
 				A20000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift */,
+				A20000000000000000000009 /* Presentation/PresentationRuntime.swift */,
 				D1D602E1CDB39758E26DCA80 /* Shell/WayfolioDock.swift */,
 				9F22380DA0B8CBE4A84AD6AF /* Shell/WayfolioHeader.swift */,
 				4193B9372D70625A9CF565EB /* Shell/WayfolioQuickRail.swift */,
@@ -245,6 +248,7 @@
 				A10000000000000000000006 /* Audio/MusicState.swift in Sources */,
 				A10000000000000000000007 /* Audio/WayfolioAudioEngine.swift in Sources */,
 				A10000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift in Sources */,
+				A10000000000000000000009 /* Presentation/PresentationRuntime.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct WayfolioRootView: View {
+    @EnvironmentObject private var audio: WayfolioAudioEngine
     @State private var selectedSection: WayfolioSection = .entries
     @State private var guidePath: [WayfolioRoute] = []
     @State private var entriesPath: [WayfolioRoute] = []
@@ -87,6 +88,7 @@ struct WayfolioRootView: View {
     }
 
     private func popCurrentPath() {
+        audio.playUISound("navigation_back")
         switch selectedSection {
         case .guide:
             if !guidePath.isEmpty { guidePath.removeLast() }
@@ -102,6 +104,8 @@ struct WayfolioRootView: View {
     }
 
     private func switchSection(_ section: WayfolioSection) {
+        guard section != selectedSection else { return }
+        audio.playUISound("navigation_select")
         withAnimation(.snappy(duration: 0.28)) {
             selectedSection = section
         }

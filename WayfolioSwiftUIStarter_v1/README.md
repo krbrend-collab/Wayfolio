@@ -19,6 +19,10 @@ This is the first native production foundation for Wayfolio. It deliberately mov
 - Functional Hemlock Map prototype with pinch-to-zoom, drag-to-pan, and reset.
 - Functional Notes prototype with real note cards and an add-note composer.
 - More remains a structured placeholder for future feature modules.
+- Presentation-only live DM event channel foundation with independent voice,
+  SFX, ambience, music, and UI audio buses.
+
+See `AUDIO_ARCHITECTURE.md` for cue folders, event examples, and endpoint setup.
 
 ## Open it
 
