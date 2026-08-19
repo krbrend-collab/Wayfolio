@@ -1,0 +1,25 @@
+{
+  "catalog_version": 1,
+  "supported_extensions": ["wav", "m4a", "aiff", "mp3", "caf"],
+  "buses": ["voice", "sfx", "ambience", "music", "ui"],
+  "cues": [
+    {"id":"navigation_select","bus":"ui","file":"Audio/UI/navigation_select.wav","audience":"player","loop":false,"default_volume":0.75},
+    {"id":"navigation_back","bus":"ui","file":"Audio/UI/navigation_back.wav","audience":"player","loop":false,"default_volume":0.75},
+    {"id":"entry_open","bus":"ui","file":"Audio/UI/entry_open.wav","audience":"player","loop":false,"default_volume":0.75},
+    {"id":"filter_change","bus":"ui","file":"Audio/UI/filter_change.wav","audience":"player","loop":false,"default_volume":0.65},
+    {"id":"search_clear","bus":"ui","file":"Audio/UI/search_clear.wav","audience":"player","loop":false,"default_volume":0.6},
+    {"id":"note_new","bus":"ui","file":"Audio/UI/note_new.wav","audience":"player","loop":false,"default_volume":0.7},
+    {"id":"note_save","bus":"ui","file":"Audio/UI/note_save.wav","audience":"player","loop":false,"default_volume":0.8},
+    {"id":"note_cancel","bus":"ui","file":"Audio/UI/note_cancel.wav","audience":"player","loop":false,"default_volume":0.6},
+    {"id":"map_reset","bus":"ui","file":"Audio/UI/map_reset.wav","audience":"player","loop":false,"default_volume":0.65},
+    {"id":"discovery_reveal","bus":"ui","file":"Audio/UI/discovery_reveal.wav","audience":"player","loop":false,"default_volume":0.8},
+    {"id":"creatures_open","bus":"ui","file":"Audio/UI/creatures_open.wav","audience":"player","loop":false,"default_volume":0.7},
+    {"id":"botanicals_open","bus":"ui","file":"Audio/UI/botanicals_open.wav","audience":"player","loop":false,"default_volume":0.7},
+    {"id":"alchemy_open","bus":"ui","file":"Audio/UI/alchemy_open.wav","audience":"player","loop":false,"default_volume":0.7},
+    {"id":"settings_open","bus":"ui","file":"Audio/UI/settings_open.wav","audience":"player","loop":false,"default_volume":0.6},
+    {"id":"profile_open","bus":"ui","file":"Audio/UI/profile_open.wav","audience":"player","loop":false,"default_volume":0.65},
+    {"id":"wood_bridge_creak","bus":"sfx","file":"Audio/SFX/wood_bridge_creak.wav","audience":"shared","loop":false,"default_volume":0.7},
+    {"id":"hemlock_forest","bus":"ambience","file":"Audio/Ambience/hemlock_forest.wav","audience":"shared","loop":true,"default_volume":0.5},
+    {"id":"forest_exploration","bus":"music","file":"Audio/Music/forest_exploration.wav","audience":"shared","loop":true,"default_volume":0.45}
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "fixture_version": 1,
+  "name": "Hemlock Village first shared/private presentation",
+  "session_code": "HEMLOCK",
+  "events": [
+    {
+      "protocol": "wayfolio.presentation.v1",
+      "event_id": "hemlock-001",
+      "sequence": 1,
+      "scene_id": "lantern-road-01",
+      "audience": {"kind":"shared"},
+      "event": {"type":"ambience","action":"play","cue":"hemlock_forest","volume":0.5,"fade_duration":1.5}
+    },
+    {
+      "protocol": "wayfolio.presentation.v1",
+      "event_id": "hemlock-002",
+      "sequence": 2,
+      "scene_id": "lantern-road-01",
+      "audience": {"kind":"shared"},
+      "event": {"type":"music","action":"play","cue":"forest_exploration","volume":0.42,"intensity":0.25,"fade_duration":2.0}
+    },
+    {
+      "protocol": "wayfolio.presentation.v1",
+      "event_id": "hemlock-003",
+      "sequence": 3,
+      "scene_id": "lantern-road-01",
+      "audience": {"kind":"shared"},
+      "event": {
+        "type": "dialogue",
+        "line_id": "lantern-road-narration-01",
+        "speaker_id": "narrator",
+        "text": "Evening settles over Hemlock Village. Blue motes gather beneath the old bridge.",
+        "performance": "warm, measured, quietly mysterious",
+        "priority": "normal",
+        "interrupt": "queue",
+        "caption": true
+      }
+    },
+    {
+      "protocol": "wayfolio.presentation.v1",
+      "event_id": "hemlock-004",
+      "sequence": 4,
+      "scene_id": "lantern-road-01",
+      "audience": {"kind":"shared"},
+      "event": {"type":"sound_effect","cue":"wood_bridge_creak","volume":0.7}
+    },
+    {
+      "protocol": "wayfolio.presentation.v1",
+      "event_id": "hemlock-005",
+      "sequence": 5,
+      "scene_id": "lantern-road-01",
+      "audience": {"kind":"player","player_id":"renn"},
+      "event": {
+        "type": "dialogue",
+        "line_id": "lantern-road-whisper-01",
+        "speaker_id": "unknown_voice",
+        "text": "Renn. Do not trust the lantern keeper.",
+        "performance": "quiet, close, urgent but controlled",
+        "priority": "important",
+        "interrupt": "replace_lower_priority",
+        "caption": true
+      }
+    },
+    {
+      "protocol": "wayfolio.presentation.v1",
+      "event_id": "hemlock-006",
+      "sequence": 6,
+      "scene_id": "lantern-road-01",
+      "audience": {"kind":"player","player_id":"renn"},
+      "event": {"type":"ui_sound","cue":"discovery_reveal","volume":0.75}
+    }
+  ],
+  "assertions": [
+    "Only the shared screen plays hemlock_forest, forest_exploration, public narration, and wood_bridge_creak.",
+    "Only Renn receives the private whisper and discovery cue.",
+    "Music and ambience duck during public narration and recover afterward.",
+    "A reconnect restores ambience and music but does not replay the creak or completed dialogue.",
+    "No event changes campaign state or advances a quest."
+  ]
+}
