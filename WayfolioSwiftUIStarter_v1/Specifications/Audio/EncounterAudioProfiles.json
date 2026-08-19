@@ -1,0 +1,16 @@
+{
+  "profile_version": 1,
+  "states": {
+    "exploration": {"cue":"forest_exploration","volume":0.24,"intensity":0.2,"fade_duration":3.0},
+    "tension": {"cue":"cave_exploration","volume":0.19,"intensity":0.48,"fade_duration":2.5},
+    "combat": {"cue":"cave_exploration","volume":0.3,"intensity":0.85,"fade_duration":1.25},
+    "resolution": {"cue":"harvest_season","volume":0.24,"intensity":0.18,"fade_duration":3.5,"stinger":"quest_complete"},
+    "silence": {"action":"stop","fade_duration":2.5}
+  },
+  "mixing": {
+    "dialogue_music_duck":0.42,
+    "dialogue_ambience_duck":0.65,
+    "minimum_repeat_seconds":2.0,
+    "creature_repeat_seconds":4.0
+  }
+}

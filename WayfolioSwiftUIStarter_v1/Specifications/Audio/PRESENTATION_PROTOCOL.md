@@ -98,6 +98,16 @@ in reconnect snapshots.
 Music is independent persistent scene state. Silence is represented by `stop`,
 not by selecting a silent track.
 
+The DM may request an adaptive dramatic state without choosing a file:
+
+```json
+{"type":"encounter_audio","state":"tension"}
+```
+
+Supported states are `exploration`, `tension`, `combat`, `resolution`, and
+`silence`. The host resolves these through `EncounterAudioProfiles.json` into
+ordinary presentation-only music and optional stinger events.
+
 ### Presentation control
 
 ```json

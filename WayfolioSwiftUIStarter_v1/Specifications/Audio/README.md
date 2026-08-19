@@ -12,6 +12,8 @@ shared presentation screen, and player Wayfolios.
   non-repeating environmental details that remain independent from music.
 - `ActionSoundProfiles.json`: reusable gameplay actions mapped to shared-world
   or player-private audio cues.
+- `EncounterAudioProfiles.json`: exploration, tension, combat, resolution, and
+  silence states with dialogue-safe music levels and transition timing.
 - `PresentationEvent.schema.json`: machine-readable event validation contract.
 - `creature_resolution_fixture.json`: expected routing for wolves, bunnies,
   slimes, spirits, named creatures, and fallbacks.
