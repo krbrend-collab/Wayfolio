@@ -4,6 +4,7 @@ class WayfolioAudioDirector {
     this.master = null;
     this.gains = new Map();
     this.loops = new Map();
+    this.lastCueAt = new Map();
     this.buffers = new Map();
     this.catalog = new Map();
     this.profiles = null;
@@ -108,6 +109,8 @@ class WayfolioAudioDirector {
     cueGain.gain.value = Math.max(0, Math.min(1, requestedVolume ?? cue.default_volume ?? 1));
     source.connect(cueGain);
     cueGain.connect(this.gains.get(cue.bus));
+    source.wayfolioGain = cueGain;
+    source.wayfolioVolume = cueGain.gain.value;
     return source;
   }
 
@@ -115,6 +118,11 @@ class WayfolioAudioDirector {
     if (!this.ready) return this.setStatus(`Enable audio to play ${cueID}`);
     const cue = this.catalog.get(cueID);
     if (!cue) return this.setStatus(`Unknown cue: ${cueID}`);
+    const now = performance.now();
+    const cooldown = cueID.startsWith('creature_') ? 4000 : 2000;
+    const lastPlayed = this.lastCueAt.get(cueID);
+    if (lastPlayed && now - lastPlayed < cooldown) return;
+    this.lastCueAt.set(cueID, now);
     try {
       const source = await this.sourceFor(cue, false, requestedVolume);
       source.start();
@@ -126,18 +134,32 @@ class WayfolioAudioDirector {
 
   async setLoop(bus, action, cueID, requestedVolume, fadeDuration = 0.4) {
     const existing = this.loops.get(bus);
-    if (existing) {
-      try { existing.stop(); } catch {}
+    const fade = Math.max(0, Number(fadeDuration) || 0);
+    const fadeOut = source => {
+      if (!source) return;
+      const now = this.context.currentTime;
+      source.wayfolioGain.gain.cancelScheduledValues(now);
+      source.wayfolioGain.gain.setValueAtTime(source.wayfolioGain.gain.value, now);
+      source.wayfolioGain.gain.linearRampToValueAtTime(0, now + fade);
+      setTimeout(() => { try { source.stop(); } catch {} }, fade * 1000 + 50);
+    };
+    if (action === 'stop') {
+      fadeOut(existing);
       this.loops.delete(bus);
+      return this.setStatus(`${bus} stopped`);
     }
-    if (action === 'stop') return this.setStatus(`${bus} stopped`);
     if (!this.ready) return this.setStatus(`Enable audio to start ${cueID}`);
     const cue = this.catalog.get(cueID);
     if (!cue || cue.bus !== bus) return this.setStatus(`Invalid ${bus} cue: ${cueID}`);
     try {
       const source = await this.sourceFor(cue, true, requestedVolume);
+      const target = source.wayfolioVolume;
+      const now = this.context.currentTime;
+      source.wayfolioGain.gain.setValueAtTime(fade ? 0 : target, now);
+      if (fade) source.wayfolioGain.gain.linearRampToValueAtTime(target, now + fade);
       this.loops.set(bus, source);
       source.start();
+      fadeOut(existing);
       this.setStatus(`${bus}: ${cueID}${fadeDuration ? ` · ${fadeDuration}s transition` : ''}`);
     } catch (error) {
       this.setStatus(`Could not start ${cueID}: ${error.message}`);
