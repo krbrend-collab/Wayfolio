@@ -3,6 +3,7 @@ import SwiftData
 
 struct GuideHomeView: View {
     @Query(sort: \CreatureRecord.name) private var creatures: [CreatureRecord]
+    @Query private var discoveryRecords: [CreatureDiscoveryRecord]
     let onOpenCreature: (UUID) -> Void
 
     var body: some View {
@@ -17,7 +18,10 @@ struct GuideHomeView: View {
 
                 ForEach(creatures.prefix(2)) { creature in
                     Button { onOpenCreature(creature.id) } label: {
-                        EntryCard(creature: creature)
+                        EntryCard(
+                            creature: creature,
+                            discoveryLevel: discoveryLevel(for: creature)
+                        )
                     }
                     .buttonStyle(.plain)
                 }
@@ -28,5 +32,10 @@ struct GuideHomeView: View {
             .padding(.bottom, 28)
         }
         .scrollIndicators(.hidden)
+    }
+
+    private func discoveryLevel(for creature: CreatureRecord) -> CreatureDiscoveryLevel {
+        discoveryRecords.first(where: { $0.creatureID == creature.id })?.level
+            ?? SampleData.initialDiscoveryLevel(for: creature)
     }
 }
