@@ -13,6 +13,14 @@ class WayfolioAudioDirector {
     this.ambienceGeneration = 0;
     this.ready = false;
     this.busLevels = {voice:1, sfx:0.9, ambience:0.55, music:0.5, ui:0.75};
+    this.busMuted = {voice:false, sfx:false, ambience:false, music:false, ui:false};
+    try {
+      const saved = JSON.parse(localStorage.getItem('wayfolio.audio.mix.v1') || '{}');
+      for (const bus of Object.keys(this.busLevels)) {
+        if (Number.isFinite(saved.levels?.[bus])) this.busLevels[bus] = Math.max(0, Math.min(1, saved.levels[bus]));
+        if (typeof saved.muted?.[bus] === 'boolean') this.busMuted[bus] = saved.muted[bus];
+      }
+    } catch {}
   }
 
   async load() {
@@ -35,7 +43,7 @@ class WayfolioAudioDirector {
       this.master.connect(this.context.destination);
       for (const [bus, level] of Object.entries(this.busLevels)) {
         const gain = this.context.createGain();
-        gain.gain.value = level;
+        gain.gain.value = this.busMuted[bus] ? 0 : level;
         gain.connect(this.master);
         this.gains.set(bus, gain);
       }
@@ -51,9 +59,32 @@ class WayfolioAudioDirector {
   }
 
   setBusVolume(bus, volume) {
+    if (!(bus in this.busLevels)) return;
     const normalized = Math.max(0, Math.min(1, Number(volume)));
     this.busLevels[bus] = normalized;
-    this.gains.get(bus)?.gain.setTargetAtTime(normalized, this.context.currentTime, 0.03);
+    this.applyBusLevel(bus);
+    this.saveMixPreferences();
+  }
+
+  setBusMuted(bus, muted) {
+    if (!(bus in this.busMuted)) return;
+    this.busMuted[bus] = Boolean(muted);
+    this.applyBusLevel(bus);
+    if (bus === 'voice' && muted && 'speechSynthesis' in window) speechSynthesis.cancel();
+    this.saveMixPreferences();
+    this.setStatus(`${bus} ${muted ? 'off' : 'on'}`);
+  }
+
+  applyBusLevel(bus) {
+    const gain = this.gains.get(bus);
+    if (!gain || !this.context) return;
+    gain.gain.setTargetAtTime(this.busMuted[bus] ? 0 : this.busLevels[bus], this.context.currentTime, 0.03);
+  }
+
+  saveMixPreferences() {
+    try {
+      localStorage.setItem('wayfolio.audio.mix.v1', JSON.stringify({levels:this.busLevels, muted:this.busMuted}));
+    } catch {}
   }
 
   async bufferFor(cue) {
@@ -207,7 +238,7 @@ class WayfolioAudioDirector {
       caption.hidden = false;
       caption.textContent = event.text;
     }
-    if (!this.ready || !('speechSynthesis' in window)) return;
+    if (!this.ready || this.busMuted.voice || !('speechSynthesis' in window)) return;
     speechSynthesis.cancel();
     const resolved = this.resolveVoice(event.speaker_id);
     const settings = this.performanceFor(event, resolved.profile);
@@ -231,8 +262,10 @@ class WayfolioAudioDirector {
     if (!this.context) return;
     const now = this.context.currentTime;
     const time = active ? 0.18 : 0.45;
-    this.gains.get('music').gain.setTargetAtTime(this.busLevels.music * (active ? 0.45 : 1), now, time / 3);
-    this.gains.get('ambience').gain.setTargetAtTime(this.busLevels.ambience * (active ? 0.65 : 1), now, time / 3);
+    const music = this.busMuted.music ? 0 : this.busLevels.music;
+    const ambience = this.busMuted.ambience ? 0 : this.busLevels.ambience;
+    this.gains.get('music').gain.setTargetAtTime(music * (active ? 0.45 : 1), now, time / 3);
+    this.gains.get('ambience').gain.setTargetAtTime(ambience * (active ? 0.65 : 1), now, time / 3);
   }
 
   stopAll() {

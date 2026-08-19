@@ -54,7 +54,12 @@ if (byId('enable-audio')) {
     byId('enable-audio').disabled = true;
   });
   document.querySelectorAll('[data-bus-volume]').forEach(input => {
+    input.value = window.wayfolioAudio.busLevels[input.dataset.busVolume];
     input.addEventListener('input', () => window.wayfolioAudio.setBusVolume(input.dataset.busVolume, input.value));
+  });
+  document.querySelectorAll('[data-bus-muted]').forEach(input => {
+    input.checked = window.wayfolioAudio.busMuted[input.dataset.busMuted];
+    input.addEventListener('change', () => window.wayfolioAudio.setBusMuted(input.dataset.busMuted, input.checked));
   });
 }
 
