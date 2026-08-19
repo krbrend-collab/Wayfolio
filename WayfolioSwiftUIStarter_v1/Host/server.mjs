@@ -21,7 +21,9 @@ const encounterAudioProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'En
 const spellAudioProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'SpellAudioProfiles.json'), 'utf8'));
 const movementAudioProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'MovementAudioProfiles.json'), 'utf8'));
 const sceneTransitionProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'SceneTransitionProfiles.json'), 'utf8'));
+const audioDirectorRules = JSON.parse(await readFile(join(audioSpecRoot, 'AudioDirectorRules.json'), 'utf8'));
 const cueIDs = new Set(audioCatalog.cues.map(cue => cue.id));
+const audioDirectorState = {lastByKey:new Map(), sceneSurface:movementAudioProfiles.fallback_surface};
 const renn = JSON.parse(await readFile(join(contentDirectory, 'renn.json'), 'utf8'));
 const bridgeEncounter = JSON.parse(await readFile(join(contentDirectory, 'hemlock-bridge.json'), 'utf8'));
 const session = {
@@ -208,6 +210,8 @@ function emitEncounterAudio(state) {
     : emitPresentation({type:'music', action:'play', cue:profile.cue, volume:profile.volume,
         intensity:profile.intensity, fade_duration:profile.fade_duration, encounter_state:state});
   if (accepted && profile.stinger) emitActionSound(profile.stinger);
+  if (accepted && state === 'combat' && directorAllows('combat_start', 'transition')) emitSceneTransition('combat_start');
+  if (accepted && state === 'resolution' && directorAllows('victory', 'transition')) emitSceneTransition('victory');
   return accepted;
 }
 
@@ -236,6 +240,40 @@ function emitSceneTransition(transition, overrides = {}) {
     volume:Math.min(0.72, Math.max(0, overrides.volume ?? profile.volume))});
 }
 
+function directorIncludes(text, phrase) {
+  const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|\\W)${escaped}(?=$|\\W)`, 'i').test(text);
+}
+
+function directorMatch(text, entries) {
+  return Object.entries(entries).find(([, phrases]) => phrases.some(phrase => directorIncludes(text, phrase)))?.[0] || null;
+}
+
+function directorAllows(key, category, now = Date.now()) {
+  const major = category === 'transition' && audioDirectorRules.major_transitions.includes(key);
+  const cooldown = audioDirectorRules.cooldowns_ms[major ? 'major_transition' : category];
+  const last = audioDirectorState.lastByKey.get(`${category}:${key}`) || 0;
+  if (now - last < cooldown) return false;
+  audioDirectorState.lastByKey.set(`${category}:${key}`, now);
+  return true;
+}
+
+function directAudio(context, text, overrides = {}) {
+  const normalized = String(text || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  if (!normalized) return false;
+  const transition = directorMatch(normalized, audioDirectorRules.transitions);
+  if (transition && directorAllows(transition, 'transition')) return emitSceneTransition(transition, overrides);
+  const surface = directorMatch(normalized, audioDirectorRules.surfaces);
+  if (context === 'scene') {
+    if (surface) audioDirectorState.sceneSurface = surface;
+    return false;
+  }
+  if (!audioDirectorRules.movement_verbs.some(verb => directorIncludes(normalized, verb))) return false;
+  const mode = directorMatch(normalized, audioDirectorRules.modes) || 'walk';
+  const resolvedSurface = surface || audioDirectorState.sceneSurface;
+  return directorAllows(resolvedSurface, 'movement') && emitMovementSound(resolvedSurface, mode, overrides);
+}
+
 function broadcastSnapshots() {
   for (const client of sockets.clients) {
     send(client, snapshot(client.meta.role, client.meta.playerID));
@@ -260,7 +298,7 @@ function resolveRoll(pending, die, mode) {
     session.activeEncounter = {...session.activeEncounter, status:'resolved', succeeded};
     if (outcome.discovery && !session.characterState.discoveries.includes(outcome.discovery)) {
       session.characterState.discoveries.push(outcome.discovery);
-      emitActionSound('discovery_reveal');
+      if (directorAllows('discovery', 'transition')) emitSceneTransition('discovery');
     }
     if (outcome.journal && !session.characterState.journal.includes(outcome.journal)) {
       session.characterState.journal.push(outcome.journal);
@@ -303,6 +341,7 @@ sockets.on('connection', socket => {
       session.sceneTitle = message.scene_title || session.sceneTitle;
       session.sceneText = message.scene_text || session.sceneText;
       broadcast({type:'scene_update', scene_title:session.sceneTitle, scene_text:session.sceneText});
+      directAudio('scene', `${session.sceneTitle}. ${session.sceneText}`);
       void saveSession();
     }
 
@@ -317,6 +356,8 @@ sockets.on('connection', socket => {
           ? emitMovementSound(message.event.surface, message.event.mode, message.event)
         : message.event?.type === 'scene_transition'
           ? emitSceneTransition(message.event.transition, message.event)
+        : message.event?.type === 'audio_director'
+          ? directAudio(message.event.context === 'scene' ? 'scene' : 'action', message.event.text, message.event)
         : emitPresentation(message.event);
       if (!accepted) {
         return send(socket, {type:'error', message:'Invalid presentation event or unknown cue.'});
@@ -413,6 +454,7 @@ sockets.on('connection', socket => {
         (visibility === 'public' && client.meta.role === 'screen') ||
         (client.meta.role === 'wayfolio' && client.meta.playerID === action.player_id));
       send(socket, {...event, type:'action_ack'});
+      if (visibility === 'public') directAudio('action', action.text);
       void saveSession();
     }
   });
