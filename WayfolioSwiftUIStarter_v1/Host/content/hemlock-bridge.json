@@ -2,15 +2,6 @@
   "id": "hemlock-bridge",
   "title": "The Motes Beneath the Bridge",
   "opening": "Evening settles over Hemlock Village. Blue motes gather beneath the old bridge, where the wood gives a low, familiar creak.",
-  "opening_creature_sound": {
-    "creature_id": "bridge_motes",
-    "creature_type": "elemental",
-    "body_form": "floating_arcane",
-    "size": "small",
-    "disposition": "curious",
-    "behavior": "pulse",
-    "volume": 0.64
-  },
   "prompt_title": "Renn — what do you do?",
   "prompt_message": "The motes drift against the wind and collect around the southern rail.",
   "choices": [
