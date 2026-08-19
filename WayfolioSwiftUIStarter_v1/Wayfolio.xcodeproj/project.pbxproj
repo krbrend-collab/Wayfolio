@@ -31,6 +31,9 @@
 		E69489841037A3D1C3DE3529 /* Models/CreatureRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37D404FC39287CF70B1F8E79 /* Models/CreatureRecord.swift */; };
 		ED48E3EAB8B48ED2135FAE0C /* Components/EntryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732CEA0AB0DE8D9DC8382C21 /* Components/EntryCard.swift */; };
 		FCD2176FBD871C4DD7DC4540 /* Features/Placeholders/MapPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E77EA4FC7F7D2EC1DD89E684 /* Features/Placeholders/MapPlaceholderView.swift */; };
+		A10000000000000000000001 /* Presentation/PresentationEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* Presentation/PresentationEvent.swift */; };
+		A10000000000000000000002 /* Presentation/PresentationEventChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* Presentation/PresentationEventChannel.swift */; };
+		A10000000000000000000003 /* Presentation/WebSocketPresentationTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* Presentation/WebSocketPresentationTransport.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -60,6 +63,9 @@
 		D1D602E1CDB39758E26DCA80 /* Shell/WayfolioDock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shell/WayfolioDock.swift; sourceTree = "<group>"; };
 		E77EA4FC7F7D2EC1DD89E684 /* Features/Placeholders/MapPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Placeholders/MapPlaceholderView.swift; sourceTree = "<group>"; };
 		EF13B7F3F8B0343AD0B5E2E7 /* Features/Entries/EntriesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Entries/EntriesView.swift; sourceTree = "<group>"; };
+		A20000000000000000000001 /* Presentation/PresentationEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/PresentationEvent.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* Presentation/PresentationEventChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/PresentationEventChannel.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* Presentation/WebSocketPresentationTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/WebSocketPresentationTransport.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +108,9 @@
 				219F64664A341AE859D5661F /* Features/Placeholders/NotesPlaceholderView.swift */,
 				37D404FC39287CF70B1F8E79 /* Models/CreatureRecord.swift */,
 				4E1A407A19E4BB276DE7C73A /* Models/SampleData.swift */,
+				A20000000000000000000001 /* Presentation/PresentationEvent.swift */,
+				A20000000000000000000002 /* Presentation/PresentationEventChannel.swift */,
+				A20000000000000000000003 /* Presentation/WebSocketPresentationTransport.swift */,
 				D1D602E1CDB39758E26DCA80 /* Shell/WayfolioDock.swift */,
 				9F22380DA0B8CBE4A84AD6AF /* Shell/WayfolioHeader.swift */,
 				4193B9372D70625A9CF565EB /* Shell/WayfolioQuickRail.swift */,
@@ -213,6 +222,9 @@
 				39AB0AEF5DAFC14333A16EF7 /* Shell/WayfolioQuickRail.swift in Sources */,
 				9D36E5E40FCC2EEAFD42912B /* Shell/WayfolioShell.swift in Sources */,
 				1F514C0BA22982DD78B7439B /* WayfolioApp.swift in Sources */,
+				A10000000000000000000001 /* Presentation/PresentationEvent.swift in Sources */,
+				A10000000000000000000002 /* Presentation/PresentationEventChannel.swift in Sources */,
+				A10000000000000000000003 /* Presentation/WebSocketPresentationTransport.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
