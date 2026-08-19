@@ -43,3 +43,13 @@ CC0 license: https://creativecommons.org/publicdomain/zero/1.0/
 
 - `dice_roll.flac` — “Wooden dice on wooden table roll” by Wuzzy: https://opengameart.org/content/wooden-dice-on-wodden-table-roll
 - Imported use: the digital d20 action on the shared game screen.
+
+## Surface movement
+
+- Creator/curator: congusbongus
+- Source: https://opengameart.org/content/footsteps-on-different-surfaces
+- License: CC BY 3.0; individual source credits remain in the original pack.
+- Imported use: short movement sequences for wood, grass, dirt, gravel, stone,
+  metal, water, mud, snow, and bones.
+- Processing: converted from OGG to 16-bit mono 24 kHz PCM, normalized below
+  clipping, varied step levels, and gently filtered derived soft surfaces.

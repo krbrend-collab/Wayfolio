@@ -16,6 +16,10 @@ shared presentation screen, and player Wayfolios.
   silence states with dialogue-safe music levels and transition timing.
 - `SpellAudioProfiles.json`: semantic spell families resolved to distinct,
   reusable casting sounds.
+- `MovementAudioProfiles.json`: terrain and movement-mode routing for natural
+  footstep sequences.
+- `SceneTransitionProfiles.json`: semantic cues for travel, rest, discoveries,
+  danger, combat, victory, camp, doors, and building entry.
 - `PresentationEvent.schema.json`: machine-readable event validation contract.
 - `creature_resolution_fixture.json`: expected routing for wolves, bunnies,
   slimes, spirits, named creatures, and fallbacks.

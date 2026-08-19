@@ -99,6 +99,24 @@
     {"id":"market_day","bus":"music","file":"Audio/Music/market_day.mp3","audience":"shared","loop":true,"default_volume":0.27},
     {"id":"crowded_pub","bus":"music","file":"Audio/Music/crowded_pub.mp3","audience":"shared","loop":true,"default_volume":0.24},
     {"id":"harvest_season","bus":"music","file":"Audio/Music/harvest_season.mp3","audience":"shared","loop":true,"default_volume":0.24},
-    {"id":"cave_exploration","bus":"music","file":"Audio/Music/cave_exploration.mp3","audience":"shared","loop":true,"default_volume":0.2}
+    {"id":"cave_exploration","bus":"music","file":"Audio/Music/cave_exploration.mp3","audience":"shared","loop":true,"default_volume":0.2},
+    {"id":"movement_grass","bus":"sfx","file":"Audio/SFX/Movement/movement_grass.wav","audience":"shared","loop":false,"default_volume":0.42},
+    {"id":"movement_dirt","bus":"sfx","file":"Audio/SFX/Movement/movement_dirt.wav","audience":"shared","loop":false,"default_volume":0.42},
+    {"id":"movement_gravel","bus":"sfx","file":"Audio/SFX/Movement/movement_gravel.wav","audience":"shared","loop":false,"default_volume":0.4},
+    {"id":"movement_stone","bus":"sfx","file":"Audio/SFX/Movement/movement_stone.wav","audience":"shared","loop":false,"default_volume":0.38},
+    {"id":"movement_wood","bus":"sfx","file":"Audio/SFX/Movement/movement_wood.wav","audience":"shared","loop":false,"default_volume":0.4},
+    {"id":"movement_metal","bus":"sfx","file":"Audio/SFX/Movement/movement_metal.wav","audience":"shared","loop":false,"default_volume":0.36},
+    {"id":"movement_water","bus":"sfx","file":"Audio/SFX/Movement/movement_water.wav","audience":"shared","loop":false,"default_volume":0.44},
+    {"id":"movement_mud","bus":"sfx","file":"Audio/SFX/Movement/movement_mud.wav","audience":"shared","loop":false,"default_volume":0.4},
+    {"id":"movement_snow","bus":"sfx","file":"Audio/SFX/Movement/movement_snow.wav","audience":"shared","loop":false,"default_volume":0.38},
+    {"id":"movement_bones","bus":"sfx","file":"Audio/SFX/Movement/movement_bones.wav","audience":"shared","loop":false,"default_volume":0.4},
+    {"id":"transition_enter_building","bus":"sfx","file":"Audio/SFX/Transitions/transition_enter_building.wav","audience":"shared","loop":false,"default_volume":0.5},
+    {"id":"transition_camp_setup","bus":"sfx","file":"Audio/SFX/Transitions/transition_camp_setup.wav","audience":"shared","loop":false,"default_volume":0.46},
+    {"id":"transition_danger_reveal","bus":"sfx","file":"Audio/SFX/Transitions/transition_danger_reveal.wav","audience":"shared","loop":false,"default_volume":0.58},
+    {"id":"transition_combat_start","bus":"sfx","file":"Audio/SFX/Transitions/transition_combat_start.wav","audience":"shared","loop":false,"default_volume":0.62},
+    {"id":"transition_victory","bus":"sfx","file":"Audio/SFX/Transitions/transition_victory.wav","audience":"shared","loop":false,"default_volume":0.6},
+    {"id":"transition_rest","bus":"sfx","file":"Audio/SFX/Transitions/transition_rest.wav","audience":"shared","loop":false,"default_volume":0.44},
+    {"id":"transition_departure","bus":"sfx","file":"Audio/SFX/Transitions/transition_departure.wav","audience":"shared","loop":false,"default_volume":0.48},
+    {"id":"transition_arrival","bus":"sfx","file":"Audio/SFX/Transitions/transition_arrival.wav","audience":"shared","loop":false,"default_volume":0.5}
   ]
 }

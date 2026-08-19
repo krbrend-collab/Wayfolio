@@ -117,6 +117,26 @@ Spell sounds are also requested semantically:
 The host resolves the family through `SpellAudioProfiles.json`; unknown
 families use the arcane fallback instead of failing or changing game state.
 
+Movement is requested by surface and pace rather than by filename:
+
+```json
+{"type":"movement_sound","surface":"gravel","mode":"sneak"}
+```
+
+Supported surfaces are grass, dirt, gravel, stone, wood, metal, water, mud,
+snow, and bones. Modes are `sneak`, `walk`, `run`, and `heavy`. Unknown surfaces
+use dirt; unknown modes use walking.
+
+Scene changes use semantic transition names:
+
+```json
+{"type":"scene_transition","transition":"travel_arrival"}
+```
+
+Transitions cover doors, entering buildings, camp setup, discoveries, danger
+reveals, combat starts, victories, rests, travel departures and arrivals, and
+quest completion. They remain transient presentation events.
+
 ### Presentation control
 
 ```json

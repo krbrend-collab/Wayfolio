@@ -1,0 +1,16 @@
+{
+  "profile_version": 1,
+  "transitions": {
+    "door": {"cue":"door_latch","volume":0.58},
+    "enter_building": {"cue":"transition_enter_building","volume":0.5},
+    "camp_setup": {"cue":"transition_camp_setup","volume":0.46},
+    "discovery": {"cue":"discovery_reveal","volume":0.68,"type":"ui_sound"},
+    "danger_reveal": {"cue":"transition_danger_reveal","volume":0.58},
+    "combat_start": {"cue":"transition_combat_start","volume":0.62},
+    "victory": {"cue":"transition_victory","volume":0.6},
+    "rest": {"cue":"transition_rest","volume":0.44},
+    "travel_departure": {"cue":"transition_departure","volume":0.48},
+    "travel_arrival": {"cue":"transition_arrival","volume":0.5},
+    "quest_complete": {"cue":"quest_complete","volume":0.7,"type":"ui_sound"}
+  }
+}

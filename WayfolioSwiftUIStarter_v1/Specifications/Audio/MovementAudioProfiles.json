@@ -1,0 +1,22 @@
+{
+  "profile_version": 1,
+  "fallback_surface": "dirt",
+  "surfaces": {
+    "grass": {"cue":"movement_grass","volume":0.42},
+    "dirt": {"cue":"movement_dirt","volume":0.42},
+    "gravel": {"cue":"movement_gravel","volume":0.4},
+    "stone": {"cue":"movement_stone","volume":0.38},
+    "wood": {"cue":"movement_wood","volume":0.4},
+    "metal": {"cue":"movement_metal","volume":0.36},
+    "water": {"cue":"movement_water","volume":0.44},
+    "mud": {"cue":"movement_mud","volume":0.4},
+    "snow": {"cue":"movement_snow","volume":0.38},
+    "bones": {"cue":"movement_bones","volume":0.4}
+  },
+  "modes": {
+    "sneak": {"volume_multiplier":0.66},
+    "walk": {"volume_multiplier":1.0},
+    "run": {"volume_multiplier":1.16},
+    "heavy": {"volume_multiplier":1.24}
+  }
+}
