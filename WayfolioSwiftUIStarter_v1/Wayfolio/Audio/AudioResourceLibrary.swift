@@ -2,7 +2,7 @@ import Foundation
 
 struct AudioResourceLibrary: Sendable {
     private let bundle: Bundle
-    private let supportedExtensions = ["m4a", "wav", "aiff", "mp3", "caf"]
+    private let supportedExtensions = ["m4a", "wav", "aiff", "mp3", "caf", "flac"]
 
     init(bundle: Bundle = .main) {
         self.bundle = bundle

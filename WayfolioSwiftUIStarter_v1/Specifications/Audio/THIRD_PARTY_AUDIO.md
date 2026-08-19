@@ -35,3 +35,8 @@ CC0 license: https://creativecommons.org/publicdomain/zero/1.0/
 - `harvest_season.mp3` — “Medieval: Harvest Season” by RandomMind: https://opengameart.org/content/medieval-harvest-season
 - `cave_exploration.mp3` — “Nuclear Cave (Loop)” by Hazmat Harry: https://opengameart.org/content/nuclear-cave-loop
 - Imported use: low-volume, looping music paired with location ambience profiles. Music remains on its independent mix bus.
+
+## Table actions
+
+- `dice_roll.flac` — “Wooden dice on wooden table roll” by Wuzzy: https://opengameart.org/content/wooden-dice-on-wodden-table-roll
+- Imported use: the digital d20 action on the shared game screen.

@@ -327,6 +327,7 @@ sockets.on('connection', socket => {
       if (!Number.isInteger(die) || die < 1 || die > 20) {
         return send(socket, {type:'error', message:'A physical d20 result must be from 1 through 20.'});
       }
+      if (mode === 'digital') emitPresentation({type:'sound_effect', cue:'dice_roll', volume:0.55});
       resolveRoll(pending, die, mode);
     }
 
