@@ -1,0 +1,18 @@
+{
+  "profile_version": 1,
+  "fallback_family": "arcane",
+  "families": {
+    "arcane": {"cue":"spell_psychic","volume":0.54},
+    "fire": {"cue":"spell_fire","volume":0.62},
+    "frost": {"cue":"spell_frost","volume":0.56},
+    "lightning": {"cue":"spell_lightning","volume":0.62},
+    "nature": {"cue":"spell_nature","volume":0.52},
+    "radiant": {"cue":"spell_radiant","volume":0.5},
+    "shadow": {"cue":"spell_shadow","volume":0.48},
+    "psychic": {"cue":"spell_psychic","volume":0.5},
+    "summoning": {"cue":"spell_summoning","volume":0.58},
+    "teleportation": {"cue":"spell_teleport","volume":0.54},
+    "shielding": {"cue":"spell_shield","volume":0.5},
+    "healing": {"cue":"spell_radiant","volume":0.46}
+  }
+}

@@ -108,6 +108,15 @@ Supported states are `exploration`, `tension`, `combat`, `resolution`, and
 `silence`. The host resolves these through `EncounterAudioProfiles.json` into
 ordinary presentation-only music and optional stinger events.
 
+Spell sounds are also requested semantically:
+
+```json
+{"type":"spell_sound","family":"frost","intensity":0.7}
+```
+
+The host resolves the family through `SpellAudioProfiles.json`; unknown
+families use the arcane fallback instead of failing or changing game state.
+
 ### Presentation control
 
 ```json
