@@ -1,0 +1,25 @@
+{
+  "id": "hemlock-bridge",
+  "title": "The Motes Beneath the Bridge",
+  "opening": "Evening settles over Hemlock Village. Blue motes gather beneath the old bridge, where the wood gives a low, familiar creak.",
+  "prompt_title": "Renn — what do you do?",
+  "prompt_message": "The motes drift against the wind and collect around the southern rail.",
+  "choices": [
+    {"label": "Reach gently toward the motes", "skill": "Animal Handling", "dc": 12},
+    {"label": "Study them from a distance", "skill": "Nature", "dc": 11},
+    {"label": "Call the party closer and watch", "skill": "Perception", "dc": 10}
+  ],
+  "success": {
+    "shared_title": "A Luminous Trail",
+    "shared_text": "The motes tighten into a luminous trail beneath the bridge. For one breath, the forest seems to listen.",
+    "private_text": "A whisper reaches Renn alone: “Do not trust the lantern keeper.”",
+    "discovery": "Whisper Beneath the Hemlock Bridge",
+    "journal": "Blue motes gathered beneath the southern bridge and formed a trail. A private warning named the lantern keeper."
+  },
+  "failure": {
+    "shared_title": "The Motes Scatter",
+    "shared_text": "The motes flare and scatter into the trees. The bridge settles into silence before their pattern becomes clear.",
+    "private_text": "Renn cannot yet determine what drew the motes to the bridge.",
+    "journal": "Blue motes gathered beneath the southern bridge, then scattered before their pattern could be understood."
+  }
+}

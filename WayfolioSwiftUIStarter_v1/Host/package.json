@@ -1,0 +1,13 @@
+{
+  "name": "wayfolio-central-host",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node test-session.mjs"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

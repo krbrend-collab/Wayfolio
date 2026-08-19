@@ -1,0 +1,30 @@
+{
+  "id": "renn",
+  "name": "Renn Hazel",
+  "species": "Harengon",
+  "class_name": "Ranger",
+  "level": 1,
+  "background": "Hemlock Herbalist",
+  "proficiency_bonus": 2,
+  "hp": {"current": 10, "maximum": 10},
+  "armor_class": 15,
+  "speed": 30,
+  "initiative": 5,
+  "passive_perception": 15,
+  "abilities": {"strength": 8, "dexterity": 16, "constitution": 10, "intelligence": 12, "wisdom": 16, "charisma": 12},
+  "saves": {"strength": 1, "dexterity": 5, "constitution": 0, "intelligence": 1, "wisdom": 3, "charisma": 1},
+  "skills": {"Animal Handling": 5, "Medicine": 5, "Nature": 3, "Perception": 5, "Stealth": 5, "Survival": 5},
+  "spellcasting": {"ability": "Wisdom", "save_dc": 13, "attack_bonus": 5, "level_1_slots": 2},
+  "magic": ["Guidance", "Druidcraft", "Animal Friendship", "Cure Wounds", "Speak with Animals", "Hunter's Mark"],
+  "traits": ["Rabbit Hop", "Lucky Footwork", "Leporine Senses", "Hemlock Kick Training"],
+  "attacks": [
+    {"name": "Hemlock Kick", "attack_bonus": 5, "damage": "1d6+3 bludgeoning"},
+    {"name": "Kunai", "attack_bonus": 5, "damage": "1d4+3 piercing", "properties": "Finesse, Light, Thrown 20/60, Nick"},
+    {"name": "Quarterstaff", "attack_bonus": 1, "damage": "1d6-1 / 1d8-1 bludgeoning", "properties": "Topple, utility and control"}
+  ],
+  "inventory": [
+    "Studded leather field armor", "Ring-and-T quarterstaff", "Kunai", "Herbalist pack",
+    "Herbalism kit", "Healer's kit", "Cook's utensils", "Potion of Healing brewed by Renn",
+    "Wayfolio", "Hemlock-sprig locket", "Field journal and recipe collection"
+  ]
+}
