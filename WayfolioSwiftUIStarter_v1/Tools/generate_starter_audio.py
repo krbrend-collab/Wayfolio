@@ -249,22 +249,29 @@ def forest_ambience() -> list[float]:
     duration = 20.0
     count = int(RATE * duration)
     samples = [0.0] * count
-    wind = 0.0
+    wind = leaves = 0.0
     for index in range(count):
         t = index / RATE
-        wind += 0.0022 * (random.uniform(-1, 1) - wind)
-        breeze = 0.055 * wind * (1.2 + 0.55 * math.sin(2 * math.pi * t / 7.0))
-        insects = 0.009 * math.sin(2 * math.pi * 3470 * t) * (0.5 + 0.5 * math.sin(2 * math.pi * 0.17 * t))
-        samples[index] = breeze + insects
+        raw = random.uniform(-1, 1)
+        wind += 0.0014 * (raw - wind)
+        leaves += 0.018 * (raw - leaves)
+        slow_swell = 0.72 + 0.28 * math.sin(2 * math.pi * t / 8.5)
+        breeze = 0.072 * wind * slow_swell
+        canopy = 0.012 * leaves * (0.45 + 0.55 * abs(math.sin(2 * math.pi * t / 3.8)))
+        samples[index] = breeze + canopy
 
-    for start, frequency in [(1.8, 1850), (5.4, 2240), (9.7, 1720), (14.2, 2050), (17.1, 1940)]:
-        for offset in range(int(RATE * 0.32)):
+    # Sparse, soft woodland calls stay below 1.2 kHz. The previous loop used a
+    # continuous 3.47 kHz insect tone and sharp 1.7–2.8 kHz chirps, which were
+    # fatiguing and could be especially unpleasant for animals in the room.
+    for start, frequency in [(3.1, 540), (8.8, 690), (15.4, 585)]:
+        for offset in range(int(RATE * 0.72)):
             index = int(start * RATE) + offset
             if index >= count:
                 break
             t = offset / RATE
-            chirp = math.sin(2 * math.pi * (frequency + 620 * t) * t)
-            samples[index] += 0.045 * chirp * envelope(t, 0.32, 0.012, 0.12)
+            call = math.sin(2 * math.pi * (frequency + 55 * math.sin(2 * math.pi * 1.4 * t)) * t)
+            warmth = 0.35 * math.sin(2 * math.pi * frequency * 0.5 * t)
+            samples[index] += 0.018 * (call + warmth) * envelope(t, 0.72, 0.08, 0.3)
 
     crossfade = int(RATE * 1.0)
     for index in range(crossfade):
