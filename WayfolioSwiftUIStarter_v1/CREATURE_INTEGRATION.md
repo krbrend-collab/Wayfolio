@@ -4,6 +4,8 @@
 
 This document maps the approved Creature Integration Blueprint onto the current SwiftUI/SwiftData production app without exposing DM-only campaign secrets in the player client.
 
+Companion visual and responsive device rules are defined in `RESPONSIVE_VISUAL_PRESENTATION.md`, including creature image roles plus the current player-facing visual baselines for Renn Hazel and Yūgen.
+
 ## Core rule
 
 **One creature canon, multiple projections.**
@@ -189,6 +191,8 @@ Follow the existing art contract:
 - visual presentation governed by the approved Wayfolio Chroma Cel / Luminous Ledger system
 
 Field Guide artwork and full design-authority references are content assets; they are not the data authority for mechanics or discovery state.
+
+The detailed responsive presentation contract—including phone crops, shared-device hero/habitat views, companion portraits, slime evolution display, and player-character image roles—is defined in `RESPONSIVE_VISUAL_PRESENTATION.md`.
 
 ## Runtime event examples
 
