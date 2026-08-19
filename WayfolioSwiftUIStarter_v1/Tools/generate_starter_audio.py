@@ -47,6 +47,52 @@ def ui_chime(descending: bool) -> list[float]:
     return samples
 
 
+def tone_sequence(frequencies: tuple[float, ...], note_duration: float = 0.065, amplitude: float = 0.22) -> list[float]:
+    duration = note_duration * len(frequencies) + 0.07
+    samples = []
+    for index in range(int(RATE * duration)):
+        t = index / RATE
+        note_index = min(int(t / note_duration), len(frequencies) - 1)
+        local = t - note_index * note_duration
+        frequency = frequencies[note_index]
+        decay = math.exp(-8 * local)
+        fundamental = math.sin(2 * math.pi * frequency * local)
+        overtone = 0.2 * math.sin(2 * math.pi * frequency * 2.01 * local)
+        samples.append(amplitude * (fundamental + overtone) * decay * envelope(t, duration, 0.003, 0.06))
+    return samples
+
+
+def parchment_tap(bright: bool = False) -> list[float]:
+    random.seed(31 if bright else 30)
+    duration = 0.14
+    samples = []
+    smoothed = 0.0
+    frequency = 920 if bright else 610
+    for index in range(int(RATE * duration)):
+        t = index / RATE
+        smoothed += 0.18 * (random.uniform(-1, 1) - smoothed)
+        body = 0.6 * smoothed + 0.4 * math.sin(2 * math.pi * frequency * t)
+        samples.append(0.2 * body * math.exp(-28 * t) * envelope(t, duration, 0.002, 0.04))
+    return samples
+
+
+def magical_reveal() -> list[float]:
+    duration = 0.85
+    notes = (587.33, 739.99, 880.00, 1174.66)
+    samples = []
+    for index in range(int(RATE * duration)):
+        t = index / RATE
+        value = 0.0
+        for note_index, frequency in enumerate(notes):
+            start = note_index * 0.12
+            if t >= start:
+                local = t - start
+                value += math.sin(2 * math.pi * frequency * local) * math.exp(-4.6 * local)
+        shimmer = math.sin(2 * math.pi * (1400 + 900 * t) * t) * math.exp(-3.2 * t)
+        samples.append(0.095 * value + 0.025 * shimmer)
+    return samples
+
+
 def wooden_creak() -> list[float]:
     random.seed(14)
     duration = 2.35
@@ -131,6 +177,19 @@ def exploration_music() -> list[float]:
 def main() -> None:
     write_cue("UI/navigation_select.wav", ui_chime(descending=False))
     write_cue("UI/navigation_back.wav", ui_chime(descending=True))
+    write_cue("UI/entry_open.wav", tone_sequence((440, 659, 880), 0.055))
+    write_cue("UI/filter_change.wav", parchment_tap(bright=True))
+    write_cue("UI/search_clear.wav", tone_sequence((760, 540), 0.045, 0.16))
+    write_cue("UI/note_new.wav", tone_sequence((392, 523, 659), 0.06))
+    write_cue("UI/note_save.wav", tone_sequence((523, 659, 784), 0.075, 0.24))
+    write_cue("UI/note_cancel.wav", tone_sequence((523, 392), 0.06, 0.16))
+    write_cue("UI/map_reset.wav", tone_sequence((330, 440, 330), 0.05, 0.18))
+    write_cue("UI/discovery_reveal.wav", magical_reveal())
+    write_cue("UI/creatures_open.wav", tone_sequence((220, 293, 370), 0.07))
+    write_cue("UI/botanicals_open.wav", tone_sequence((349, 440, 587), 0.07, 0.18))
+    write_cue("UI/alchemy_open.wav", tone_sequence((466, 622, 831), 0.065, 0.2))
+    write_cue("UI/settings_open.wav", parchment_tap(bright=False))
+    write_cue("UI/profile_open.wav", tone_sequence((392, 494), 0.07, 0.17))
     write_cue("SFX/wood_bridge_creak.wav", wooden_creak())
     write_cue("Ambience/hemlock_forest.wav", forest_ambience())
     write_cue("Music/forest_exploration.wav", exploration_music())
