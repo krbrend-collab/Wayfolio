@@ -60,11 +60,29 @@ def validate_event(event: dict, cue_ids: set[str], errors: list[str]) -> None:
         if key in payload and not 0 <= payload[key] <= 1: fail(errors, f"{key} outside 0...1")
 
 
+def resolve_creature_cue(properties: dict, profiles: dict) -> str | None:
+    behavior = properties.get("behavior")
+    override = profiles["creature_overrides"].get(properties.get("creature_id"), {})
+    if override.get("cue"): return override["cue"]
+    if override.get("profile"):
+        cue = profiles["profiles"].get(override["profile"], {}).get(behavior)
+        if cue: return cue
+    for composite in profiles["composite_profiles"]:
+        selectors = {key:value for key, value in composite.items() if key != "cue"}
+        if all(properties.get(key) == value for key, value in selectors.items()): return composite["cue"]
+    cue = profiles["body_form_profiles"].get(properties.get("body_form"), {}).get(behavior)
+    if cue: return cue
+    cue = profiles["profiles"].get(properties.get("creature_type"), {}).get(behavior)
+    if cue: return cue
+    return profiles["profiles"][profiles["fallback_profile"]].get(behavior)
+
+
 def main() -> int:
     errors: list[str] = []
     catalog = load_json("AudioCueCatalog.json")
     profiles = load_json("CreatureAudioProfiles.json")
     fixture = load_json("hemlock_presentation_fixture.json")
+    creature_fixture = load_json("creature_resolution_fixture.json")
     load_json("PresentationEvent.schema.json")
 
     cue_ids: set[str] = set()
@@ -84,7 +102,18 @@ def main() -> int:
     for profile_name, behavior_map in profiles["profiles"].items():
         for behavior, cue_id in behavior_map.items():
             if cue_id not in cue_ids: fail(errors, f"{profile_name}.{behavior} references unknown cue {cue_id}")
+    for form_name, behavior_map in profiles["body_form_profiles"].items():
+        for behavior, cue_id in behavior_map.items():
+            if cue_id not in cue_ids: fail(errors, f"{form_name}.{behavior} references unknown cue {cue_id}")
+    for composite in profiles["composite_profiles"]:
+        if composite["cue"] not in cue_ids: fail(errors, f"Composite references unknown cue {composite['cue']}")
+        if composite["body_form"] not in profiles["body_form_profiles"]:
+            fail(errors, f"Composite references unknown body form {composite['body_form']}")
     if profiles["fallback_profile"] not in profiles["profiles"]: fail(errors, "Unknown fallback profile")
+    for case in creature_fixture["cases"]:
+        actual = resolve_creature_cue(case["input"], profiles)
+        if actual != case["expected_cue"]:
+            fail(errors, f"{case['name']}: expected {case['expected_cue']}, resolved {actual}")
 
     sequences = []
     event_ids = set()
@@ -107,7 +136,7 @@ def main() -> int:
         print("Audio package validation failed:", file=sys.stderr)
         for error in errors: print(f"- {error}", file=sys.stderr)
         return 1
-    print(f"Audio package valid: {len(cue_ids)} cues, {len(profiles['profiles'])} creature profiles, {len(fixture['events'])} fixture events.")
+    print(f"Audio package valid: {len(cue_ids)} cues, {len(profiles['profiles'])} type profiles, {len(profiles['body_form_profiles'])} body forms, {len(creature_fixture['cases'])} creature cases, {len(fixture['events'])} presentation events.")
     return 0
 
 

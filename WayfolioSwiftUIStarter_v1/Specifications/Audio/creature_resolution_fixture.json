@@ -1,0 +1,13 @@
+{
+  "fixture_version": 1,
+  "cases": [
+    {"name":"timid bunny startle","input":{"creature_id":"meadow_bunny","creature_type":"beast","body_form":"small_soft_bodied","size":"small","disposition":"timid","behavior":"startle"},"expected_cue":"creature_small_timid_startle"},
+    {"name":"predatory wolf warning","input":{"creature_id":"hemlock_wolf","creature_type":"beast","body_form":"large_quadruped","size":"medium","disposition":"predatory","behavior":"warning"},"expected_cue":"creature_large_predator_warning"},
+    {"name":"curious slime movement","input":{"creature_id":"glimmer_slime","creature_type":"ooze","body_form":"amorphous","size":"small","disposition":"curious","behavior":"move"},"expected_cue":"creature_slime_curious_move"},
+    {"name":"hostile slime attack","input":{"creature_id":"mire_slime","creature_type":"ooze","body_form":"amorphous","size":"large","disposition":"hostile","behavior":"attack"},"expected_cue":"creature_slime_hostile_attack"},
+    {"name":"mournful spirit appears","input":{"creature_id":"well_spirit","creature_type":"undead","body_form":"incorporeal","size":"medium","disposition":"mournful","behavior":"appear"},"expected_cue":"creature_spirit_mournful_appear"},
+    {"name":"hostile spirit whisper","input":{"creature_id":"lantern_wraith","creature_type":"undead","body_form":"incorporeal","size":"medium","disposition":"hostile","behavior":"whisper"},"expected_cue":"creature_spirit_hostile_whisper"},
+    {"name":"named Lanternshell override","input":{"creature_id":"lanternshell_tortoise","creature_type":"beast","body_form":"shell_armored","size":"medium","disposition":"friendly","behavior":"alert"},"expected_cue":"creature_reptile_alert"},
+    {"name":"unknown form uses type fallback","input":{"creature_id":"odd_drake","creature_type":"dragon","body_form":"unknown_form","size":"large","disposition":"chaotic","behavior":"alert"},"expected_cue":"creature_dragon_alert"}
+  ]
+}

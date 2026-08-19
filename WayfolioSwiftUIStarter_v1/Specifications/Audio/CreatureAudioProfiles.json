@@ -1,6 +1,6 @@
 {
   "profile_version": 1,
-  "selection_precedence": ["creature_override", "creature_type", "fallback"],
+  "selection_precedence": ["creature_override", "exact_composite", "body_form", "creature_type", "fallback"],
   "fallback_profile": "beast",
   "profiles": {
     "beast": {"alert":"creature_beast_alert"},
@@ -17,6 +17,39 @@
   "creature_overrides": {
     "mossglow_sprinter": {"profile":"beast"},
     "lanternshell_tortoise": {"profile":"reptile"}
+  },
+  "body_form_profiles": {
+    "small_soft_bodied": {"startle":"creature_small_timid_startle"},
+    "large_quadruped": {"warning":"creature_large_predator_warning"},
+    "amorphous": {"move":"creature_slime_curious_move", "attack":"creature_slime_hostile_attack"},
+    "incorporeal": {"appear":"creature_spirit_mournful_appear", "whisper":"creature_spirit_hostile_whisper"},
+    "skeletal": {"idle":"creature_skeletal_idle_rattle"},
+    "swarm": {"agitated":"creature_swarm_agitated"},
+    "crystalline": {"alert":"creature_crystalline_alert"},
+    "fungal_colony": {"spore_release":"creature_fungal_spore_release"},
+    "shell_armored": {"move":"creature_shell_armored_move"},
+    "floating_arcane": {"pulse":"creature_floating_arcane_pulse"}
+  },
+  "composite_profiles": [
+    {"body_form":"small_soft_bodied", "size":"small", "disposition":"timid", "behavior":"startle", "cue":"creature_small_timid_startle"},
+    {"body_form":"large_quadruped", "disposition":"predatory", "behavior":"warning", "cue":"creature_large_predator_warning"},
+    {"body_form":"amorphous", "disposition":"curious", "behavior":"move", "cue":"creature_slime_curious_move"},
+    {"body_form":"amorphous", "disposition":"hostile", "behavior":"attack", "cue":"creature_slime_hostile_attack"},
+    {"body_form":"incorporeal", "disposition":"mournful", "behavior":"appear", "cue":"creature_spirit_mournful_appear"},
+    {"body_form":"incorporeal", "disposition":"hostile", "behavior":"whisper", "cue":"creature_spirit_hostile_whisper"}
+  ],
+  "dispositions": {
+    "timid":{"intensity":0.55,"pitch_bias":"higher","rhythm":"brief"},
+    "curious":{"intensity":0.65,"pitch_bias":"rising","rhythm":"questioning"},
+    "friendly":{"intensity":0.65,"pitch_bias":"rounded","rhythm":"regular"},
+    "playful":{"intensity":0.75,"pitch_bias":"variable","rhythm":"bouncing"},
+    "territorial":{"intensity":0.85,"pitch_bias":"lower","rhythm":"warning"},
+    "aggressive":{"intensity":1.0,"pitch_bias":"lower","rhythm":"sharp"},
+    "predatory":{"intensity":0.8,"pitch_bias":"low","rhythm":"restrained"},
+    "mournful":{"intensity":0.6,"pitch_bias":"descending","rhythm":"sparse"},
+    "ancient":{"intensity":0.75,"pitch_bias":"deep","rhythm":"deliberate"},
+    "chaotic":{"intensity":0.9,"pitch_bias":"unstable","rhythm":"irregular"},
+    "hostile":{"intensity":0.9,"pitch_bias":"lower","rhythm":"urgent"}
   },
   "planned_behaviors": ["idle", "alert", "attack", "hurt", "defeat", "friendly"]
 }

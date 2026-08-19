@@ -71,14 +71,14 @@ use `sound_effect` and normally target `shared`.
 ### Creature sound
 
 ```json
-{"type":"creature_sound","creature_id":"lanternshell_tortoise","creature_type":"reptile","behavior":"alert","volume":0.65}
+{"type":"creature_sound","creature_id":"glimmer_slime","creature_type":"ooze","body_form":"amorphous","size":"small","disposition":"curious","behavior":"move","volume":0.65}
 ```
 
 The renderer resolves the cue using `CreatureAudioProfiles.json`: named-creature
-override first, then creature type, then the fallback profile. This keeps DM
-events semantic and allows one creature to gain a unique voice later without
-rewriting scene events. Unknown behaviors produce no sound rather than playing
-an unrelated call.
+override, exact body/disposition composite, body form, creature type, then the
+fallback profile. This distinguishes a timid bunny from a predatory wolf even
+when both are beasts, and supports unusual forms such as slimes and spirits.
+Unknown behaviors produce no sound rather than playing an unrelated call.
 
 ### Ambience
 

@@ -170,6 +170,60 @@ def physical_effect(kind: str) -> list[float]:
     return samples
 
 
+def unusual_creature_sound(kind: str) -> list[float]:
+    seeds = {name: 300 + index for index, name in enumerate((
+        "small_timid_startle", "large_predator_warning", "slime_curious_move",
+        "slime_hostile_attack", "spirit_mournful_appear", "spirit_hostile_whisper",
+        "skeletal_idle_rattle", "swarm_agitated", "crystalline_alert",
+        "fungal_spore_release", "shell_armored_move", "floating_arcane_pulse",
+    ))}
+    random.seed(seeds[kind])
+    duration = {
+        "small_timid_startle": 0.38, "large_predator_warning": 1.35,
+        "slime_curious_move": 0.85, "slime_hostile_attack": 0.72,
+        "spirit_mournful_appear": 1.65, "spirit_hostile_whisper": 1.15,
+        "skeletal_idle_rattle": 0.95, "swarm_agitated": 1.05,
+        "crystalline_alert": 1.2, "fungal_spore_release": 1.1,
+        "shell_armored_move": 1.15, "floating_arcane_pulse": 1.4,
+    }[kind]
+    samples = []
+    smooth = 0.0
+    for index in range(int(RATE * duration)):
+        t = index / RATE
+        raw = random.uniform(-1, 1)
+        smooth += 0.055 * (raw - smooth)
+        if kind == "small_timid_startle":
+            value = math.sin(2 * math.pi * (1250 + 850 * t) * t) * math.exp(-8 * t)
+        elif kind == "large_predator_warning":
+            value = 0.72 * math.sin(2 * math.pi * (82 + 8 * math.sin(2 * math.pi * 4 * t)) * t) + 0.4 * smooth
+        elif kind == "slime_curious_move":
+            value = 0.65 * smooth + math.sin(2 * math.pi * (105 + 35 * math.sin(2 * math.pi * 2.5 * t)) * t)
+        elif kind == "slime_hostile_attack":
+            value = smooth + 0.7 * math.sin(2 * math.pi * (180 - 95 * t) * t)
+        elif kind == "spirit_mournful_appear":
+            value = 0.55 * math.sin(2 * math.pi * (410 - 120 * t) * t) + 0.32 * math.sin(2 * math.pi * 615 * t)
+        elif kind == "spirit_hostile_whisper":
+            value = smooth * (0.5 + 0.5 * math.sin(2 * math.pi * 13 * t)) + 0.25 * math.sin(2 * math.pi * 155 * t)
+        elif kind == "skeletal_idle_rattle":
+            impulse = math.exp(-45 * (t % 0.17))
+            value = impulse * (0.7 * raw + 0.3 * math.sin(2 * math.pi * 920 * t))
+        elif kind == "swarm_agitated":
+            value = math.sin(2 * math.pi * 2650 * t) * (0.35 + 0.65 * abs(math.sin(2 * math.pi * 31 * t))) + 0.35 * smooth
+        elif kind == "crystalline_alert":
+            value = sum(math.sin(2 * math.pi * frequency * t) for frequency in (740, 1110, 1485)) / 3
+        elif kind == "fungal_spore_release":
+            pops = math.exp(-55 * (t % 0.21)) * raw
+            value = 0.65 * smooth + 0.5 * pops
+        elif kind == "shell_armored_move":
+            impact = math.exp(-35 * (t % 0.29))
+            value = impact * (0.6 * math.sin(2 * math.pi * 210 * t) + 0.45 * raw)
+        else:
+            pulse = 0.45 + 0.55 * math.sin(2 * math.pi * 2.2 * t)
+            value = pulse * (0.55 * math.sin(2 * math.pi * 520 * t) + 0.3 * math.sin(2 * math.pi * 780 * t))
+        samples.append(0.25 * value * envelope(t, duration, 0.018, 0.14))
+    return samples
+
+
 def tavern_ambience() -> list[float]:
     random.seed(205)
     duration = 16.0
@@ -279,6 +333,13 @@ def main() -> None:
     write_cue("SFX/spell_chime.wav", magical_reveal())
     for creature_type in ("beast", "avian", "reptile", "insect", "ooze", "construct", "undead", "dragon", "plant", "elemental"):
         write_cue(f"SFX/Creature/{creature_type}_alert.wav", creature_call(creature_type))
+    for profile in (
+        "small_timid_startle", "large_predator_warning", "slime_curious_move",
+        "slime_hostile_attack", "spirit_mournful_appear", "spirit_hostile_whisper",
+        "skeletal_idle_rattle", "swarm_agitated", "crystalline_alert",
+        "fungal_spore_release", "shell_armored_move", "floating_arcane_pulse",
+    ):
+        write_cue(f"SFX/Creature/Form/{profile}.wav", unusual_creature_sound(profile))
     write_cue("Ambience/hemlock_forest.wav", forest_ambience())
     write_cue("Ambience/hemlock_tavern.wav", tavern_ambience())
     write_cue("Music/forest_exploration.wav", exploration_music())
