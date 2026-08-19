@@ -17,6 +17,7 @@ const creatureProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'Creature
 const characterVoiceProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'CharacterVoiceProfiles.json'), 'utf8'));
 const locationAmbienceProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'LocationAmbienceProfiles.json'), 'utf8'));
 const actionSoundProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'ActionSoundProfiles.json'), 'utf8'));
+const encounterAudioProfiles = JSON.parse(await readFile(join(audioSpecRoot, 'EncounterAudioProfiles.json'), 'utf8'));
 const cueIDs = new Set(audioCatalog.cues.map(cue => cue.id));
 const renn = JSON.parse(await readFile(join(contentDirectory, 'renn.json'), 'utf8'));
 const bridgeEncounter = JSON.parse(await readFile(join(contentDirectory, 'hemlock-bridge.json'), 'utf8'));
@@ -196,6 +197,17 @@ function emitActionSound(action, overrides = {}) {
   return emitPresentation(event, {kind, ...(player_id ? {player_id} : {})});
 }
 
+function emitEncounterAudio(state) {
+  const profile = encounterAudioProfiles.states[state];
+  if (!profile) return false;
+  const accepted = profile.action === 'stop'
+    ? emitPresentation({type:'music', action:'stop', fade_duration:profile.fade_duration})
+    : emitPresentation({type:'music', action:'play', cue:profile.cue, volume:profile.volume,
+        intensity:profile.intensity, fade_duration:profile.fade_duration, encounter_state:state});
+  if (accepted && profile.stinger) emitActionSound(profile.stinger);
+  return accepted;
+}
+
 function broadcastSnapshots() {
   for (const client of sockets.clients) {
     send(client, snapshot(client.meta.role, client.meta.playerID));
@@ -269,6 +281,8 @@ sockets.on('connection', socket => {
     if (message.type === 'dm_presentation' && socket.meta.role === 'dm') {
       const accepted = message.event?.type === 'action_sound'
         ? emitActionSound(message.event.action, message.event)
+        : message.event?.type === 'encounter_audio'
+          ? emitEncounterAudio(message.event.state)
         : emitPresentation(message.event);
       if (!accepted) {
         return send(socket, {type:'error', message:'Invalid presentation event or unknown cue.'});
