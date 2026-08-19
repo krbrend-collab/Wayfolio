@@ -144,7 +144,30 @@ function validPresentationEvent(event) {
   return event.type === 'audio_control' && ['stop_all', 'pause', 'resume'].includes(event.action);
 }
 
+function resolveCreatureCue(event) {
+  const behavior = event.behavior;
+  const override = creatureProfiles.creature_overrides[event.creature_id];
+  if (override?.cue) return override.cue;
+  if (override?.profile) {
+    const cue = creatureProfiles.profiles[override.profile]?.[behavior];
+    if (cue) return cue;
+  }
+  for (const composite of creatureProfiles.composite_profiles) {
+    const selectors = Object.entries(composite).filter(([key]) => key !== 'cue');
+    if (selectors.every(([key, value]) => event[key] === value)) return composite.cue;
+  }
+  return creatureProfiles.body_form_profiles[event.body_form]?.[behavior]
+    || creatureProfiles.profiles[event.creature_type]?.[behavior]
+    || creatureProfiles.profiles[creatureProfiles.fallback_profile]?.[behavior]
+    || null;
+}
+
 function emitPresentation(event) {
+  if (event?.type === 'creature_sound') {
+    const cue = resolveCreatureCue(event);
+    if (!cue || !cueIDs.has(cue)) return false;
+    event = {...event, cue};
+  }
   if (!validPresentationEvent(event)) return false;
   session.presentationSequence += 1;
   if (event.type === 'ambience' || event.type === 'ambience_scene') session.presentationState.ambience = event.action === 'play' ? event : null;
@@ -264,6 +287,9 @@ sockets.on('connection', socket => {
         client => client.meta.playerID === renn.id);
       emitPresentation({type:'ambience', action:'play', cue:'hemlock_forest', volume:0.5, fade_duration:1.5});
       emitPresentation({type:'music', action:'play', cue:'forest_exploration', volume:0.42, intensity:0.25, fade_duration:2});
+      if (bridgeEncounter.opening_creature_sound) {
+        emitPresentation({type:'creature_sound', ...bridgeEncounter.opening_creature_sound});
+      }
       emitPresentation({type:'dialogue', line_id:'bridge-opening', speaker_id:'narrator',
         text:bridgeEncounter.opening, performance:'warm, measured, quietly mysterious',
         priority:'normal', interrupt:'queue', caption:true});

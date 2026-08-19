@@ -35,6 +35,8 @@ struct PresentationEvent: Decodable, Identifiable, Sendable {
             command = .uiOneShot(try Self.requiredCue(cue, type: type), volume: volume)
         case .soundEffect:
             command = .worldOneShot(try Self.requiredCue(cue, type: type), volume: volume)
+        case .creatureSound:
+            command = .worldOneShot(try Self.requiredCue(cue, type: type), volume: volume)
         case .ambience:
             let action = try values.decodeIfPresent(LoopAction.self, forKey: .action) ?? .play
             command = .ambience(action: action, cue: cue, volume: volume)
@@ -60,6 +62,7 @@ extension PresentationEvent {
     enum EventType: String, Decodable, Sendable {
         case uiSound = "ui_sound"
         case soundEffect = "sound_effect"
+        case creatureSound = "creature_sound"
         case ambience
         case music
     }
