@@ -40,6 +40,7 @@
 		A10000000000000000000007 /* Audio/WayfolioAudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* Audio/WayfolioAudioEngine.swift */; };
 		A10000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift */; };
 		A10000000000000000000009 /* Presentation/PresentationRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* Presentation/PresentationRuntime.swift */; };
+		A10000000000000000000010 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* Audio */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -78,6 +79,7 @@
 		A20000000000000000000007 /* Audio/WayfolioAudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Audio/WayfolioAudioEngine.swift; sourceTree = "<group>"; };
 		A20000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/PresentationAudioCoordinator.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* Presentation/PresentationRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/PresentationRuntime.swift; sourceTree = "<group>"; };
+		A20000000000000000000010 /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Audio; path = Resources/Audio; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +137,7 @@
 				B93223B493BC44C39DEAB3AB /* Shell/WayfolioShell.swift */,
 				1A3EDC069AB6B9DA2F4EBD5B /* WayfolioApp.swift */,
 				8B40A3F1CAC9ADB66B78DD5C /* Assets.xcassets */,
+				A20000000000000000000010 /* Audio */,
 				38ED30322495D02C679CFD76 /* Info.plist */,
 			);
 			path = Wayfolio;
@@ -207,6 +210,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7F541BB7BBCE1C0E2C548264 /* Assets.xcassets in Resources */,
+				A10000000000000000000010 /* Audio in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
