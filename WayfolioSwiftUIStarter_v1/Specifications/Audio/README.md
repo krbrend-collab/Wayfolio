@@ -10,6 +10,8 @@ shared presentation screen, and player Wayfolios.
 - `CharacterVoiceProfiles.schema.json`: validation contract for that registry.
 - `LocationAmbienceProfiles.json`: seamless location beds with randomized,
   non-repeating environmental details that remain independent from music.
+- `ActionSoundProfiles.json`: reusable gameplay actions mapped to shared-world
+  or player-private audio cues.
 - `PresentationEvent.schema.json`: machine-readable event validation contract.
 - `creature_resolution_fixture.json`: expected routing for wolves, bunnies,
   slimes, spirits, named creatures, and fallbacks.

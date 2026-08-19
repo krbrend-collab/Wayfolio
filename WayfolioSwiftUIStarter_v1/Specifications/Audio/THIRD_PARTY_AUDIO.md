@@ -27,6 +27,9 @@ CC0 license: https://creativecommons.org/publicdomain/zero/1.0/
 - Source: https://opengameart.org/content/rpg-sound-pack
 - Imported use: the complete creature-family and body-form cue library
 - Processing: paired performed creature vocals, beetle clicks, slime movement, shade voices, metal, cloth, wood, and magic recordings into encounter cues of at least 1.65 seconds.
+- Imported action files: `item_acquired.wav`, `container_open.wav`,
+  `spell_cast.wav`, `attack_swing.wav`, `healing.wav`, and
+  `quest_complete.wav`.
 
 ## Location music
 

@@ -1,0 +1,16 @@
+{
+  "profile_version": 1,
+  "actions": {
+    "dice_roll": {"type":"sound_effect","cue":"dice_roll","volume":0.55,"audience":"shared"},
+    "discovery_reveal": {"type":"ui_sound","cue":"discovery_reveal","volume":0.72,"audience":"shared"},
+    "journal_update": {"type":"ui_sound","cue":"note_save","volume":0.58,"audience":"player"},
+    "item_acquired": {"type":"sound_effect","cue":"item_acquired","volume":0.58,"audience":"player"},
+    "container_open": {"type":"sound_effect","cue":"container_open","volume":0.56,"audience":"shared"},
+    "spell_cast": {"type":"sound_effect","cue":"spell_cast","volume":0.6,"audience":"shared"},
+    "attack": {"type":"sound_effect","cue":"attack_swing","volume":0.56,"audience":"shared"},
+    "healing": {"type":"sound_effect","cue":"healing","volume":0.5,"audience":"shared"},
+    "travel_transition": {"type":"sound_effect","cue":"footsteps_wood","volume":0.38,"audience":"shared"},
+    "door_open": {"type":"sound_effect","cue":"door_latch","volume":0.58,"audience":"shared"},
+    "quest_complete": {"type":"ui_sound","cue":"quest_complete","volume":0.72,"audience":"shared"}
+  }
+}
