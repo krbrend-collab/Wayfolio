@@ -18,15 +18,18 @@ struct WayfolioRootView: View {
     }
 }
 
-// MARK: - Shared iPad login
+// MARK: - Shared iPad entry / login bridge
 
 private struct SharedIPadEntryView: View {
     @State private var loginNotice: String?
 
-    // These are intentionally empty until campaign/auth providers are injected.
+    // Production note:
+    // The Mac/DM host must provide an audience-filtered SharedLoginCampaignContext.
+    // Unrevealed characters must be removed before delivery. The client repeats the
+    // reveal guard defensively, but client-side hiding is not the privacy boundary.
     private let context = SharedLoginCampaignContext(
         backgroundAssetName: nil,
-        activeParty: []
+        publicParty: []
     )
 
     var body: some View {
@@ -40,8 +43,8 @@ private struct SharedIPadEntryView: View {
                     return
                 }
 
-                // Do not silently accept credentials. The production auth service
-                // will replace this callback when the shared campaign runtime is wired.
+                // Authentication must be supplied by the campaign/account service.
+                // Never treat local field validation as successful authentication.
                 loginNotice = "Login is ready for the campaign authentication service."
             },
             onForgotPassword: {
@@ -67,7 +70,7 @@ private struct SharedIPadLoginView: View {
     @State private var rememberMe = true
     @State private var showsPassword = false
     @State private var showsCreateAccount = false
-    @State private var chosenSpriteByMemberID: [String: String] = [:]
+    @State private var chosenSpriteByMemberID: [String: SharedLoginSprite] = [:]
     @FocusState private var focusedField: LoginField?
 
     var body: some View {
@@ -75,14 +78,13 @@ private struct SharedIPadLoginView: View {
             ZStack {
                 SharedLoginBackgroundView(assetName: context.backgroundAssetName)
 
-                // Party art is behind the projection. The slot system keeps faces
-                // outside the protected central login footprint and allows bodies
-                // to be partially occluded by the floating Wayfolio window.
                 SharedLoginPartyStage(
-                    members: context.activeParty,
+                    members: context.loginVisibleParty,
                     chosenSpriteByMemberID: chosenSpriteByMemberID
                 )
 
+                // The global screen remains readable and luminous. Only a very light
+                // contrast veil is used; local panel diffusion does the real work.
                 Color.black.opacity(0.08)
                     .ignoresSafeArea()
                     .allowsHitTesting(false)
@@ -224,11 +226,6 @@ private struct SharedIPadLoginView: View {
                     .padding(.horizontal, 10)
                     .transition(.opacity)
             }
-
-            if !context.activeParty.isEmpty {
-                SharedActiveRosterStrip(members: context.activeParty)
-                    .padding(.top, 2)
-            }
         }
         .padding(.horizontal, 42)
         .padding(.vertical, 36)
@@ -246,12 +243,17 @@ private struct SharedIPadLoginView: View {
     }
 
     private func chooseSessionSprites() {
-        var choices: [String: String] = [:]
-        for member in context.activeParty where member.isLoginVisible {
-            if let sprite = member.loginSprites.randomElement() {
-                choices[member.id] = sprite.assetName
+        var choices: [String: SharedLoginSprite] = [:]
+
+        for member in context.loginVisibleParty {
+            let eligible = member.loginSprites.filter(\.isRuntimeEligible)
+            if let sprite = eligible.randomElement() {
+                choices[member.id] = sprite
             }
         }
+
+        // One selection per roster/session signature. Incidental SwiftUI redraws do
+        // not reroll poses.
         chosenSpriteByMemberID = choices
     }
 
@@ -260,6 +262,8 @@ private struct SharedIPadLoginView: View {
         case password
     }
 }
+
+// MARK: - Floating login projection
 
 private struct SharedLoginProjectionPanel<Content: View>: View {
     let content: Content
@@ -342,7 +346,10 @@ private struct ProjectionCornerMarks: View {
                 path.addLine(to: CGPoint(x: proxy.size.width, y: proxy.size.height))
                 path.addLine(to: CGPoint(x: proxy.size.width, y: proxy.size.height - length))
             }
-            .stroke(WayfolioPalette.brassBright.opacity(0.85), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+            .stroke(
+                WayfolioPalette.brassBright.opacity(0.85),
+                style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
+            )
         }
         .allowsHitTesting(false)
     }
@@ -370,7 +377,10 @@ private struct LoginFieldChrome<Content: View>: View {
         }
         .padding(.horizontal, 18)
         .frame(height: 55)
-        .background(WayfolioPalette.midnight.opacity(0.70), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(
+            WayfolioPalette.midnight.opacity(0.70),
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+        )
         .overlay {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .stroke(WayfolioPalette.cyan.opacity(0.85), lineWidth: 1.5)
@@ -392,7 +402,10 @@ private struct ProjectionPrimaryButtonStyle: ButtonStyle {
                 in: Capsule()
             )
             .overlay(Capsule().stroke(WayfolioPalette.brassBright, lineWidth: 2))
-            .shadow(color: WayfolioPalette.cyan.opacity(configuration.isPressed ? 0.25 : 0.55), radius: configuration.isPressed ? 5 : 13)
+            .shadow(
+                color: WayfolioPalette.cyan.opacity(configuration.isPressed ? 0.25 : 0.55),
+                radius: configuration.isPressed ? 5 : 13
+            )
             .scaleEffect(configuration.isPressed ? 0.985 : 1)
     }
 }
@@ -401,39 +414,40 @@ private struct ProjectionSecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundStyle(WayfolioPalette.parchment)
-            .background(WayfolioPalette.midnight.opacity(configuration.isPressed ? 0.88 : 0.58), in: Capsule())
+            .background(
+                WayfolioPalette.midnight.opacity(configuration.isPressed ? 0.88 : 0.58),
+                in: Capsule()
+            )
             .overlay(Capsule().stroke(WayfolioPalette.brassBright.opacity(0.90), lineWidth: 1.4))
     }
 }
 
-// MARK: Party presentation
+// MARK: - Party presentation
 
 private struct SharedLoginPartyStage: View {
     let members: [SharedLoginPartyMember]
-    let chosenSpriteByMemberID: [String: String]
-
-    var visibleMembers: [SharedLoginPartyMember] {
-        Array(members.filter(\.isLoginVisible).prefix(6))
-    }
+    let chosenSpriteByMemberID: [String: SharedLoginSprite]
 
     var body: some View {
         GeometryReader { proxy in
+            let visibleMembers = Array(members.prefix(6))
             let slots = LoginPartySlot.slots(for: visibleMembers.count)
 
             ZStack {
-                ForEach(Array(visibleMembers.enumerated()), id: \.offset) { index, member in
+                ForEach(Array(visibleMembers.enumerated()), id: \.element.id) { index, member in
                     if index < slots.count,
-                       let assetName = chosenSpriteByMemberID[member.id] {
+                       let sprite = chosenSpriteByMemberID[member.id] {
                         let slot = slots[index]
+                        let shouldMirror = slot.prefersMirroring && sprite.mirrorAllowed
 
-                        Image(assetName)
+                        Image(sprite.assetName)
                             .resizable()
                             .scaledToFit()
                             .frame(
                                 width: proxy.size.width * slot.widthFraction,
                                 height: proxy.size.height * slot.heightFraction
                             )
-                            .scaleEffect(x: slot.mirror ? -1 : 1, y: 1)
+                            .scaleEffect(x: shouldMirror ? -1 : 1, y: 1)
                             .position(
                                 x: proxy.size.width * slot.x,
                                 y: proxy.size.height * slot.y
@@ -453,16 +467,34 @@ private struct LoginPartySlot {
     let y: CGFloat
     let widthFraction: CGFloat
     let heightFraction: CGFloat
-    let mirror: Bool
+    let prefersMirroring: Bool
     let z: Double
 
     static func slots(for count: Int) -> [LoginPartySlot] {
-        let leftFront  = LoginPartySlot(x: 0.13, y: 0.61, widthFraction: 0.34, heightFraction: 0.86, mirror: false, z: 3)
-        let rightFront = LoginPartySlot(x: 0.87, y: 0.61, widthFraction: 0.34, heightFraction: 0.86, mirror: true, z: 3)
-        let leftRear   = LoginPartySlot(x: 0.08, y: 0.49, widthFraction: 0.27, heightFraction: 0.68, mirror: false, z: 2)
-        let rightRear  = LoginPartySlot(x: 0.92, y: 0.49, widthFraction: 0.27, heightFraction: 0.68, mirror: true, z: 2)
-        let leftUpper  = LoginPartySlot(x: 0.19, y: 0.36, widthFraction: 0.23, heightFraction: 0.56, mirror: false, z: 1)
-        let rightUpper = LoginPartySlot(x: 0.81, y: 0.36, widthFraction: 0.23, heightFraction: 0.56, mirror: true, z: 1)
+        let leftFront = LoginPartySlot(
+            x: 0.13, y: 0.61, widthFraction: 0.34, heightFraction: 0.86,
+            prefersMirroring: false, z: 3
+        )
+        let rightFront = LoginPartySlot(
+            x: 0.87, y: 0.61, widthFraction: 0.34, heightFraction: 0.86,
+            prefersMirroring: true, z: 3
+        )
+        let leftRear = LoginPartySlot(
+            x: 0.08, y: 0.49, widthFraction: 0.27, heightFraction: 0.68,
+            prefersMirroring: false, z: 2
+        )
+        let rightRear = LoginPartySlot(
+            x: 0.92, y: 0.49, widthFraction: 0.27, heightFraction: 0.68,
+            prefersMirroring: true, z: 2
+        )
+        let leftUpper = LoginPartySlot(
+            x: 0.19, y: 0.36, widthFraction: 0.23, heightFraction: 0.56,
+            prefersMirroring: false, z: 1
+        )
+        let rightUpper = LoginPartySlot(
+            x: 0.81, y: 0.36, widthFraction: 0.23, heightFraction: 0.56,
+            prefersMirroring: true, z: 1
+        )
 
         switch count {
         case 0: return []
@@ -472,64 +504,6 @@ private struct LoginPartySlot {
         case 4: return [leftFront, rightFront, leftRear, rightRear]
         case 5: return [leftFront, rightFront, leftRear, rightRear, leftUpper]
         default: return [leftFront, rightFront, leftRear, rightRear, leftUpper, rightUpper]
-        }
-    }
-}
-
-private struct SharedActiveRosterStrip: View {
-    let members: [SharedLoginPartyMember]
-
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 8) {
-                Rectangle().frame(height: 1)
-                Text("ACTIVE ROSTER")
-                    .font(.caption.weight(.semibold))
-                    .tracking(2.4)
-                Rectangle().frame(height: 1)
-            }
-            .foregroundStyle(WayfolioPalette.cyan.opacity(0.70))
-
-            HStack(spacing: 12) {
-                ForEach(members.prefix(6)) { member in
-                    VStack(spacing: 4) {
-                        ZStack(alignment: .bottomTrailing) {
-                            Group {
-#if canImport(UIKit)
-                                if let portrait = member.portraitAssetName,
-                                   UIImage(named: portrait) != nil {
-                                    Image(portrait).resizable().scaledToFill()
-                                } else {
-                                    Text(member.initials)
-                                        .font(.headline.weight(.bold))
-                                        .foregroundStyle(WayfolioPalette.parchment)
-                                }
-#else
-                                Text(member.initials)
-                                    .font(.headline.weight(.bold))
-                                    .foregroundStyle(WayfolioPalette.parchment)
-#endif
-                            }
-                            .frame(width: 48, height: 48)
-                            .background(WayfolioPalette.midnight.opacity(0.72))
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(member.ringColor, lineWidth: member.isAssignedToCurrentPlayer ? 3 : 1.5))
-                            .shadow(color: member.ringColor.opacity(member.isAssignedToCurrentPlayer ? 0.8 : 0.25), radius: 7)
-
-                            Circle()
-                                .fill(member.statusColor)
-                                .frame(width: 11, height: 11)
-                                .overlay(Circle().stroke(.white.opacity(0.8), lineWidth: 1))
-                        }
-
-                        Text(member.displayName)
-                            .font(.caption2.weight(.medium))
-                            .lineLimit(1)
-                            .foregroundStyle(WayfolioPalette.mutedText)
-                            .frame(maxWidth: 64)
-                    }
-                }
-            }
         }
     }
 }
@@ -563,7 +537,7 @@ private struct SharedLoginBackgroundView: View {
     }
 }
 
-// MARK: New player / character setup
+// MARK: - New player / character setup
 
 private struct SharedCreateAccountView: View {
     let onSubmit: (SharedNewPlayerDraft) -> Void
@@ -611,29 +585,35 @@ private struct SharedCreateAccountView: View {
                             importTarget = .characterSheet
                             showsImporter = true
                         } label: {
-                            Label(characterSheetFileName ?? "Upload Character Sheet", systemImage: "doc.badge.plus")
+                            Label(
+                                characterSheetFileName ?? "Upload Character Sheet",
+                                systemImage: "doc.badge.plus"
+                            )
                         }
 
                         Button {
                             importTarget = .background
                             showsImporter = true
                         } label: {
-                            Label(backgroundFileName ?? "Upload Background / Backstory", systemImage: "text.document")
+                            Label(
+                                backgroundFileName ?? "Upload Background / Backstory",
+                                systemImage: "text.document"
+                            )
                         }
 
-                        Text("Imported character data remains provisional until the DM reviews it. The original source files should be retained by the campaign service.")
+                        Text("Imported data remains provisional until DM review. The campaign service must retain the original source files before marking an import complete.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
                 } else if joinMode == .existingCampaignCharacter {
                     Section("Campaign Character") {
-                        Text("The campaign service will list characters the DM has marked Available to Play. Selecting one reuses that character's canonical record rather than creating a duplicate.")
+                        Text("The campaign service will list only canonical characters the DM has marked Available to Play. Claiming one never creates a duplicate character record.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
                 } else {
                     Section("New Character") {
-                        Text("Character creation will continue in the player's personal Wayfolio after the account is paired.")
+                        Text("Character creation continues through Wayfolio onboarding after the player account is paired.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -654,7 +634,7 @@ private struct SharedCreateAccountView: View {
                     }
                     .disabled(!canSubmit)
                 } footer: {
-                    Text("Creating a player account never recruits an NPC into the party. NPC recruitment remains an in-story event controlled by campaign state.")
+                    Text("Creating an account adds a human player only. NPC recruitment and party membership remain story-driven campaign state.")
                 }
             }
             .navigationTitle("Create Account")
@@ -696,7 +676,7 @@ private struct SharedCreateAccountView: View {
     }
 }
 
-// MARK: Shared login data contract
+// MARK: - Shared login / runtime data contracts
 
 private struct SharedLoginCredentials {
     let identifier: String
@@ -735,65 +715,150 @@ private enum SharedCharacterJoinMode: String, CaseIterable, Identifiable {
         case .createCharacter:
             "Create a new playable character and pair it to this player's Wayfolio."
         case .existingCampaignCharacter:
-            "Claim a campaign character that the DM has explicitly made Available to Play."
+            "Claim a canonical campaign character the DM has made Available to Play."
         }
     }
 }
 
+// The seven fields below intentionally remain independent. Do not collapse them
+// into a single character status. This mirrors the WF-049 state authority and
+// allows legal combinations such as joined + pendingIntroduction or
+// playable + assigned + pairingPending.
+private enum SharedRecruitmentState: String, Hashable {
+    case notEligible
+    case opportunityAvailable
+    case discussing
+    case accepted
+    case declined
+    case conditional
+}
+
+private enum SharedPartyMembership: String, Hashable {
+    case notMember
+    case joined
+    case temporarilySeparated
+    case left
+}
+
+private enum SharedRevealState: String, Hashable {
+    case unrevealed
+    case pendingIntroduction
+    case introduced
+}
+
+private enum SharedPlayability: String, Hashable {
+    case npcOnly
+    case availableToPlay
+    case playable
+}
+
+private enum SharedWayfolioBinding: String, Hashable {
+    case unpaired
+    case pairingPending
+    case paired
+}
+
+private enum SharedScenePresence: String, Hashable {
+    case absent
+    case present
+}
+
+private enum SharedAssetApprovalStatus: String, Hashable {
+    case inReview
+    case approved
+    case superseded
+}
+
+private enum SharedFacingDirection: String, Hashable {
+    case left
+    case right
+    case center
+    case neutral
+}
+
 private struct SharedLoginCampaignContext {
     let backgroundAssetName: String?
-    let activeParty: [SharedLoginPartyMember]
+
+    // This array is already audience-filtered by the authoritative host. It must
+    // never contain DM-private/unrevealed records in production.
+    let publicParty: [SharedLoginPartyMember]
+
+    var loginVisibleParty: [SharedLoginPartyMember] {
+        Array(publicParty.filter(\.isLoginVisible).prefix(6))
+    }
 
     var rosterSignature: String {
-        activeParty.map(\.id).joined(separator: "|") + "|" + (backgroundAssetName ?? "none")
+        let memberSignature = loginVisibleParty.map { member in
+            let sprites = member.loginSprites
+                .filter(\.isRuntimeEligible)
+                .map { "\($0.spriteSetVersion):\($0.spriteID)" }
+                .sorted()
+                .joined(separator: ",")
+
+            return [
+                member.id,
+                member.partyMembership.rawValue,
+                member.revealState.rawValue,
+                sprites
+            ].joined(separator: ":")
+        }
+        .joined(separator: "|")
+
+        return memberSignature + "|" + (backgroundAssetName ?? "none")
     }
 }
 
-private struct SharedLoginPartyMember: Identifiable {
-    let id: String
+private struct SharedLoginPartyMember: Identifiable, Hashable {
+    let id: String                    // canonicalCharacterID
     let displayName: String
     let portraitAssetName: String?
     let loginSprites: [SharedLoginSprite]
-    let isNPCControlled: Bool
-    let isPlayable: Bool
-    let isAssignedToCurrentPlayer: Bool
-    let isTemporarilyAbsent: Bool
-    let isSecret: Bool
+
+    let recruitmentState: SharedRecruitmentState
+    let partyMembership: SharedPartyMembership
+    let revealState: SharedRevealState
+    let playability: SharedPlayability
+    let assignedPlayerID: String?
+    let wayfolioBinding: SharedWayfolioBinding
+    let scenePresence: SharedScenePresence
 
     var isLoginVisible: Bool {
-        !isSecret && !isTemporarilyAbsent
-    }
-
-    var initials: String {
-        displayName
-            .split(separator: " ")
-            .prefix(2)
-            .compactMap { $0.first }
-            .map(String.init)
-            .joined()
-            .uppercased()
-    }
-
-    var ringColor: Color {
-        if isAssignedToCurrentPlayer { return WayfolioPalette.cyan }
-        if isPlayable { return WayfolioPalette.brassBright }
-        return WayfolioPalette.mutedText
-    }
-
-    var statusColor: Color {
-        if isAssignedToCurrentPlayer { return WayfolioPalette.cyan }
-        if isPlayable { return WayfolioPalette.brassBright }
-        if isNPCControlled { return WayfolioPalette.emerald }
-        return WayfolioPalette.mutedText
+        // The shared login is a public surface. A joined character is eligible only
+        // after the DM has introduced them in-story. scenePresence is intentionally
+        // NOT part of this rule: an introduced active party member may remain in the
+        // general login composition while absent from the current scene.
+        partyMembership == .joined &&
+        revealState == .introduced &&
+        loginSprites.contains(where: \.isRuntimeEligible)
     }
 }
 
 private struct SharedLoginSprite: Hashable {
+    let spriteID: String
     let assetName: String
+    let spriteSetVersion: Int
+    let approvalStatus: SharedAssetApprovalStatus
+    let loginEligible: Bool
+
+    // Normalized 0...1 metadata supplied by the asset manifest/runtime resolver.
+    let faceBounds: CGRect?
+    let eyeLine: CGFloat?
+    let silhouetteBounds: CGRect?
+    let baseline: CGFloat?
+    let preferredFacing: SharedFacingDirection
+    let mirrorAllowed: Bool
+    let minDisplayScale: CGFloat
+    let maxDisplayScale: CGFloat
+    let foregroundEligible: Bool
+    let rearSlotEligible: Bool
+
+    var isRuntimeEligible: Bool {
+        approvalStatus == .approved && loginEligible
+    }
 }
 
 // Approved login environment asset names. Campaign state chooses one; the login
-// screen does not randomly invent the player's last location.
+// screen never invents or randomizes the party's current location.
 private enum SharedLoginBackgroundAsset: String, CaseIterable {
     case treetopVillage = "wayfolio_login_bg_01_treetop_village"
     case marketSquare = "wayfolio_login_bg_02_market_square"
