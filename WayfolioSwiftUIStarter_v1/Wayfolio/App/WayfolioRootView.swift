@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct WayfolioRootView: View {
-    @EnvironmentObject private var audioRuntime: WayfolioAudioRuntime
-
     @State private var selectedSection: WayfolioSection = .entries
     @State private var guidePath: [WayfolioRoute] = []
     @State private var entriesPath: [WayfolioRoute] = []
@@ -97,12 +95,12 @@ struct WayfolioRootView: View {
         WayfolioAudioTrigger.emit(.wayfolioLogin)
     }
 
-    private func openCreatureFromGuide(_ id: String) {
+    private func openCreatureFromGuide(_ id: UUID) {
         WayfolioAudioTrigger.emit(.wayfolioOpen)
         guidePath.append(.creature(id))
     }
 
-    private func openCreatureFromEntries(_ id: String) {
+    private func openCreatureFromEntries(_ id: UUID) {
         WayfolioAudioTrigger.emit(.wayfolioOpen)
         entriesPath.append(.creature(id))
     }
