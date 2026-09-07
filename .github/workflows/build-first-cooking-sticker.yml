@@ -1,0 +1,123 @@
+name: Build first cooking sticker
+on:
+  push:
+    paths:
+      - '.github/workflows/build-first-cooking-sticker.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download source frames and Adobe masks
+        shell: bash
+        run: |
+          set -e
+          mkdir -p originals work outputs
+          curl -L --fail --retry 3 -o originals/frame_001.png 'https://at.adobe.com/lv8lD9FkeAS0pBDQ'
+          curl -L --fail --retry 3 -o originals/frame_002.png 'https://at.adobe.com/R1hlKgNSVsCUliw3'
+          curl -L --fail --retry 3 -o originals/frame_003.png 'https://at.adobe.com/WdtF1jWW6b6wrXE0'
+          curl -L --fail --retry 3 -o work/main_001.png 'https://photoshop-api.adobe.io/v2/short-url/urn:aaid:ps:US:e0eeed14-2b87-414c-add3-2c28c737956d'
+          curl -L --fail --retry 3 -o work/main_002.png 'https://photoshop-api.adobe.io/v2/short-url/urn:aaid:ps:US:054e8073-4167-417c-b120-1566953da091'
+          curl -L --fail --retry 3 -o work/main_003.png 'https://photoshop-api.adobe.io/v2/short-url/urn:aaid:ps:US:d6138370-191b-408c-83c9-500db530f20c'
+          curl -L --fail --retry 3 -o work/mask_001.png 'https://photoshop-api.adobe.io/v2/short-url/urn:aaid:ps:US:5b3c640a-2e6b-483b-b4e0-2e65dc5545dc'
+          curl -L --fail --retry 3 -o work/mask_002.png 'https://photoshop-api.adobe.io/v2/short-url/urn:aaid:ps:US:40235b78-a807-44b7-b2d3-5ee46e163417'
+          curl -L --fail --retry 3 -o work/mask_003.png 'https://photoshop-api.adobe.io/v2/short-url/urn:aaid:ps:US:b203d4a5-22fd-43e5-b3d7-44bea07e4c70'
+          file originals/*.png work/*.png
+
+      - name: Install Pillow
+        run: python -m pip install --quiet --upgrade pillow
+
+      - name: Rebuild complete sticker animation
+        shell: bash
+        run: |
+          cat > /tmp/build.py <<'PY'
+          from PIL import Image, ImageFilter, ImageDraw
+          from pathlib import Path
+          import numpy as np
+
+          out = Path("outputs")
+          out.mkdir(exist_ok=True)
+          durations = [100, 100, 100]
+          final_frames = []
+
+          def mask_from_adobe(path):
+              im = Image.open(path).convert("RGBA")
+              a = np.array(im.getchannel("A"))
+              rgb = np.array(im.convert("RGB"))
+              if a.max() > 0 and a.min() < 255:
+                  m = a
+              else:
+                  lum = rgb.mean(axis=2)
+                  corners = [lum[0,0], lum[0,-1], lum[-1,0], lum[-1,-1]]
+                  if sum(corners)/4 > 127:
+                      lum = 255-lum
+                  m = lum.astype("uint8")
+              return Image.fromarray(m, "L")
+
+          for i in range(1, 4):
+              orig = Image.open(f"originals/frame_{i:03d}.png").convert("RGBA")
+              main = Image.open(f"work/main_{i:03d}.png").convert("RGBA")
+              crumb_mask = mask_from_adobe(f"work/mask_{i:03d}.png")
+
+              crumb = orig.copy()
+              crumb.putalpha(crumb_mask)
+              combined = Image.alpha_composite(main, crumb)
+
+              pad = 12
+              canvas = Image.new("RGBA", (combined.width+pad*2, combined.height+pad*2), (0,0,0,0))
+              canvas.alpha_composite(combined, (pad,pad))
+
+              alpha = canvas.getchannel("A")
+              expanded = alpha.filter(ImageFilter.MaxFilter(15))
+              white = Image.new("RGBA", canvas.size, (255,255,255,0))
+              white.putalpha(expanded)
+              sticker = Image.alpha_composite(white, canvas)
+
+              sticker.save(out / f"frame_{i:03d}.png")
+              final_frames.append(sticker)
+
+          final_frames[0].save(
+              out/"Wayfolio_Cooking_Sticker_01_Rolling_Dough.webp",
+              save_all=True, append_images=final_frames[1:],
+              duration=durations, loop=0, lossless=True, method=6
+          )
+          final_frames[0].save(
+              out/"Wayfolio_Cooking_Sticker_01_Rolling_Dough.png",
+              save_all=True, append_images=final_frames[1:],
+              duration=durations, loop=0, disposal=2, blend=0, optimize=False
+          )
+
+          f = final_frames[0]
+          checker = Image.new("RGBA", f.size, (238,238,238,255))
+          d = ImageDraw.Draw(checker)
+          s=12
+          for y in range(0,f.height,s):
+              for x in range(0,f.width,s):
+                  if (x//s+y//s)%2:
+                      d.rectangle((x,y,x+s-1,y+s-1), fill=(205,205,205,255))
+          checker.alpha_composite(f)
+          checker.convert("RGB").save(out/"preview_frame_001.jpg", quality=95)
+          PY
+          python /tmp/build.py
+          ls -lh outputs
+
+      - name: Package output
+        shell: bash
+        run: |
+          cd outputs
+          zip -9 Wayfolio_Cooking_Sticker_01_Rolling_Dough_COMPLETE.zip \
+            Wayfolio_Cooking_Sticker_01_Rolling_Dough.webp \
+            Wayfolio_Cooking_Sticker_01_Rolling_Dough.png \
+            frame_001.png frame_002.png frame_003.png preview_frame_001.jpg
+
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: Wayfolio-Cooking-Sticker-01-Rolling-Dough
+          path: outputs/*
+          if-no-files-found: error
+          retention-days: 1
