@@ -28,8 +28,8 @@ jobs:
           curl -L --fail --retry 3 -o work/mask_003.png 'https://photoshop-api.adobe.io/v2/short-url/urn:aaid:ps:US:b203d4a5-22fd-43e5-b3d7-44bea07e4c70'
           file originals/*.png work/*.png
 
-      - name: Install Pillow
-        run: python -m pip install --quiet --upgrade pillow
+      - name: Install image libraries
+        run: python -m pip install --quiet --upgrade pillow numpy
 
       - name: Rebuild complete sticker animation
         shell: bash
