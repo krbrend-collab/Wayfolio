@@ -1,4 +1,4 @@
-name: Wayfolio Free Asset Collector
+name: Cleanup Wayfolio Free Asset Collector
 
 on:
   push:
@@ -8,171 +8,22 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
-  collect:
+  cleanup:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install browser collector
+      - name: Delete temporary asset artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
-          python -m pip install --quiet playwright
-          python -m playwright install chromium
-
-      - name: Collect free icon packs
-        shell: bash
-        run: |
-          cat > /tmp/collect_wayfolio_assets.py <<'PY'
-          import os, re, json, zipfile
-          from pathlib import Path
-          from urllib.parse import urljoin, urlparse
-          from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
-
-          SOURCES = [
-              ('01-alchemy-botanical','48 Free Alchemy Herbs Vector Icons','https://free-game-assets.itch.io/48-free-alchemy-herbs-vector-icons','Alchemy Herbs Vector Icons.zip'),
-              ('02-crafting-materials','Wilderness Survival & Crafting Essentials — 72 Free Icons','https://timotty.itch.io/wilderness-survival-crafting-72-icons','Wilderness Survival & Crafting Essentials — 72 PNG Icons.zip'),
-              ('03-fish-aquatic','2D Free Fish Icons','https://voodoomoose.itch.io/2d-free-fish-icons','Free Fish Icons.zip'),
-              ('04-bugs-arthropods','Hand drawn animated 2D Bugs assets','https://lionbox.itch.io/bugs-2d-kit','Animated 2D bugs assets.zip'),
-              ('05-food-cooking','Consumables – Fantasy Food & Potions','https://worldswithoutend.itch.io/consumables','Consumables.zip'),
-          ]
-
-          ROOT=Path('wayfolio-free-assets'); ROOT.mkdir(exist_ok=True)
-
-          def safe_name(name):
-              return re.sub(r'[\\/:*?"<>|]+','_',name).strip() or 'download.bin'
-
-          def cd_name(headers, fallback):
-              disp=headers.get('content-disposition','')
-              m=re.search(r"filename\*?=(?:UTF-8''|utf-8'')?[\"']?([^\"';]+)",disp,re.I)
-              if m:
-                  from urllib.parse import unquote
-                  return safe_name(unquote(m.group(1)))
-              return safe_name(fallback)
-
-          manifest=[]
-          with sync_playwright() as pw:
-              browser=pw.chromium.launch(headless=True)
-              context=browser.new_context(accept_downloads=True)
-              for key,title,page_url,expected in SOURCES:
-                  dest=ROOT/key; files=dest/'files'; extracted=dest/'extracted'; srcdir=dest/'_source'
-                  for d in (files,extracted,srcdir): d.mkdir(parents=True,exist_ok=True)
-                  rec={'key':key,'title':title,'page':page_url,'expected':expected,'status':'started','downloads':[],'notes':[]}
-                  page=context.new_page()
-                  try:
-                      purchase=page_url.rstrip('/')+'/purchase'
-                      print(f'[{key}] open {purchase}')
-                      page.goto(purchase,wait_until='domcontentloaded',timeout=60000)
-                      (srcdir/'purchase.html').write_text(page.content(),encoding='utf-8',errors='ignore')
-
-                      btn=page.locator('.direct_download_btn').first
-                      if btn.count()==0:
-                          raise RuntimeError('Free download bypass button not found')
-                      print(f'[{key}] clicking zero-dollar bypass')
-                      btn.click(timeout=30000)
-                      page.wait_for_timeout(1500)
-                      try:
-                          page.wait_for_load_state('domcontentloaded',timeout=15000)
-                      except Exception:
-                          pass
-                      rec['download_page']=page.url
-                      (srcdir/'download.html').write_text(page.content(),encoding='utf-8',errors='ignore')
-                      print(f'[{key}] after bypass: {page.url}')
-
-                      links=page.locator('a').evaluate_all("""els => els.map(a => ({text:(a.innerText||a.textContent||'').trim(), href:a.href||'', cls:a.className||''}))""")
-                      rec['links']=links[:100]
-                      candidates=[]
-                      for x in links:
-                          href=x.get('href',''); text=x.get('text',''); cls=str(x.get('cls',''))
-                          h=href.lower(); t=text.lower(); c=cls.lower()
-                          if not href: continue
-                          score=0
-                          if 'download' in c: score+=5
-                          if '/file/' in h or '/upload/' in h: score+=4
-                          if 'download' in h: score+=3
-                          if 'download' in t: score+=2
-                          if any(ext in h for ext in ['.zip','.rar','.7z']): score+=5
-                          if score>=4:
-                              candidates.append((score,text,href,cls))
-                      # de-duplicate while preserving best-scoring candidates
-                      seen=set(); ordered=[]
-                      for item in sorted(candidates,key=lambda z:z[0],reverse=True):
-                          if item[2] not in seen:
-                              seen.add(item[2]); ordered.append(item)
-                      print(f'[{key}] candidate links {len(ordered)}')
-                      for score,text,href,cls in ordered[:20]:
-                          print(f'  {score} {text[:80]!r} {cls!r} {href}')
-
-                      # If the page has standard itch download buttons, use authenticated browser-context requests.
-                      downloaded=False
-                      for score,text,href,cls in ordered:
-                          try:
-                              response=context.request.get(href,timeout=120000,fail_on_status_code=False)
-                              headers={k.lower():v for k,v in response.headers.items()}
-                              ctype=headers.get('content-type','').lower()
-                              body=response.body()
-                              final=response.url
-                              is_bin=('zip' in ctype or 'octet-stream' in ctype or 'application/x-' in ctype or len(body)>50000 and not ctype.startswith('text/html'))
-                              if not is_bin:
-                                  continue
-                              fallback=expected or os.path.basename(urlparse(final).path) or 'download.bin'
-                              fname=cd_name(headers,fallback)
-                              out=files/fname
-                              out.write_bytes(body)
-                              print(f'[{key}] saved {fname}: {len(body)} bytes')
-                              rec['downloads'].append({'file':fname,'bytes':len(body),'url':href,'final_url':final,'content_type':ctype})
-                              downloaded=True
-                          except Exception as e:
-                              rec['notes'].append(f'candidate request failed {href}: {e}')
-
-                      # Browser-click fallback when href inspection is insufficient.
-                      if not downloaded:
-                          locs=page.locator('a.download_btn, a.button:has-text("Download"), .upload_list a')
-                          for i in range(min(locs.count(),10)):
-                              loc=locs.nth(i)
-                              try:
-                                  with page.expect_download(timeout=30000) as info:
-                                      loc.click()
-                                  dl=info.value
-                                  fname=safe_name(dl.suggested_filename or expected or f'download-{i}.bin')
-                                  path=files/fname
-                                  dl.save_as(str(path))
-                                  rec['downloads'].append({'file':fname,'bytes':path.stat().st_size,'url':'browser-click'})
-                                  print(f'[{key}] browser downloaded {fname}: {path.stat().st_size} bytes')
-                                  downloaded=True
-                              except Exception as e:
-                                  rec['notes'].append(f'browser click {i} failed: {e}')
-
-                      for item in files.iterdir():
-                          if item.suffix.lower()=='.zip':
-                              try:
-                                  with zipfile.ZipFile(item) as z:
-                                      z.extractall(extracted/item.stem)
-                                  print(f'[{key}] extracted {item.name}')
-                              except Exception as e:
-                                  rec['notes'].append(f'extract failed {item.name}: {e}')
-
-                      rec['status']='downloaded' if downloaded else 'needs-followup'
-                  except Exception as e:
-                      rec['status']='error'; rec['notes'].append(str(e)); print(f'[{key}] ERROR {e}')
-                  finally:
-                      manifest.append(rec)
-                      page.close()
-              browser.close()
-
-          (ROOT/'manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
-          summary=[f"{r['key']}: {r['status']} — {len(r.get('downloads',[]))} files" for r in manifest]
-          (ROOT/'SUMMARY.txt').write_text('\n'.join(summary)+'\n',encoding='utf-8')
-          print('\n'.join(summary))
-          PY
-          python /tmp/collect_wayfolio_assets.py
-
-      - name: Upload collected asset library
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: wayfolio-free-assets-browser
-          path: wayfolio-free-assets/
-          if-no-files-found: error
-          retention-days: 7
+          for ARTIFACT_ID in 10003293983 10003338204; do
+            echo "Deleting artifact $ARTIFACT_ID"
+            curl --fail-with-body -sS -X DELETE \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${REPO}/actions/artifacts/${ARTIFACT_ID}" || true
+          done
