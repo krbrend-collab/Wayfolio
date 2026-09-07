@@ -12,203 +12,157 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install collector dependencies
-        run: python -m pip install --quiet requests beautifulsoup4
+      - name: Install browser collector
+        run: |
+          python -m pip install --quiet playwright
+          python -m playwright install chromium
 
       - name: Collect free icon packs
         shell: bash
         run: |
           cat > /tmp/collect_wayfolio_assets.py <<'PY'
-          import os, re, json, shutil, zipfile
+          import os, re, json, zipfile
           from pathlib import Path
           from urllib.parse import urljoin, urlparse
-          import requests
-          from bs4 import BeautifulSoup
+          from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
           SOURCES = [
-              {
-                  'key': '01-alchemy-botanical',
-                  'title': '48 Free Alchemy Herbs Vector Icons',
-                  'page': 'https://free-game-assets.itch.io/48-free-alchemy-herbs-vector-icons',
-                  'expected': 'Alchemy Herbs Vector Icons.zip',
-              },
-              {
-                  'key': '02-crafting-materials',
-                  'title': 'Wilderness Survival & Crafting Essentials — 72 Free Icons',
-                  'page': 'https://timotty.itch.io/wilderness-survival-crafting-72-icons',
-                  'expected': '',
-              },
-              {
-                  'key': '03-fish-aquatic',
-                  'title': '2D Free Fish Icons',
-                  'page': 'https://voodoomoose.itch.io/2d-free-fish-icons',
-                  'expected': 'Free Fish Icons.zip',
-              },
-              {
-                  'key': '04-bugs-arthropods',
-                  'title': 'Hand drawn animated 2D Bugs assets',
-                  'page': 'https://lionbox.itch.io/bugs-2d-kit',
-                  'expected': 'Animated 2D bugs assets.zip',
-              },
-              {
-                  'key': '05-food-cooking',
-                  'title': 'Consumables – Fantasy Food & Potions',
-                  'page': 'https://worldswithoutend.itch.io/consumables',
-                  'expected': 'Consumables.zip',
-              },
+              ('01-alchemy-botanical','48 Free Alchemy Herbs Vector Icons','https://free-game-assets.itch.io/48-free-alchemy-herbs-vector-icons','Alchemy Herbs Vector Icons.zip'),
+              ('02-crafting-materials','Wilderness Survival & Crafting Essentials — 72 Free Icons','https://timotty.itch.io/wilderness-survival-crafting-72-icons','Wilderness Survival & Crafting Essentials — 72 PNG Icons.zip'),
+              ('03-fish-aquatic','2D Free Fish Icons','https://voodoomoose.itch.io/2d-free-fish-icons','Free Fish Icons.zip'),
+              ('04-bugs-arthropods','Hand drawn animated 2D Bugs assets','https://lionbox.itch.io/bugs-2d-kit','Animated 2D bugs assets.zip'),
+              ('05-food-cooking','Consumables – Fantasy Food & Potions','https://worldswithoutend.itch.io/consumables','Consumables.zip'),
           ]
 
-          ROOT = Path('wayfolio-free-assets')
-          ROOT.mkdir(exist_ok=True)
-          session = requests.Session()
-          session.headers.update({'User-Agent':'Mozilla/5.0 Wayfolio-Free-Asset-Collector/1.0'})
+          ROOT=Path('wayfolio-free-assets'); ROOT.mkdir(exist_ok=True)
 
           def safe_name(name):
-              name = re.sub(r'[\\/:*?"<>|]+', '_', name).strip()
-              return name or 'download.bin'
+              return re.sub(r'[\\/:*?"<>|]+','_',name).strip() or 'download.bin'
 
-          def save_text(path, text):
-              Path(path).write_text(text, encoding='utf-8', errors='ignore')
-
-          def likely_file_links(soup, base):
-              out=[]
-              for a in soup.find_all('a', href=True):
-                  href=urljoin(base,a['href'])
-                  text=' '.join(a.stripped_strings)
-                  hlow=href.lower(); tlow=text.lower()
-                  score=0
-                  if any(x in hlow for x in ['.zip','.rar','.7z','/file/','/upload/','download']): score += 2
-                  if any(x in tlow for x in ['.zip','.rar','.7z','download']): score += 2
-                  if 'itch.io' in urlparse(href).netloc or 'amazonaws.com' in urlparse(href).netloc or 'itch.zone' in urlparse(href).netloc: score += 1
-                  if score >= 3:
-                      out.append((score,text,href))
-              # unique, highest score first
-              seen=set(); result=[]
-              for item in sorted(out, reverse=True):
-                  if item[2] not in seen:
-                      seen.add(item[2]); result.append(item)
-              return result
-
-          def find_download_page(html, base):
-              soup=BeautifulSoup(html,'html.parser')
-              # Prefer the explicit zero-dollar bypass link.
-              for a in soup.find_all('a', href=True):
-                  txt=' '.join(a.stripped_strings).lower()
-                  if 'no thanks' in txt and ('download' in txt or 'take me' in txt):
-                      return urljoin(base,a['href'])
-              # Purchase/download page links.
-              for a in soup.find_all('a', href=True):
-                  txt=' '.join(a.stripped_strings).lower()
-                  href=a['href']
-                  if 'download now' in txt or href.endswith('/purchase'):
-                      return urljoin(base,href)
-              return None
+          def cd_name(headers, fallback):
+              disp=headers.get('content-disposition','')
+              m=re.search(r"filename\*?=(?:UTF-8''|utf-8'')?[\"']?([^\"';]+)",disp,re.I)
+              if m:
+                  from urllib.parse import unquote
+                  return safe_name(unquote(m.group(1)))
+              return safe_name(fallback)
 
           manifest=[]
-          for src in SOURCES:
-              dest=ROOT/src['key']
-              raw=dest/'_source'
-              files=dest/'files'
-              raw.mkdir(parents=True,exist_ok=True)
-              files.mkdir(parents=True,exist_ok=True)
-              rec={**src,'status':'started','downloads':[],'notes':[]}
-              try:
-                  r=session.get(src['page'],timeout=30)
-                  rec['landing_status']=r.status_code
-                  rec['landing_final_url']=r.url
-                  save_text(raw/'landing.html',r.text)
-                  print(f"[{src['key']}] landing {r.status_code} {r.url}")
+          with sync_playwright() as pw:
+              browser=pw.chromium.launch(headless=True)
+              context=browser.new_context(accept_downloads=True)
+              for key,title,page_url,expected in SOURCES:
+                  dest=ROOT/key; files=dest/'files'; extracted=dest/'extracted'; srcdir=dest/'_source'
+                  for d in (files,extracted,srcdir): d.mkdir(parents=True,exist_ok=True)
+                  rec={'key':key,'title':title,'page':page_url,'expected':expected,'status':'started','downloads':[],'notes':[]}
+                  page=context.new_page()
+                  try:
+                      purchase=page_url.rstrip('/')+'/purchase'
+                      print(f'[{key}] open {purchase}')
+                      page.goto(purchase,wait_until='domcontentloaded',timeout=60000)
+                      (srcdir/'purchase.html').write_text(page.content(),encoding='utf-8',errors='ignore')
 
-                  next_url=find_download_page(r.text,r.url)
-                  if not next_url:
-                      next_url=src['page'].rstrip('/')+'/purchase'
-                  rec['purchase_url']=next_url
-
-                  p=session.get(next_url,timeout=30)
-                  rec['purchase_status']=p.status_code
-                  rec['purchase_final_url']=p.url
-                  save_text(raw/'purchase.html',p.text)
-                  print(f"[{src['key']}] purchase {p.status_code} {p.url}")
-
-                  # On purchase page, follow explicit free bypass if present.
-                  bypass=find_download_page(p.text,p.url)
-                  d=p
-                  if bypass and bypass != p.url and '/purchase' not in bypass.rstrip('/')[-10:]:
-                      print(f"[{src['key']}] bypass candidate {bypass}")
-                      d=session.get(bypass,timeout=30)
-                      rec['download_page_url']=d.url
-                      rec['download_page_status']=d.status_code
-                      save_text(raw/'download.html',d.text)
-                  else:
-                      rec['download_page_url']=p.url
-                      rec['download_page_status']=p.status_code
-                      save_text(raw/'download.html',p.text)
-
-                  soup=BeautifulSoup(d.text,'html.parser')
-                  candidates=likely_file_links(soup,d.url)
-                  rec['candidate_links']=[{'text':t,'url':u,'score':s} for s,t,u in candidates[:30]]
-                  print(f"[{src['key']}] candidate links: {len(candidates)}")
-                  for s,t,u in candidates[:20]:
-                      print(f"  score={s} text={t[:100]!r} url={u}")
-
-                  downloaded=False
-                  for score,text,url in candidates:
-                      # Skip navigation/purchase pages and try likely binary links.
-                      if url.rstrip('/') in {src['page'].rstrip('/'), next_url.rstrip('/')}:
-                          continue
+                      btn=page.locator('.direct_download_btn').first
+                      if btn.count()==0:
+                          raise RuntimeError('Free download bypass button not found')
+                      print(f'[{key}] clicking zero-dollar bypass')
+                      btn.click(timeout=30000)
+                      page.wait_for_timeout(1500)
                       try:
-                          rr=session.get(url,timeout=90,allow_redirects=True,stream=True)
-                          ctype=(rr.headers.get('content-type') or '').lower()
-                          disp=rr.headers.get('content-disposition') or ''
-                          final=rr.url
-                          is_binary = ('zip' in ctype or 'octet-stream' in ctype or 'application/x-' in ctype or 'attachment' in disp.lower() or final.lower().endswith(('.zip','.rar','.7z')))
-                          if not is_binary:
-                              # Avoid saving HTML challenge/navigation pages as assets.
-                              rr.close(); continue
-                          fname=None
-                          m=re.search(r'filename\*?=(?:UTF-8\'\')?["\']?([^"\';]+)',disp,re.I)
-                          if m: fname=m.group(1)
-                          if not fname:
-                              fname=os.path.basename(urlparse(final).path) or src['expected'] or 'download.bin'
-                          fname=safe_name(fname)
-                          out=files/fname
-                          with open(out,'wb') as f:
-                              for chunk in rr.iter_content(1024*1024):
-                                  if chunk: f.write(chunk)
-                          size=out.stat().st_size
-                          if size < 1024:
-                              out.unlink(missing_ok=True); continue
-                          rec['downloads'].append({'file':fname,'bytes':size,'url':url,'final_url':final,'content_type':ctype})
-                          print(f"[{src['key']}] downloaded {fname} ({size} bytes)")
-                          downloaded=True
-                      except Exception as e:
-                          rec['notes'].append(f"candidate failed: {url}: {e}")
+                          page.wait_for_load_state('domcontentloaded',timeout=15000)
+                      except Exception:
+                          pass
+                      rec['download_page']=page.url
+                      (srcdir/'download.html').write_text(page.content(),encoding='utf-8',errors='ignore')
+                      print(f'[{key}] after bypass: {page.url}')
 
-                  # Extract downloaded ZIPs while preserving originals.
-                  extracted=dest/'extracted'
-                  extracted.mkdir(exist_ok=True)
-                  for item in list(files.iterdir()):
-                      if item.suffix.lower()=='.zip':
+                      links=page.locator('a').evaluate_all("""els => els.map(a => ({text:(a.innerText||a.textContent||'').trim(), href:a.href||'', cls:a.className||''}))""")
+                      rec['links']=links[:100]
+                      candidates=[]
+                      for x in links:
+                          href=x.get('href',''); text=x.get('text',''); cls=str(x.get('cls',''))
+                          h=href.lower(); t=text.lower(); c=cls.lower()
+                          if not href: continue
+                          score=0
+                          if 'download' in c: score+=5
+                          if '/file/' in h or '/upload/' in h: score+=4
+                          if 'download' in h: score+=3
+                          if 'download' in t: score+=2
+                          if any(ext in h for ext in ['.zip','.rar','.7z']): score+=5
+                          if score>=4:
+                              candidates.append((score,text,href,cls))
+                      # de-duplicate while preserving best-scoring candidates
+                      seen=set(); ordered=[]
+                      for item in sorted(candidates,key=lambda z:z[0],reverse=True):
+                          if item[2] not in seen:
+                              seen.add(item[2]); ordered.append(item)
+                      print(f'[{key}] candidate links {len(ordered)}')
+                      for score,text,href,cls in ordered[:20]:
+                          print(f'  {score} {text[:80]!r} {cls!r} {href}')
+
+                      # If the page has standard itch download buttons, use authenticated browser-context requests.
+                      downloaded=False
+                      for score,text,href,cls in ordered:
                           try:
-                              with zipfile.ZipFile(item) as z:
-                                  z.extractall(extracted/item.stem)
-                              print(f"[{src['key']}] extracted {item.name}")
+                              response=context.request.get(href,timeout=120000,fail_on_status_code=False)
+                              headers={k.lower():v for k,v in response.headers.items()}
+                              ctype=headers.get('content-type','').lower()
+                              body=response.body()
+                              final=response.url
+                              is_bin=('zip' in ctype or 'octet-stream' in ctype or 'application/x-' in ctype or len(body)>50000 and not ctype.startswith('text/html'))
+                              if not is_bin:
+                                  continue
+                              fallback=expected or os.path.basename(urlparse(final).path) or 'download.bin'
+                              fname=cd_name(headers,fallback)
+                              out=files/fname
+                              out.write_bytes(body)
+                              print(f'[{key}] saved {fname}: {len(body)} bytes')
+                              rec['downloads'].append({'file':fname,'bytes':len(body),'url':href,'final_url':final,'content_type':ctype})
+                              downloaded=True
                           except Exception as e:
-                              rec['notes'].append(f"extract failed {item.name}: {e}")
+                              rec['notes'].append(f'candidate request failed {href}: {e}')
 
-                  rec['status']='downloaded' if downloaded else 'needs-followup'
-              except Exception as e:
-                  rec['status']='error'; rec['notes'].append(str(e)); print(f"[{src['key']}] ERROR {e}")
-              manifest.append(rec)
+                      # Browser-click fallback when href inspection is insufficient.
+                      if not downloaded:
+                          locs=page.locator('a.download_btn, a.button:has-text("Download"), .upload_list a')
+                          for i in range(min(locs.count(),10)):
+                              loc=locs.nth(i)
+                              try:
+                                  with page.expect_download(timeout=30000) as info:
+                                      loc.click()
+                                  dl=info.value
+                                  fname=safe_name(dl.suggested_filename or expected or f'download-{i}.bin')
+                                  path=files/fname
+                                  dl.save_as(str(path))
+                                  rec['downloads'].append({'file':fname,'bytes':path.stat().st_size,'url':'browser-click'})
+                                  print(f'[{key}] browser downloaded {fname}: {path.stat().st_size} bytes')
+                                  downloaded=True
+                              except Exception as e:
+                                  rec['notes'].append(f'browser click {i} failed: {e}')
+
+                      for item in files.iterdir():
+                          if item.suffix.lower()=='.zip':
+                              try:
+                                  with zipfile.ZipFile(item) as z:
+                                      z.extractall(extracted/item.stem)
+                                  print(f'[{key}] extracted {item.name}')
+                              except Exception as e:
+                                  rec['notes'].append(f'extract failed {item.name}: {e}')
+
+                      rec['status']='downloaded' if downloaded else 'needs-followup'
+                  except Exception as e:
+                      rec['status']='error'; rec['notes'].append(str(e)); print(f'[{key}] ERROR {e}')
+                  finally:
+                      manifest.append(rec)
+                      page.close()
+              browser.close()
 
           (ROOT/'manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
-          summary=[]
-          for r in manifest:
-              summary.append(f"{r['key']}: {r['status']} — {len(r.get('downloads',[]))} files")
+          summary=[f"{r['key']}: {r['status']} — {len(r.get('downloads',[]))} files" for r in manifest]
           (ROOT/'SUMMARY.txt').write_text('\n'.join(summary)+'\n',encoding='utf-8')
           print('\n'.join(summary))
           PY
@@ -218,7 +172,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wayfolio-free-assets
+          name: wayfolio-free-assets-browser
           path: wayfolio-free-assets/
           if-no-files-found: error
           retention-days: 7
