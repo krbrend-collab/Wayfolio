@@ -1,0 +1,50 @@
+name: Fetch Free Cooking VFX
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/fetch-free-cooking-vfx.yml'
+  workflow_dispatch:
+
+jobs:
+  fetch-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download free CC0 assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p cooking-vfx/raw cooking-vfx/unpacked
+
+          curl -fL --retry 3 --retry-delay 2 \
+            -o cooking-vfx/raw/toonfirerenderfinal.zip \
+            'https://opengameart.org/sites/default/files/toonfirerenderfinal.zip'
+
+          curl -fL --retry 3 --retry-delay 2 \
+            -o cooking-vfx/raw/explosion_0.zip \
+            'https://opengameart.org/sites/default/files/explosion_0.zip'
+
+          curl -fL --retry 3 --retry-delay 2 \
+            -o cooking-vfx/raw/kenney_particlePack.zip \
+            'https://opengameart.org/sites/default/files/kenney_particlePack.zip'
+
+          curl -fL --retry 3 --retry-delay 2 \
+            -o cooking-vfx/raw/smoke_sheet.png \
+            'https://opengameart.org/sites/default/files/smoke_sheet.png'
+
+          file cooking-vfx/raw/*
+          unzip -q cooking-vfx/raw/toonfirerenderfinal.zip -d cooking-vfx/unpacked/toon-fire
+          unzip -q cooking-vfx/raw/explosion_0.zip -d cooking-vfx/unpacked/explosion
+          unzip -q cooking-vfx/raw/kenney_particlePack.zip -d cooking-vfx/unpacked/kenney-particles
+          cp cooking-vfx/raw/smoke_sheet.png cooking-vfx/unpacked/smoke_sheet.png
+
+          find cooking-vfx -type f -maxdepth 5 -printf '%p\n' | sort > cooking-vfx/CONTENTS.txt
+
+      - name: Upload cooking VFX bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: wayfolio-free-cooking-vfx
+          path: cooking-vfx
+          if-no-files-found: error
+          retention-days: 3
