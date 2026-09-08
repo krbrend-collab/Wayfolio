@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Wayfolio Live Start Screen Preview</title>
+<style>
+:root {
+  --gold:#e4c574; --ivory:#f7f2e8; --good:#74ef8b; --cyan:#a7f0ff;
+}
+* { box-sizing:border-box; }
+html,body { margin:0; min-height:100%; background:#06101c; color:#fff;
+font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif; }
+body { display:flex; flex-direction:column; align-items:center; gap:12px; padding:12px; }
+.phone { position:relative; width:min(100%,430px); aspect-ratio:9/16; overflow:hidden;
+border-radius:28px; background:#20303d; box-shadow:0 18px 44px rgba(0,0,0,.42); }
+.bg,.menu { position:absolute; inset:0; width:100%; height:100%; }
+.bg { z-index:1; object-fit:cover; }
+.menu { z-index:2; object-fit:fill; pointer-events:none; }
+
+.field { position:absolute; z-index:5; display:flex; flex-direction:column; justify-content:center;
+min-width:0; pointer-events:none; text-shadow:0 1px 4px #000e; }
+.label { font:700 clamp(6.5px,1.85vw,9px)/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+letter-spacing:.15em; text-transform:uppercase; color:var(--gold); margin-bottom:3px; white-space:nowrap; }
+.value { font:600 clamp(11px,3.1vw,16px)/1.02 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+color:var(--ivory); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.good { color:var(--good); }
+
+.campaign { left:18.3%;top:18.82%;width:63.4%;height:5.45%;text-align:center;align-items:center;padding:0 4.5%; }
+.campaign .label { margin-bottom:-1px; }
+.campaign .value { font-size:clamp(13px,3.8vw,20px); transform:translateY(-3px); }
+.player { left:35.3%;top:27.15%;width:36.3%;height:4.2%;padding:0 1.4%; }
+.player .value { font-size:clamp(10.8px,2.95vw,15.5px); }
+.mode { left:34.5%;top:36.45%;width:48.2%;height:4.95%;padding:0 2.5%; }
+.ipad { left:34.5%;top:44.47%;width:48.2%;height:4.85%;padding:0 2.5%; }
+.sync { left:34.5%;top:52.20%;width:48.2%;height:4.95%;padding:0 2.5%; }
+.resumeText { position:absolute;z-index:5;left:17.8%;top:61.82%;width:64.4%;height:5.2%;
+transform:translateY(4px);display:flex;align-items:center;justify-content:center;pointer-events:none;
+font:700 clamp(15px,4.3vw,22px)/1 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+color:#fff8ff;text-shadow:0 1px 5px #000d;white-space:nowrap; }
+.checkpoint { left:30.9%;top:70.95%;width:41.2%;height:4.35%;padding:0 2%; }
+.location { left:30.9%;top:78.20%;width:41.2%;height:4.35%;padding:0 2%; }
+
+.tap { position:absolute;z-index:10;border:0;background:transparent;border-radius:16px;padding:0;cursor:pointer;touch-action:manipulation;
+-webkit-tap-highlight-color:transparent; }
+.tap:active { background:rgba(167,240,255,.10); }
+
+.drop { position:absolute;z-index:20;display:none;padding:6px;border-radius:14px;
+background:linear-gradient(180deg,rgba(176,207,236,.22),rgba(46,76,112,.22));
+box-shadow:inset 0 0 22px rgba(167,240,255,.08),0 10px 28px rgba(0,0,0,.45);
+backdrop-filter:blur(16px) saturate(1.25);-webkit-backdrop-filter:blur(16px) saturate(1.25); }
+.drop.show { display:block; }
+.opt { display:block;width:100%;min-height:43px;border:0;border-bottom:1px solid rgba(167,240,255,.16);
+border-radius:8px;background:transparent;color:#fbfdff;text-align:left;padding:9px 11px;font-size:12px;line-height:1.25; }
+.opt:last-child { border-bottom:0; }
+.opt.sel { color:var(--gold);font-weight:700;background:linear-gradient(90deg,rgba(228,197,116,.10),rgba(167,240,255,.05)); }
+
+.toast { position:absolute;z-index:30;left:17%;right:17%;bottom:7%;padding:9px 10px;border-radius:11px;
+background:rgba(40,72,105,.52);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+color:#fff;font-size:11px;text-align:center;opacity:0;transition:.15s;pointer-events:none; }
+.toast.show { opacity:1; }
+
+.note { width:min(100%,430px); color:#cbd9e3; text-align:center; font-size:12px; line-height:1.35; }
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <img class="bg" src="./assets/wayfolio_location_background.webp" alt="Approved last-location background">
+  <img class="menu" src="./assets/wayfolio_compiled_menu_transparent.webp" alt="Compiled Wayfolio menu">
+
+  <div class="field campaign"><div class="label">Campaign</div><div class="value">Spiritbloom: Awakening</div></div>
+  <div class="field player"><div class="label">Player / Character</div><div class="value">Kevin / Renn Hazel</div></div>
+  <div class="field mode"><div class="label">Play Mode</div><div class="value" id="modeValue">iPhone + Shared iPad</div></div>
+  <div class="field ipad"><div class="label">Shared iPad</div><div class="value good" id="ipadValue">Connected</div></div>
+  <div class="field sync"><div class="label">Campaign Sync</div><div class="value good">Up to Date</div></div>
+  <div class="resumeText">RESUME SESSION</div>
+  <div class="field checkpoint"><div class="label">Story Checkpoint</div><div class="value">Previous Session</div></div>
+  <div class="field location"><div class="label">Current Location</div><div class="value">Campaign Location</div></div>
+
+  <button class="tap" data-a="settings" style="left:80.5%;top:2%;width:11%;height:8.8%" aria-label="Settings"></button>
+  <button class="tap" data-a="campaign" style="left:13%;top:17.1%;width:74%;height:8.8%" aria-label="Campaign"></button>
+  <button class="tap" data-a="player" style="left:8.5%;top:24.6%;width:79%;height:10%" aria-label="Player"></button>
+  <button class="tap" data-a="mode" style="left:9%;top:34.3%;width:81%;height:7.7%" aria-label="Play mode"></button>
+  <button class="tap" data-a="ipad" style="left:9%;top:42.2%;width:81%;height:7.7%" aria-label="Shared iPad"></button>
+  <button class="tap" data-a="sync" style="left:9%;top:50.1%;width:81%;height:7.7%" aria-label="Campaign sync"></button>
+  <button class="tap" data-a="resume" style="left:8.5%;top:59%;width:83%;height:8.7%" aria-label="Resume"></button>
+  <button class="tap" data-a="checkpoint" style="left:9%;top:68.7%;width:82%;height:7.3%" aria-label="Checkpoint"></button>
+  <button class="tap" data-a="location" style="left:9%;top:76.2%;width:82%;height:7.3%" aria-label="Location"></button>
+
+  <div class="drop" id="drop"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+(() => {
+  const phone = document.getElementById('phone');
+  const drop = document.getElementById('drop');
+  const toastEl = document.getElementById('toast');
+  const modeValue = document.getElementById('modeValue');
+  const ipadValue = document.getElementById('ipadValue');
+
+  let paired = true;
+  let current = null;
+  let toastTimer = null;
+
+  function toast(m) {
+    toastEl.textContent = m;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1300);
+  }
+
+  function closeDrop() {
+    drop.classList.remove('show');
+    current = null;
+  }
+
+  function applyMode() {
+    if (paired) {
+      modeValue.textContent = 'iPhone + Shared iPad';
+      ipadValue.textContent = 'Connected';
+      ipadValue.classList.add('good');
+    } else {
+      modeValue.textContent = 'iPhone Only';
+      ipadValue.textContent = 'Enhancement Off';
+      ipadValue.classList.remove('good');
+    }
+  }
+
+  function openDrop(source, items, width=60, left=31) {
+    if (current === source && drop.classList.contains('show')) {
+      closeDrop();
+      return;
+    }
+    drop.innerHTML = '';
+    for (const item of items) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'opt' + (item.selected ? ' sel' : '');
+      b.textContent = item.text;
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        item.run();
+        closeDrop();
+      });
+      drop.appendChild(b);
+    }
+
+    drop.style.left = left + '%';
+    drop.style.width = width + '%';
+    drop.classList.add('show');
+    current = source;
+
+    requestAnimationFrame(() => {
+      const pr = phone.getBoundingClientRect();
+      const sr = source.getBoundingClientRect();
+      const top = sr.top - pr.top;
+      const bottom = sr.bottom - pr.top;
+      const dh = drop.offsetHeight;
+      const ph = phone.clientHeight;
+
+      if (ph - bottom >= dh + 8) {
+        drop.style.top = ((bottom + 3) / ph * 100) + '%';
+      } else {
+        drop.style.top = ((top - dh - 3) / ph * 100) + '%';
+      }
+    });
+  }
+
+  document.querySelectorAll('.tap').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const a = btn.dataset.a;
+
+      if (a === 'campaign') {
+        openDrop(btn, [
+          { text:'Spiritbloom: Awakening ✓', selected:true, run:() => toast('Campaign unchanged') },
+          { text:'Choose another campaign…', run:() => toast('Campaign picker would open') }
+        ], 72, 14);
+      }
+      else if (a === 'player') {
+        openDrop(btn, [
+          { text:'Kevin / Renn Hazel ✓', selected:true, run:() => toast('Character unchanged') },
+          { text:'Choose assigned character…', run:() => toast('Character selector would open') }
+        ], 68, 23);
+      }
+      else if (a === 'mode') {
+        openDrop(btn, [
+          { text:'iPhone Only' + (!paired ? ' ✓' : ''), selected:!paired, run:() => { paired=false; applyMode(); toast('Play Mode: iPhone Only'); } },
+          { text:'iPhone + Shared iPad' + (paired ? ' ✓' : ''), selected:paired, run:() => { paired=true; applyMode(); toast('Shared iPad enabled'); } }
+        ], 60, 31);
+      }
+      else if (a === 'ipad') {
+        const items = paired ? [
+          { text:'Connected ✓', selected:true, run:() => toast('Connection unchanged') },
+          { text:'Pair / Reconnect…', run:() => toast('Pairing flow would open') },
+          { text:'Use iPhone Only', run:() => { paired=false; applyMode(); toast('Switched to iPhone Only'); } }
+        ] : [
+          { text:'Enable Shared iPad', run:() => { paired=true; applyMode(); toast('Shared iPad enabled'); } }
+        ];
+        openDrop(btn, items, 60, 31);
+      }
+      else if (a === 'sync') {
+        openDrop(btn, [
+          { text:'Up to Date ✓', selected:true, run:() => toast('Campaign sync is current') },
+          { text:'Check for Latest State', run:() => toast('Checked for latest state') },
+          { text:'View Sync Details', run:() => toast('Sync details would open') }
+        ], 60, 31);
+      }
+      else if (a === 'checkpoint') {
+        openDrop(btn, [
+          { text:'View Checkpoint Details', run:() => toast('Checkpoint details would open') },
+          { text:'Session History', run:() => toast('Session history would open') }
+        ], 61, 29);
+      }
+      else if (a === 'location') {
+        openDrop(btn, [
+          { text:'Open Location Summary', run:() => toast('Location summary would open') },
+          { text:'Open in World', run:() => toast('World view would open') }
+        ], 61, 29);
+      }
+      else if (a === 'settings') {
+        openDrop(btn, [
+          { text:'Audio & Voice', run:() => toast('Audio & Voice settings') },
+          { text:'Accessibility', run:() => toast('Accessibility settings') },
+          { text:'Account & Devices', run:() => toast('Account & Devices settings') }
+        ], 50, 45);
+      }
+      else if (a === 'resume') {
+        closeDrop();
+        toast(paired ? 'Resume with Shared iPad' : 'Resume on iPhone');
+      }
+    });
+  });
+
+  phone.addEventListener('click', closeDrop);
+  applyMode();
+})();
+</script>
+</body>
+</html>
