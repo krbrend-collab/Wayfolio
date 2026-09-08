@@ -1,55 +1,59 @@
 import SwiftUI
 
+/// Persistent iPhone projector bar.
+///
+/// Geometry is intentionally asset-led: `wayfolio-topbar-approved` is the
+/// approved user-corrected artwork and must not be reconstructed from separate
+/// camera/ellipse shapes in SwiftUI. If the asset is temporarily unavailable,
+/// the pure-black backing keeps the hardware camera region visually safe rather
+/// than substituting an approximate design.
 struct WayfolioHeader: View {
-    let title: String
-    let subtitle: String
-    let canGoBack: Bool
-    let onBack: () -> Void
+    let characterName: String
+    let contextText: String
 
     var body: some View {
-        HStack(spacing: WayfolioMetrics.standardGap) {
-            headerControl(
-                symbol: canGoBack ? "chevron.left" : "sparkles",
-                accessibility: canGoBack ? "Back" : "Wayfolio",
-                action: canGoBack ? onBack : {}
-            )
-            .opacity(canGoBack ? 1 : 0.72)
+        GeometryReader { proxy in
+            let width = proxy.size.width
+            let scale = WayfolioMetrics.topBarScale(for: width)
+            let runtimeY = WayfolioMetrics.topBarRuntimeCenterY * scale
 
-            VStack(spacing: 3) {
-                Text(title)
-                    .font(WayfolioTypography.display)
-                    .foregroundStyle(WayfolioPalette.ink)
-                    .minimumScaleFactor(0.75)
-                    .lineLimit(1)
+            ZStack(alignment: .topLeading) {
+                Color.black
 
-                Text(subtitle.uppercased())
-                    .font(WayfolioTypography.caption)
-                    .tracking(1.2)
-                    .foregroundStyle(WayfolioPalette.ink.opacity(0.72))
+                Image("wayfolio-topbar-approved")
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: width, height: proxy.size.height)
+                    .clipped()
+                    .accessibilityHidden(true)
+
+                runtimeText("✦  \(characterName)", alignment: .leading, scale: scale)
+                    .frame(width: width * 0.28, alignment: .leading)
+                    .position(
+                        x: width * (0.11 + 0.14),
+                        y: runtimeY
+                    )
+
+                runtimeText("☀  \(contextText)", alignment: .trailing, scale: scale)
+                    .frame(width: width * 0.31, alignment: .trailing)
+                    .position(
+                        x: width * (1 - 0.096 - 0.155),
+                        y: runtimeY
+                    )
             }
-            .frame(maxWidth: .infinity)
-
-            headerControl(symbol: "hare.fill", accessibility: "Profile", action: {})
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 14)
-        .frame(minHeight: WayfolioMetrics.headerMinHeight)
-        .parchmentSurface(radius: 22)
-        .padding(.top, 4)
-        .padding(.bottom, 10)
-        .accessibilityElement(children: .contain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(characterName), \(contextText)")
     }
 
-    private func headerControl(symbol: String, accessibility: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(WayfolioPalette.brassBright)
-                .frame(width: 48, height: 48)
-                .background(Circle().fill(WayfolioPalette.navy))
-                .overlay(Circle().stroke(WayfolioPalette.brass, lineWidth: 1.2))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(accessibility)
+    private func runtimeText(_ value: String, alignment: Alignment, scale: CGFloat) -> some View {
+        Text(value)
+            .font(.custom("Georgia", size: 10 * scale))
+            .foregroundStyle(Color(hex: 0xEFD79C))
+            .lineLimit(1)
+            .truncationMode(.tail)
+            .frame(maxWidth: .infinity, alignment: alignment)
+            .shadow(color: Color.white.opacity(0.95), radius: 0.1 * scale)
+            .shadow(color: Color(hex: 0xFFD67D, alpha: 0.12), radius: 0.7 * scale)
     }
 }
