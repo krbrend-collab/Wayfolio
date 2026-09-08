@@ -53,7 +53,7 @@ struct NavySurface: ViewModifier {
 /// and restrained depth shadow. The main dialogue panel is deliberately much more
 /// transparent than the speaker tag and response choices so full-screen scene art
 /// remains visually dominant.
-enum SharedIPadGlassRole {
+enum SharedIPadGlassRole: Equatable {
     case dialogue
     case speakerTag
     case choice
