@@ -105,6 +105,10 @@ private struct WayfolioAmbientHaze: View {
         GeometryReader { proxy in
             let width = proxy.size.width
             let height = proxy.size.height
+            let hazeTop = 100 * scale
+            let hazeBottom = 118 * scale
+            let hazeWidth = width * 1.22
+            let hazeHeight = max(1, height - hazeTop - hazeBottom)
             let blur = 14 * scale
 
             ZStack {
@@ -128,12 +132,11 @@ private struct WayfolioAmbientHaze: View {
                             ],
                             center: .center,
                             startRadius: 0,
-                            endRadius: width * 0.42
+                            endRadius: hazeWidth * 0.42
                         )
                     )
-                    .frame(width: width * 1.68, height: max(120 * scale, height * 0.18))
-                    .position(x: width * 0.50, y: 100 * scale)
-                    .blur(radius: blur)
+                    .frame(width: hazeWidth * 1.68, height: hazeHeight * 0.36)
+                    .position(x: hazeWidth * 0.50, y: hazeHeight * 0.02)
 
                 Ellipse()
                     .fill(
@@ -141,12 +144,11 @@ private struct WayfolioAmbientHaze: View {
                             colors: [Color(hex: 0x47D0F1, alpha: 0.08), .clear],
                             center: .center,
                             startRadius: 0,
-                            endRadius: width * 0.22
+                            endRadius: hazeWidth * 0.19
                         )
                     )
-                    .frame(width: width * 0.76, height: height * 0.55)
-                    .position(x: width * 0.18, y: height * 0.40)
-                    .blur(radius: blur)
+                    .frame(width: hazeWidth * 0.76, height: hazeHeight * 1.10)
+                    .position(x: hazeWidth * 0.18, y: hazeHeight * 0.40)
 
                 Ellipse()
                     .fill(
@@ -154,17 +156,19 @@ private struct WayfolioAmbientHaze: View {
                             colors: [Color(hex: 0x30A0CE, alpha: 0.07), .clear],
                             center: .center,
                             startRadius: 0,
-                            endRadius: width * 0.22
+                            endRadius: hazeWidth * 0.19
                         )
                     )
-                    .frame(width: width * 0.76, height: height * 0.55)
-                    .position(x: width * 0.82, y: height * 0.64)
-                    .blur(radius: blur)
+                    .frame(width: hazeWidth * 0.76, height: hazeHeight * 1.10)
+                    .position(x: hazeWidth * 0.82, y: hazeHeight * 0.64)
             }
+            .frame(width: hazeWidth, height: hazeHeight)
+            .blur(radius: blur)
             .opacity(0.84)
-            .padding(.horizontal, -width * 0.11)
-            .padding(.top, 100 * scale)
-            .padding(.bottom, 118 * scale)
+            .position(
+                x: width / 2,
+                y: hazeTop + hazeHeight / 2
+            )
         }
     }
 }
