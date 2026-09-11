@@ -294,6 +294,17 @@ final class GameSessionClient: ObservableObject {
 
     init() {
         let defaults = UserDefaults.standard
+#if DEBUG
+        // Recovery switch for a development device whose saved shared-table
+        // session cannot be exited because its previous shell is nonresponsive.
+        // Launching once with this argument preserves campaign snapshots while
+        // making the phone-owned runtime the persisted active session.
+        if ProcessInfo.processInfo.arguments.contains("-WayfolioForceStandalone") {
+            defaults.set(PlayMode.iPhoneOnly.rawValue, forKey: "wayfolio.session.play-mode")
+            defaults.set("renn", forKey: "wayfolio.character.id")
+            defaults.set(true, forKey: "wayfolio.session.active")
+        }
+#endif
         preferredPlayMode = PlayMode(rawValue: defaults.string(forKey: "wayfolio.session.play-mode") ?? "")
             ?? .iPhoneSharedIPad
         let savedCharacterID = defaults.string(forKey: "wayfolio.character.id") ?? "renn"
