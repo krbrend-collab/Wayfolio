@@ -12,5 +12,18 @@ enum WayfolioMetrics {
     static let quickRailWidth: CGFloat = 52
     static let quickRailGap: CGFloat = 10
     static let medallionDiameter: CGFloat = 72
-    static let headerMinHeight: CGFloat = 118
+
+    // Locked iPhone top-bar reference geometry (2026-09-07).
+    static let referenceCanvasWidth: CGFloat = 440
+    static let topBarReferenceHeight: CGFloat = 149
+    static let topBarRuntimeCenterY: CGFloat = 77
+
+    static func topBarScale(for width: CGFloat) -> CGFloat {
+        guard width > 0 else { return 1 }
+        return width / referenceCanvasWidth
+    }
+
+    static func topBarHeight(for width: CGFloat) -> CGFloat {
+        topBarReferenceHeight * topBarScale(for: width)
+    }
 }
