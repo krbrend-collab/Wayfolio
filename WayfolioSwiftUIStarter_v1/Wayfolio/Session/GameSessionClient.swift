@@ -18,7 +18,7 @@ final class GameSessionClient: ObservableObject {
         case failed(String)
     }
 
-    struct Prompt: Identifiable, Equatable {
+    struct Prompt: Identifiable, Equatable, Codable {
         let id: String
         let title: String
         let message: String
@@ -26,20 +26,20 @@ final class GameSessionClient: ObservableObject {
         let allowsFreeform: Bool
     }
 
-    struct CheckResult: Equatable {
+    struct CheckResult: Equatable, Codable {
         let title: String
         let detail: String
         let succeeded: Bool
     }
 
-    struct GameAction: Identifiable, Equatable {
+    struct GameAction: Identifiable, Equatable, Codable {
         let id: String
         let text: String
         let visibility: String
         let author: String
     }
 
-    struct DialoguePresentation: Identifiable, Equatable {
+    struct DialoguePresentation: Identifiable, Equatable, Codable {
         let id: String
         let speakerID: String
         let speakerName: String
@@ -47,14 +47,14 @@ final class GameSessionClient: ObservableObject {
         let performance: String?
     }
 
-    struct VisualPresentation: Identifiable, Equatable {
+    struct VisualPresentation: Identifiable, Equatable, Codable {
         let id: String
         let title: String
         let path: String
         let revision: String?
     }
 
-    struct PendingRoll: Identifiable, Equatable {
+    struct PendingRoll: Identifiable, Equatable, Codable {
         let id: String
         let playerID: String
         let playerName: String
@@ -80,8 +80,8 @@ final class GameSessionClient: ObservableObject {
         let activeCombatantID: String?; let combatants: [Combatant]
     }
 
-    struct CharacterSummary: Equatable {
-        struct EquipmentItem: Equatable {
+    struct CharacterSummary: Equatable, Codable {
+        struct EquipmentItem: Equatable, Codable {
             let slot: String
             let name: String
             let detail: String
@@ -179,8 +179,8 @@ final class GameSessionClient: ObservableObject {
         let data: Data
     }
 
-    struct InventoryItem: Identifiable, Equatable {
-        struct MechanicalDelta: Identifiable, Equatable {
+    struct InventoryItem: Identifiable, Equatable, Codable {
+        struct MechanicalDelta: Identifiable, Equatable, Codable {
             let id: String
             let label: String
             let value: String
@@ -237,6 +237,7 @@ final class GameSessionClient: ObservableObject {
     @Published private(set) var playMode: PlayMode = .iPhoneSharedIPad
     @Published private(set) var sharedIPadConnected = false
     @Published private(set) var preferredPlayMode: PlayMode = .iPhoneSharedIPad
+    @Published private(set) var isStandaloneSession = false
     @Published private(set) var characterCatalog: [CharacterOption] = [
         .init(id: "renn", name: "Renn", species: "Harengon", className: "Ranger", assigned: false),
         .init(id: "yugen", name: "Yūgen", species: "Kitsune / Yōkai-Blooded", className: "Warlock", assigned: false)
@@ -265,6 +266,31 @@ final class GameSessionClient: ObservableObject {
     private var pendingActionRetryTasks: [String: Task<Void, Never>] = [:]
     private var pendingItemUseMessages: [String: [String: String]] = [:]
     private var pendingItemUseRetryTasks: [String: Task<Void, Never>] = [:]
+    private var standaloneStoryStep = 0
+
+    /// Durable canonical state for play that is owned by this iPhone rather than
+    /// by a WebSocket transport. Presentation devices may observe this state,
+    /// but their absence never blocks play or restoration.
+    private struct StandaloneSnapshot: Codable {
+        let schemaVersion: Int
+        let characterID: String
+        let sceneTitle: String
+        let sceneText: String
+        let currentLocation: String
+        let timeOfDay: String?
+        let weather: String?
+        let character: CharacterSummary
+        let inventoryItems: [InventoryItem]
+        let discoveries: [String]
+        let journal: [String]
+        let actions: [GameAction]
+        let prompt: Prompt?
+        let checkResult: CheckResult?
+        let dialogue: DialoguePresentation?
+        let visual: VisualPresentation?
+        let pendingRoll: PendingRoll?
+        let storyStep: Int
+    }
 
     init() {
         let defaults = UserDefaults.standard
@@ -281,9 +307,14 @@ final class GameSessionClient: ObservableObject {
             deviceID = created
         }
         playMode = preferredPlayMode
-        if defaults.bool(forKey: "wayfolio.session.active"),
-           let host = defaults.string(forKey: "wayfolio.session.host"),
-           let code = defaults.string(forKey: "wayfolio.session.code") {
+        if defaults.bool(forKey: "wayfolio.session.active"), preferredPlayMode == .iPhoneOnly {
+            Task { [weak self] in
+                await Task.yield()
+                self?.startStandaloneSession()
+            }
+        } else if defaults.bool(forKey: "wayfolio.session.active"),
+                  let host = defaults.string(forKey: "wayfolio.session.host"),
+                  let code = defaults.string(forKey: "wayfolio.session.code") {
             Task { [weak self] in
                 await Task.yield()
                 self?.connect(host: host, code: code)
@@ -293,6 +324,7 @@ final class GameSessionClient: ObservableObject {
 
     func connect(host: String, code: String, transferCode: String? = nil) {
         closeConnection()
+        isStandaloneSession = false
         guard let url = Self.webSocketURL(from: host) else {
             state = .failed("Enter the host address shown on the shared screen.")
             return
@@ -357,8 +389,153 @@ final class GameSessionClient: ObservableObject {
         }
     }
 
+    /// Starts or restores the canonical campaign runtime on this phone. This is
+    /// intentionally independent of the table WebSocket: an iPad or Mac may be
+    /// attached later as a presentation sink, but is not a gameplay authority.
+    func startStandaloneSession() {
+        intentionallyDisconnected = true
+        closeConnection()
+        preferredPlayMode = .iPhoneOnly
+        playMode = .iPhoneOnly
+        sharedIPadConnected = false
+        isStandaloneSession = true
+
+        let defaults = UserDefaults.standard
+        defaults.set(PlayMode.iPhoneOnly.rawValue, forKey: "wayfolio.session.play-mode")
+        defaults.set(selectedCharacterID, forKey: "wayfolio.character.id")
+        defaults.set(true, forKey: "wayfolio.session.active")
+
+        if restoreStandaloneSnapshot() {
+            state = .connected(code: "IPHONE")
+            notice = "Standalone journey restored on this iPhone."
+            return
+        }
+
+        guard selectedCharacterID == "renn" else {
+            state = .failed("Standalone campaign data is not installed for this character yet.")
+            isStandaloneSession = false
+            return
+        }
+
+        applyRennStandaloneSeed()
+        state = .connected(code: "IPHONE")
+        notice = "Playing independently on this iPhone. A shared iPad can be added later."
+        persistStandaloneSnapshot()
+    }
+
+    private func applyRennStandaloneSeed() {
+        sceneTitle = "A Cry Beneath the Pine Roots"
+        sceneText = "On the forest path outside Hemlock, a frightened blue-green slime lies punctured and immobilized by jagged rusted metal beneath the roots. It holds still while Renn approaches."
+        currentLocation = "Pine-root path outside Hemlock"
+        timeOfDay = "Evening"
+        weather = "Clear"
+        character = CharacterSummary(
+            name: "Renn Hazel", species: "Harengon", className: "Ranger", level: 1,
+            background: "Hemlock Herbalist", hp: 10, maximumHP: 10,
+            armorClass: 15, initiative: 5,
+            abilities: ["strength": 8, "dexterity": 16, "constitution": 10,
+                        "intelligence": 12, "wisdom": 16, "charisma": 12],
+            skills: ["Animal Handling": 5, "Medicine": 5, "Nature": 3,
+                     "Perception": 5, "Stealth": 5, "Survival": 5],
+            magic: ["Guidance", "Druidcraft", "Animal Friendship", "Cure Wounds",
+                    "Speak with Animals", "Hunter's Mark"],
+            traits: ["Rabbit Hop", "Lucky Footwork", "Leporine Senses", "Hemlock Kick Training"],
+            equipment: [
+                .init(slot: "Protective Gear", name: "Hemlock movement armor", detail: "Studded-leather equivalent; AC 15 with DEX 16; no shield", qualityLevel: 1, family: "Protective Gear"),
+                .init(slot: "Primary tool", name: "Retractable ring-headed staff", detail: "Quarterstaff; Topple mastery; field tool and defensive control", qualityLevel: 1, family: "Equipment"),
+                .init(slot: "Weapons", name: "Four kunai-style daggers", detail: "Ordinary daggers; finesse, light and thrown", qualityLevel: 1, family: "Equipment"),
+                .init(slot: "Spellcasting focus", name: "Hemlock-sprig belt locket", detail: "Preserved sprig from the great Hemlock; the staff is not the focus", qualityLevel: 1, family: "Equipment")
+            ],
+            resources: ["level_1_slots": 2], resourceLimits: ["level_1_slots": 2]
+        )
+        let names = [
+            "Herbalist pack", "Herbalism kit", "Healer's kit",
+            "Compact cook's utensils and wooden spoon", "Potion of Healing brewed by Renn",
+            "Wayfolio", "Field journal and recipe collection", "Practical fire-starting gear",
+            "Ingredient and remedy containers"
+        ]
+        inventoryItems = names.enumerated().map { index, name in
+            InventoryItem(
+                id: "renn-item-\(index)", name: name, quantity: 1,
+                category: nil, artAssetName: nil, artURL: nil,
+                consumable: name == "Potion of Healing brewed by Renn",
+                mechanicalDeltas: [], equippedSlot: nil, comparedToItemID: nil
+            )
+        }
+        inventory = inventoryItems.map(\.name)
+        discoveries = ["A frightened slime is trapped beneath the pine roots."]
+        journal = ["Found an injured blue-green slime immobilized by rusted metal on the pine-root path."]
+        actions = []
+        prompt = Prompt(
+            id: "standalone-opening", title: "The creature watches Renn",
+            message: "How does Renn approach the injured slime?",
+            choices: ["Observe it carefully", "Try to calm it", "Examine the rusted metal"],
+            allowsFreeform: true
+        )
+        checkResult = nil
+        pendingRoll = nil
+        awaitingSharedRoll = false
+        dialoguePresentation = DialoguePresentation(
+            id: "standalone-opening-narration", speakerID: "narrator", speakerName: "Narrator",
+            text: sceneText, performance: "Quiet forest ambience; the creature trembles when the metal shifts."
+        )
+        visualPresentation = VisualPresentation(
+            id: "standalone-pine-root-path", title: "Pine-root path outside Hemlock",
+            path: "bundle://hemlock-environment", revision: "approved-runtime-fixture-v1"
+        )
+        standaloneStoryStep = 0
+    }
+
+    @discardableResult
+    private func restoreStandaloneSnapshot() -> Bool {
+        let key = "wayfolio.standalone.snapshot.\(selectedCharacterID).v1"
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let snapshot = try? JSONDecoder().decode(StandaloneSnapshot.self, from: data),
+              snapshot.schemaVersion == 1,
+              snapshot.characterID == selectedCharacterID else { return false }
+        sceneTitle = snapshot.sceneTitle
+        sceneText = snapshot.sceneText
+        currentLocation = snapshot.currentLocation
+        timeOfDay = snapshot.timeOfDay
+        weather = snapshot.weather
+        character = snapshot.character
+        inventoryItems = snapshot.inventoryItems
+        inventory = inventoryItems.map(\.name)
+        discoveries = snapshot.discoveries
+        journal = snapshot.journal
+        actions = snapshot.actions
+        prompt = snapshot.prompt
+        checkResult = snapshot.checkResult
+        dialoguePresentation = snapshot.dialogue
+        visualPresentation = snapshot.visual
+        pendingRoll = snapshot.pendingRoll
+        awaitingSharedRoll = pendingRoll != nil
+        standaloneStoryStep = snapshot.storyStep
+        return true
+    }
+
+    private func persistStandaloneSnapshot() {
+        guard isStandaloneSession, let character else { return }
+        let snapshot = StandaloneSnapshot(
+            schemaVersion: 1, characterID: selectedCharacterID,
+            sceneTitle: sceneTitle, sceneText: sceneText, currentLocation: currentLocation,
+            timeOfDay: timeOfDay, weather: weather, character: character,
+            inventoryItems: inventoryItems, discoveries: discoveries, journal: journal,
+            actions: actions, prompt: prompt, checkResult: checkResult,
+            dialogue: dialoguePresentation, visual: visualPresentation,
+            pendingRoll: pendingRoll, storyStep: standaloneStoryStep
+        )
+        if let data = try? JSONEncoder().encode(snapshot) {
+            UserDefaults.standard.set(data, forKey: "wayfolio.standalone.snapshot.\(selectedCharacterID).v1")
+        }
+    }
+
     func submitChoice(_ choice: String) {
         guard let prompt else { return }
+        if isStandaloneSession {
+            handleStandaloneChoice(choice, prompt: prompt)
+            return
+        }
         notice = nil
         Task {
             do {
@@ -394,6 +571,7 @@ final class GameSessionClient: ObservableObject {
     func selectPlayMode(_ mode: PlayMode) {
         preferredPlayMode = mode
         UserDefaults.standard.set(mode.rawValue, forKey: "wayfolio.session.play-mode")
+        guard !isStandaloneSession else { return }
         guard case .connected = state else { return }
         Task {
             do { try await send(["type": "session_mode_set", "play_mode": mode.rawValue]) }
@@ -501,6 +679,10 @@ final class GameSessionClient: ObservableObject {
     func submitAction(_ text: String, isPublic: Bool, inputMode: String = "typed") {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        if isStandaloneSession {
+            handleStandaloneAction(trimmed, isPublic: isPublic, inputMode: inputMode)
+            return
+        }
         notice = nil
         let clientActionID = UUID().uuidString
         let message = [
@@ -531,6 +713,10 @@ final class GameSessionClient: ObservableObject {
     }
 
     func useItem(_ item: InventoryItem, quantity: Int = 1) {
+        if isStandaloneSession {
+            handleStandaloneItemUse(item, quantity: quantity)
+            return
+        }
         guard item.consumable, quantity > 0 else {
             notice = "This item does not have a host-published use action."
             return
@@ -564,6 +750,14 @@ final class GameSessionClient: ObservableObject {
             notice = "Automatic handling needs your explicit authorization."
             return
         }
+        if isStandaloneSession {
+            reactionPolicies[behaviorClass] = mode
+            UserDefaults.standard.set(mode.rawValue, forKey: "wayfolio.standalone.reaction.\(behaviorClass)")
+            notice = mode == .ask ? "Wayfolio will ask before that reaction."
+                : mode == .automatic ? "Automatic handling was explicitly authorized."
+                : "That reaction behavior is off until you change it."
+            return
+        }
         Task {
             do {
                 try await sendAny([
@@ -577,10 +771,166 @@ final class GameSessionClient: ObservableObject {
         }
     }
 
+    private func handleStandaloneAction(_ text: String, isPublic: Bool, inputMode: String) {
+        let action = GameAction(
+            id: UUID().uuidString, text: text,
+            visibility: isPublic ? "public" : "private", author: playerName
+        )
+        actions.insert(action, at: 0)
+        checkResult = nil
+        prompt = nil
+        standaloneStoryStep += 1
+
+        if !isPublic {
+            dialoguePresentation = DialoguePresentation(
+                id: UUID().uuidString, speakerID: "narrator", speakerName: "Wayfolio",
+                text: "Your private note is recorded on this iPhone. It has not been shown to a shared display.",
+                performance: nil
+            )
+            notice = "Private note recorded locally."
+            persistStandaloneSnapshot()
+            return
+        }
+
+        let lower = text.lowercased()
+        let skill: String
+        let modifier: Int
+        if lower.contains("calm") || lower.contains("speak") || lower.contains("gentle") {
+            skill = "Animal Handling"; modifier = character?.skills["Animal Handling"] ?? 0
+            sceneText = "Renn lowers their voice and posture. The slime's trembling eases, but the rusted metal shifts whenever it tries to respond."
+        } else if lower.contains("heal") || lower.contains("wound") || lower.contains("medicine") {
+            skill = "Medicine"; modifier = character?.skills["Medicine"] ?? 0
+            sceneText = "Renn studies where the metal enters the slime. Treating the wound safely will require keeping both the creature and the jagged fragment still."
+        } else if lower.contains("look") || lower.contains("observe") || lower.contains("examine") {
+            skill = "Perception"; modifier = character?.skills["Perception"] ?? 0
+            sceneText = "Renn studies the roots, the metal, and the creature's reactions before touching anything."
+        } else {
+            skill = "Survival"; modifier = character?.skills["Survival"] ?? 0
+            sceneText = "Renn begins the approach. The roots leave little room to work, and a careless movement could drive the metal deeper."
+        }
+
+        sceneTitle = "Renn Acts at the Pine Roots"
+        dialoguePresentation = DialoguePresentation(
+            id: UUID().uuidString, speakerID: "narrator", speakerName: "Narrator",
+            text: sceneText, performance: "The creature watches every movement."
+        )
+        pendingRoll = PendingRoll(
+            id: UUID().uuidString, playerID: playerID, playerName: playerName,
+            skill: skill, modifier: modifier, difficulty: 12,
+            dieType: 20, diceCount: 1, selection: nil
+        )
+        awaitingSharedRoll = true
+        notice = inputMode == "spoken" ? "Spoken action understood. Roll on this iPhone." : "Action understood. Roll on this iPhone."
+        persistStandaloneSnapshot()
+    }
+
+    private func handleStandaloneChoice(_ choice: String, prompt: Prompt) {
+        let lower = choice.lowercased()
+        let skill: String
+        if lower.contains("calm") { skill = "Animal Handling" }
+        else if lower.contains("metal") { skill = "Medicine" }
+        else { skill = "Perception" }
+        let modifier = character?.skills[skill] ?? 0
+        actions.insert(.init(id: UUID().uuidString, text: choice, visibility: "private", author: playerName), at: 0)
+        self.prompt = nil
+        checkResult = nil
+        pendingRoll = PendingRoll(
+            id: "\(prompt.id)-roll-\(UUID().uuidString)", playerID: playerID, playerName: playerName,
+            skill: skill, modifier: modifier, difficulty: 12,
+            dieType: 20, diceCount: 1, selection: nil
+        )
+        awaitingSharedRoll = true
+        dialoguePresentation = DialoguePresentation(
+            id: UUID().uuidString, speakerID: "narrator", speakerName: "Narrator",
+            text: "Renn chooses to \(choice.lowercased()). The situation is uncertain enough to call for a \(skill) check.",
+            performance: nil
+        )
+        notice = "Choice recorded. Roll on this iPhone."
+        persistStandaloneSnapshot()
+    }
+
+    private func resolveStandaloneRoll(_ dice: [Int]) {
+        guard let roll = pendingRoll else { return }
+        let values = dice.isEmpty
+            ? (0..<roll.requiredDiceCount).map { _ in Int.random(in: 1...max(2, roll.dieType)) }
+            : dice
+        guard !values.isEmpty else { return }
+        let natural: Int
+        if roll.selection == "advantage" { natural = values.max() ?? values[0] }
+        else if roll.selection == "disadvantage" { natural = values.min() ?? values[0] }
+        else { natural = values[0] }
+        let total = natural + roll.modifier
+        let succeeded = total >= (roll.difficulty ?? 10)
+
+        pendingRoll = nil
+        awaitingSharedRoll = false
+        standaloneStoryStep += 1
+        if succeeded {
+            sceneTitle = "The Creature Settles"
+            sceneText = "Renn's careful approach changes the situation: the slime stops pulling against the metal and gives Renn room to inspect the restraint without worsening the wound."
+            let observation = "Careful movement keeps the injured slime stable while the rusted restraint is examined."
+            if !discoveries.contains(observation) { discoveries.append(observation) }
+            journal.append("Earned observation: \(observation)")
+            checkResult = CheckResult(
+                title: "The situation changes",
+                detail: "Rolled \(natural) + \(roll.modifier) = \(total). The slime is stable and trust has increased.",
+                succeeded: true
+            )
+        } else {
+            sceneTitle = "The Metal Shifts"
+            sceneText = "The attempt changes the situation: a root flexes, the jagged metal shifts, and the slime recoils in pain. It is now more distressed and abrupt handling will worsen the injury."
+            journal.append("Complication: the rusted restraint shifted and the injured slime became more distressed.")
+            checkResult = CheckResult(
+                title: "A complication develops",
+                detail: "Rolled \(natural) + \(roll.modifier) = \(total). The restraint shifted and the creature's distress increased.",
+                succeeded: false
+            )
+        }
+        dialoguePresentation = DialoguePresentation(
+            id: UUID().uuidString, speakerID: "narrator", speakerName: "Narrator",
+            text: sceneText, performance: succeeded ? "The creature grows still." : "A sharp tremor runs through the roots."
+        )
+        prompt = Prompt(
+            id: "standalone-followup-\(standaloneStoryStep)", title: "What does Renn do next?",
+            message: succeeded
+                ? "The creature is stable for the moment. Renn can continue in any way that makes sense."
+                : "The creature is frightened and the restraint is less stable. Renn can still choose any approach.",
+            choices: succeeded
+                ? ["Inspect the restraint", "Prepare the healer's kit", "Try to communicate"]
+                : ["Pause and calm it", "Brace the metal", "Withdraw and seek help"],
+            allowsFreeform: true
+        )
+        notice = succeeded ? "The check changed the situation." : "The failed check created a complication."
+        persistStandaloneSnapshot()
+    }
+
+    private func handleStandaloneItemUse(_ item: InventoryItem, quantity: Int) {
+        guard item.consumable, quantity > 0 else {
+            notice = "Describe how Renn uses this item in Live play. Wayfolio will not spend it automatically."
+            return
+        }
+        let policy = reactionPolicies["resource_spend"]
+            ?? ReactionMode(rawValue: UserDefaults.standard.string(forKey: "wayfolio.standalone.reaction.resource_spend") ?? "")
+            ?? .ask
+        guard policy == .automatic else {
+            notice = policy == .off
+                ? "Automatic resource spending is off. Change the preference before using this item."
+                : "Confirm the item use through a described Live action; resource spending defaults to ASK."
+            return
+        }
+        guard let index = inventoryItems.firstIndex(where: { $0.id == item.id }) else { return }
+        inventoryItems.remove(at: index)
+        inventory = inventoryItems.map(\.name)
+        journal.append("Used \(item.name) during the pine-root encounter.")
+        notice = "Used \(item.name) with explicit automatic-spend authorization."
+        persistStandaloneSnapshot()
+    }
+
     func disconnect() {
         intentionallyDisconnected = true
         UserDefaults.standard.set(false, forKey: "wayfolio.session.active")
         closeConnection()
+        isStandaloneSession = false
         state = .disconnected
         prompt = nil
         checkResult = nil
@@ -885,6 +1235,10 @@ final class GameSessionClient: ObservableObject {
 
     private func submitRoll(mode: String, dice: [Int]) {
         guard let pendingRoll, pendingRoll.playerID == playerID else { return }
+        if isStandaloneSession {
+            resolveStandaloneRoll(mode == "digital" ? [] : dice)
+            return
+        }
         notice = mode == "digital" ? "Rolling the dice…" : "Sending your physical roll…"
         Task {
             do {

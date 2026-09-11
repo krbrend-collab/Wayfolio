@@ -168,6 +168,11 @@ struct WayfolioRootView: View {
 
     private func restorePhoneConnectionIfNeeded() {
         guard UIDevice.current.userInterfaceIdiom != .pad, phoneSessionActive else { return }
+        if session.preferredPlayMode == .iPhoneOnly {
+            print("[Wayfolio boot] restoring standalone iPhone session")
+            session.startStandaloneSession()
+            return
+        }
         let host = savedPhoneHost.trimmingCharacters(in: .whitespacesAndNewlines)
         let code = savedPhoneCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         guard !host.isEmpty, !code.isEmpty else {
@@ -540,10 +545,26 @@ private struct WayfolioPhoneLoginRoot: View {
 
     private var connectionSetup: some View {
         VStack(spacing: 10) {
-            Text("Find your adventure")
+            Text("Begin your adventure")
                 .font(.system(size: 21, weight: .semibold, design: .serif))
                 .foregroundStyle(WayfolioPalette.parchment)
                 .frame(height: 48)
+
+            Button { beginStandaloneSession() } label: {
+                Label("PLAY ON THIS IPHONE", systemImage: "iphone")
+                    .frame(maxWidth: .infinity, minHeight: 48)
+            }
+            .buttonStyle(.plain)
+            .font(WayfolioTypography.body.weight(.bold))
+            .foregroundStyle(WayfolioPalette.parchment)
+            .background(WayfolioPalette.violet.opacity(0.44), in: Capsule())
+            .overlay(Capsule().stroke(WayfolioPalette.cyan.opacity(0.78), lineWidth: 1))
+            .accessibilityHint("Starts or resumes Renn's journey without a Mac or iPad")
+
+            Text("OR CONNECT TO A SHARED TABLE")
+                .font(WayfolioTypography.tiny)
+                .tracking(1.1)
+                .foregroundStyle(WayfolioPalette.cyan)
 
             loginField("MAC HOST", placeholder: "192.168.4.28", text: $host, capitalization: .never)
             loginField("JOURNEY CODE", placeholder: "HEMLOCK", text: $code, capitalization: .characters)
@@ -561,7 +582,7 @@ private struct WayfolioPhoneLoginRoot: View {
             .background(WayfolioPalette.violet.opacity(0.34), in: Capsule())
             .disabled(isLoading || host.trimmingCharacters(in: .whitespaces).isEmpty)
 
-            Text("The Mac and iPad can be added after your Wayfolio is found.")
+            Text("Independent play works on this iPhone. A Mac or shared iPad is optional.")
                 .font(WayfolioTypography.tiny)
                 .foregroundStyle(WayfolioPalette.parchment.opacity(0.76))
                 .multilineTextAlignment(.center)
@@ -869,7 +890,11 @@ private struct WayfolioPhoneLoginRoot: View {
             savedCode = code.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
             session.chooseCharacter(selectedCharacterID)
             onBeginSession()
-            session.connect(host: savedHost, code: savedCode)
+            if session.preferredPlayMode == .iPhoneOnly {
+                session.startStandaloneSession()
+            } else {
+                session.connect(host: savedHost, code: savedCode)
+            }
         } label: {
             Text("BEGIN SESSION AS \(selectableMembers(in: context).first(where: { $0.id == selectedCharacterID })?.name.uppercased() ?? "WAYFINDER")")
                 .frame(maxWidth: .infinity, minHeight: 54)
@@ -881,6 +906,14 @@ private struct WayfolioPhoneLoginRoot: View {
         .overlay(Capsule().stroke(WayfolioPalette.cyan.opacity(context.readyToBegin ? 0.76 : 0.24), lineWidth: 1))
         .disabled(!context.readyToBegin || selectableMembers(in: context).isEmpty)
         .accessibilityHint("Connects this phone as the selected character")
+    }
+
+    private func beginStandaloneSession() {
+        selectedCharacterID = "renn"
+        session.selectPlayMode(.iPhoneOnly)
+        session.chooseCharacter(selectedCharacterID)
+        session.startStandaloneSession()
+        onBeginSession()
     }
 
     private func loginField(_ label: String, placeholder: String, text: Binding<String>, capitalization: TextInputAutocapitalization) -> some View {
