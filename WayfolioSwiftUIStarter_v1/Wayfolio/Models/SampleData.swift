@@ -1,8 +1,31 @@
 import Foundation
 
 enum SampleData {
+    static let tubelumeID = UUID(uuidString: "A1B2C3D4-E5F6-47A8-9B0C-D1E2F3A4B5C6")!
+
+    static func initialDiscoveryLevel(for creature: CreatureRecord) -> CreatureDiscoveryLevel {
+        creature.name == "Tubelume" ? .sighted : .studied
+    }
+
     static var creatures: [CreatureRecord] {
         [
+            CreatureRecord(
+                id: tubelumeID,
+                name: "Tubelume",
+                category: "Creature",
+                shortDescriptor: "Will-o'-Wisp Companion Spirit",
+                completion: 0.25,
+                affinity: "Spirit light, warm emotion, and gentle air currents.",
+                temperament: "Curious, affectionate, and wary around sudden noise. It prefers to approach on its own terms.",
+                habitat: "Lantern paths, shrine approaches, old inns, and quiet woodland clearings.",
+                activeHours: "Most active from twilight through the night.",
+                healingUses: "No confirmed medicinal harvest. Its calm hovering presence may have a soothing effect on nearby companions.",
+                unknownNotes: "Long-range migration, mature bonding behavior, and deeper spirit ecology remain unconfirmed.",
+                fieldNote: "A long-bodied spirit observed flying in looping ribbon paths, trailing a soft will-o'-wisp glow as it turns.",
+                assetName: "",
+                fallbackSymbol: "sparkles",
+                isCompanion: true
+            ),
             CreatureRecord(
                 name: "Mossglow Sprinter",
                 shortDescriptor: "Verdant Creature",

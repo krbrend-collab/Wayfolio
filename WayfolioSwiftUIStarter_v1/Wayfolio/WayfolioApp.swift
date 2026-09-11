@@ -7,6 +7,6 @@ struct WayfolioApp: App {
         WindowGroup {
             WayfolioRootView()
         }
-        .modelContainer(for: CreatureRecord.self)
+        .modelContainer(for: [CreatureRecord.self, CreatureDiscoveryRecord.self])
     }
 }
