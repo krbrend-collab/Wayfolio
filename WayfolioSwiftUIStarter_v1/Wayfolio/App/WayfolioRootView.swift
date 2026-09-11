@@ -92,6 +92,9 @@ struct WayfolioRootView: View {
                         .id(navigation.selectedSection)
                         .transition(sectionTransition)
                 }
+                // Physical iOS can otherwise retain the original shell and dock
+                // closure after the navigation state changes.
+                .id(navigation.selectedSection)
                 .accessibilityHidden(phase != .complete)
                 .sheet(isPresented: $showingProfile) {
                     WayfolioProfileSheet()
@@ -381,9 +384,7 @@ private var currentNavigationStack: some View {
 
     private func switchSection(_ section: WayfolioSection) {
         audio.playUISound("navigation_select")
-        // Assign the complete value back to State so the root invalidates reliably on
-        // physical iOS. This preserves the per-section paths while making the content
-        // identity change explicit (the dock artwork animates independently).
+        // Assign the complete value back to State so the root invalidates reliably.
         var updatedNavigation = navigation
         updatedNavigation.select(section)
         var transaction = Transaction()
