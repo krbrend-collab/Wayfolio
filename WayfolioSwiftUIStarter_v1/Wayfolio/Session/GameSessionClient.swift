@@ -439,9 +439,6 @@ final class GameSessionClient: ObservableObject {
     /// network-backed voice service is unavailable.
     func replayStandalonePresentation() {
         guard isStandaloneSession else { return }
-        presentationEventHandler?([
-            "type": "ambience_scene", "profile": "forest_day", "action": "play"
-        ])
         if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
     }
 
