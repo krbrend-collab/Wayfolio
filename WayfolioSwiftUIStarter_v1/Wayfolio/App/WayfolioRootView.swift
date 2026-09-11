@@ -7,6 +7,7 @@ struct WayfolioRootView: View {
     @State private var mapPath: [WayfolioRoute] = []
     @State private var notesPath: [WayfolioRoute] = []
     @State private var morePath: [WayfolioRoute] = []
+    @State private var didEmitLoginAudio = false
 
     var body: some View {
         WayfolioShell(
@@ -20,6 +21,7 @@ struct WayfolioRootView: View {
             currentNavigationStack
         }
         .preferredColorScheme(.dark)
+        .onAppear(perform: emitLoginAudioOnce)
     }
 
     @ViewBuilder
@@ -27,12 +29,12 @@ struct WayfolioRootView: View {
         switch selectedSection {
         case .guide:
             NavigationStack(path: $guidePath) {
-                GuideHomeView(onOpenCreature: { guidePath.append(.creature($0)) })
+                GuideHomeView(onOpenCreature: openCreatureFromGuide)
                     .navigationDestination(for: WayfolioRoute.self, destination: destination)
             }
         case .entries:
             NavigationStack(path: $entriesPath) {
-                EntriesView(onOpenCreature: { entriesPath.append(.creature($0)) })
+                EntriesView(onOpenCreature: openCreatureFromEntries)
                     .navigationDestination(for: WayfolioRoute.self, destination: destination)
             }
         case .map:
@@ -86,7 +88,25 @@ struct WayfolioRootView: View {
         }
     }
 
+    private func emitLoginAudioOnce() {
+        guard !didEmitLoginAudio else { return }
+        didEmitLoginAudio = true
+        WayfolioAudioTrigger.emit(.musicLoginWayfolio)
+        WayfolioAudioTrigger.emit(.wayfolioLogin)
+    }
+
+    private func openCreatureFromGuide(_ id: UUID) {
+        WayfolioAudioTrigger.emit(.wayfolioOpen)
+        guidePath.append(.creature(id))
+    }
+
+    private func openCreatureFromEntries(_ id: UUID) {
+        WayfolioAudioTrigger.emit(.wayfolioOpen)
+        entriesPath.append(.creature(id))
+    }
+
     private func popCurrentPath() {
+        WayfolioAudioTrigger.emit(.wayfolioClose)
         switch selectedSection {
         case .guide:
             if !guidePath.isEmpty { guidePath.removeLast() }
@@ -102,6 +122,7 @@ struct WayfolioRootView: View {
     }
 
     private func switchSection(_ section: WayfolioSection) {
+        WayfolioAudioTrigger.emit(.wayfolioSelect)
         withAnimation(.snappy(duration: 0.28)) {
             selectedSection = section
         }

@@ -1,0 +1,9 @@
+# Wayfolio licensed/private runtime assets
+# Source audio may be used by the app according to each source license, but raw
+# third-party asset packs must not be redistributed through this public repo.
+WayfolioSwiftUIStarter_v1/Wayfolio/Audio/*
+!WayfolioSwiftUIStarter_v1/Wayfolio/Audio/README.md
+
+# Xcode user state / local build products
+DerivedData/
+*.xcuserstate
