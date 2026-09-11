@@ -137,12 +137,29 @@ private enum WayfolioCharacterPage: String, CaseIterable, Identifiable {
 private struct WayfolioAbilitiesView: View {
     @EnvironmentObject private var session: GameSessionClient
 
+    private let abilityOrder = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"]
+
     var body: some View {
         ScrollView {
             LazyVStack(spacing: WayfolioMetrics.sectionGap) {
                 if let character = session.character {
-                    abilityScores(character)
-                    skillList(character)
+                    let availableAbilities = abilityOrder.compactMap { key in
+                        character.abilities[key].map { (key: key, score: $0) }
+                    }
+                    if availableAbilities.isEmpty && character.skills.isEmpty {
+                        WayfolioStateCard(
+                            kind: .empty,
+                            title: "Abilities unavailable",
+                            message: "Ability scores and skills appear only when the connected character record supplies them."
+                        )
+                    } else {
+                        if !availableAbilities.isEmpty {
+                            abilityScores(availableAbilities)
+                        }
+                        if !character.skills.isEmpty {
+                            skillList(character)
+                        }
+                    }
                 } else {
                     WayfolioStateCard(
                         kind: .empty,
@@ -158,9 +175,8 @@ private struct WayfolioAbilitiesView: View {
         .scrollIndicators(.hidden)
     }
 
-    private func abilityScores(_ character: GameSessionClient.CharacterSummary) -> some View {
-        let order = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"]
-        return VStack(alignment: .leading, spacing: 12) {
+    private func abilityScores(_ abilities: [(key: String, score: Int)]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
                 WayfolioApprovedIcon(.abilities, size: 42)
                 VStack(alignment: .leading, spacing: 2) {
@@ -169,11 +185,10 @@ private struct WayfolioAbilitiesView: View {
                 }
             }
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 7), count: 3), spacing: 7) {
-                ForEach(order, id: \.self) { key in
-                    let score = character.abilities[key] ?? 10
+                ForEach(abilities, id: \.key) { ability in
                     VStack(spacing: 3) {
-                        Text(String(key.prefix(3)).uppercased()).font(WayfolioTypography.caption).tracking(0.7)
-                        Text("\(score)  \(signed((score - 10) / 2))").font(WayfolioTypography.headline)
+                        Text(String(ability.key.prefix(3)).uppercased()).font(WayfolioTypography.caption).tracking(0.7)
+                        Text("\(ability.score)  \(signed((ability.score - 10) / 2))").font(WayfolioTypography.headline)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 9)
@@ -218,8 +233,15 @@ private struct WayfolioCharacterOverviewView: View {
                 identityCard
                 if let character = session.character {
                     vitalsCard(character)
-                    abilityCard(character)
-                    WayfolioNamedCollectionCard(title: "Traits", symbol: "hare.fill", values: character.traits)
+                    let availableAbilities = abilityOrder.compactMap { key in
+                        character.abilities[key].map { (key: key, score: $0) }
+                    }
+                    if !availableAbilities.isEmpty {
+                        abilityCard(availableAbilities)
+                    }
+                    if !character.traits.isEmpty {
+                        WayfolioNamedCollectionCard(title: "Traits", symbol: "hare.fill", values: character.traits)
+                    }
                 } else {
                     WayfolioStateCard(
                         kind: .empty,
@@ -236,14 +258,19 @@ private struct WayfolioCharacterOverviewView: View {
     }
 
     private var displayName: String {
-        session.character?.name ?? session.playerName
+        guard let name = session.character?.name.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else {
+            return session.playerName
+        }
+        return name
     }
+
+    private let abilityOrder = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"]
 
     private var identityCard: some View {
         VStack(spacing: 4) {
             CharacterManifestationView(
                 characterID: session.selectedCharacterID,
-                characterName: session.character?.name ?? session.playerName
+                characterName: displayName
             )
             .frame(height: 248)
 
@@ -273,7 +300,7 @@ private struct WayfolioCharacterOverviewView: View {
                     .overlay(Capsule().stroke(WayfolioPalette.brass, lineWidth: 1))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Edit \(session.character?.name ?? session.playerName) image")
+            .accessibilityLabel("Edit \(displayName) image")
         }
         .foregroundStyle(WayfolioPalette.parchment)
         .frame(maxWidth: .infinity)
@@ -282,7 +309,7 @@ private struct WayfolioCharacterOverviewView: View {
         .sheet(isPresented: $showingImageEditor) {
             CharacterImageEditor(
                 characterID: session.selectedCharacterID,
-                characterName: session.character?.name ?? session.playerName
+                characterName: displayName
             )
         }
     }
@@ -302,12 +329,10 @@ private struct WayfolioCharacterOverviewView: View {
         .parchmentSurface()
     }
 
-    private func abilityCard(_ character: GameSessionClient.CharacterSummary) -> some View {
-        let order = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"]
-        return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 7), count: 3), spacing: 7) {
-            ForEach(order, id: \.self) { key in
-                let score = character.abilities[key] ?? 10
-                statTile(String(key.prefix(3)).uppercased(), "\(score)  \(signed((score - 10) / 2))")
+    private func abilityCard(_ abilities: [(key: String, score: Int)]) -> some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 7), count: 3), spacing: 7) {
+            ForEach(abilities, id: \.key) { ability in
+                statTile(String(ability.key.prefix(3)).uppercased(), "\(ability.score)  \(signed((ability.score - 10) / 2))")
             }
         }
         .padding(14)
@@ -377,7 +402,7 @@ private enum WayfolioEquipmentLayout {
                     id: layout.id,
                     label: layout.label,
                     symbol: layout.symbol,
-                    occupancy: .occupied(title: item.name, detail: "\(item.detail) · Quality \(item.qualityLevel)")
+                    occupancy: .occupied(title: item.name, detail: equipmentDetail(item))
                 )
             } else {
                 WayfolioActiveSlot(
@@ -393,6 +418,11 @@ private enum WayfolioEquipmentLayout {
     private static func normalized(_ value: String) -> String {
         let normalized = value.lowercased().replacingOccurrences(of: " ", with: "-")
         return normalized == "armor" ? "protective-gear" : normalized
+    }
+
+    private static func equipmentDetail(_ item: GameSessionClient.CharacterSummary.EquipmentItem) -> String {
+        guard let qualityLevel = item.qualityLevel else { return item.detail }
+        return "\(item.detail) · Quality \(qualityLevel)"
     }
 }
 
@@ -416,16 +446,25 @@ private struct WayfolioEquipmentLoadoutView: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: WayfolioMetrics.sectionGap) {
-                WayfolioLoadoutHeading(
-                    eyebrow: "ACTIVE LOADOUT",
-                    title: session.character?.name ?? "Renn Hazel",
-                    summary: "A quick view of worn, carried, and available equipment positions.",
-                    used: slots.filter(\.isOccupied).count,
-                    capacity: slots.count
-                )
+                if let character = session.character,
+                   !character.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    WayfolioLoadoutHeading(
+                        eyebrow: "ACTIVE LOADOUT",
+                        title: character.name,
+                        summary: "A quick view of worn, carried, and available equipment positions.",
+                        used: slots.filter(\.isOccupied).count,
+                        capacity: slots.count
+                    )
 
-                equipmentFigure
-                WayfolioSlotDetailCard(slot: selectedSlot, onOpenItem: onOpenItem)
+                    equipmentFigure
+                    WayfolioSlotDetailCard(slot: selectedSlot, onOpenItem: onOpenItem)
+                } else {
+                    WayfolioStateCard(
+                        kind: .empty,
+                        title: "Equipment identity unavailable",
+                        message: "The active loadout appears only when the connected character record supplies its identity."
+                    )
+                }
             }
             .padding(.horizontal, WayfolioMetrics.contentInset)
             .padding(.bottom, 28)

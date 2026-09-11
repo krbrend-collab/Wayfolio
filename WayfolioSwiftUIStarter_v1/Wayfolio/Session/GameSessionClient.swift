@@ -85,14 +85,14 @@ final class GameSessionClient: ObservableObject {
             let slot: String
             let name: String
             let detail: String
-            let qualityLevel: Int
-            let family: String
+            let qualityLevel: Int?
+            let family: String?
 
-            init(slot: String, name: String, detail: String, qualityLevel: Int = 1, family: String = "Equipment") {
+            init(slot: String, name: String, detail: String, qualityLevel: Int? = nil, family: String? = nil) {
                 self.slot = slot
                 self.name = name
                 self.detail = detail
-                self.qualityLevel = min(5, max(1, qualityLevel))
+                self.qualityLevel = qualityLevel.map { min(5, max(1, $0)) }
                 self.family = family
             }
         }
@@ -201,7 +201,7 @@ final class GameSessionClient: ObservableObject {
 
     @Published private(set) var state: ConnectionState = .disconnected
     @Published private(set) var sceneTitle = "Waiting for the adventure"
-    @Published private(set) var sceneText = "Join the central game to connect Renn's Wayfolio."
+    @Published private(set) var sceneText = "Join the central game to connect this Wayfolio."
     @Published private(set) var currentLocation = "Location unknown"
     @Published private(set) var timeOfDay: String?
     @Published private(set) var weather: String?
@@ -979,8 +979,8 @@ final class GameSessionClient: ObservableObject {
                     slot: slot,
                     name: name,
                     detail: detail,
-                    qualityLevel: item["quality_level"] as? Int ?? 1,
-                    family: item["equipment_family"] as? String ?? "Equipment"
+                    qualityLevel: item["quality_level"] as? Int,
+                    family: Self.nonemptyString(item["equipment_family"])
                 )
             },
             resources: Self.integerDictionary(value["resources"]),
@@ -991,9 +991,9 @@ final class GameSessionClient: ObservableObject {
     private static func parseAction(_ value: [String: Any]) -> GameAction? {
         guard let id = value["id"] as? String,
               let text = value["text"] as? String,
-              let visibility = value["visibility"] as? String else { return nil }
-        return GameAction(id: id, text: text, visibility: visibility,
-                          author: value["author"] as? String ?? "Renn")
+              let visibility = value["visibility"] as? String,
+              let author = nonemptyString(value["author"]) else { return nil }
+        return GameAction(id: id, text: text, visibility: visibility, author: author)
     }
 
     private static func parseDialogue(_ value: [String: Any]?) -> DialoguePresentation? {

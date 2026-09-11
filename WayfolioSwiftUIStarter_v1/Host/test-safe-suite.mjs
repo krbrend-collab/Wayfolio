@@ -4,6 +4,7 @@ await import('./test-knowledge-records.mjs');
 await import('./test-gameplay-policy.mjs');
 await import('./test-shared-stage-contract.mjs');
 await import('./test-native-shell-contract.mjs');
+await import('./test-character-presentation-authority.mjs');
 await import('./test-medium-gameplay.mjs');
 await import('./test-two-player-turn.mjs');
 console.log('[Wayfolio test] Isolated gameplay suite passed.');

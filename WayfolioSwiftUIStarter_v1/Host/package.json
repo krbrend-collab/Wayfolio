@@ -40,6 +40,7 @@
     ,"test:knowledge-records": "node test-knowledge-records.mjs"
     ,"test:shared-stage": "node test-shared-stage-contract.mjs"
     ,"test:native-shell": "node test-native-shell-contract.mjs"
+    ,"test:character-authority": "node test-character-presentation-authority.mjs"
   },
   "dependencies": {
     "qrcode": "^1.5.4",

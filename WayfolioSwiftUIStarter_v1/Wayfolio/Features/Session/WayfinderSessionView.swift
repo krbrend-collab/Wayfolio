@@ -34,8 +34,15 @@ struct WayfinderSessionView: View {
                 characterImportCard
                 if let character = session.character {
                     vitalsCard(character)
-                    abilitiesCard(character)
-                    skillsCard(character)
+                    let availableAbilities = abilityOrder.compactMap { key in
+                        character.abilities[key].map { (key: key, score: $0) }
+                    }
+                    if !availableAbilities.isEmpty {
+                        abilitiesCard(availableAbilities)
+                    }
+                    if !character.skills.isEmpty {
+                        skillsCard(character)
+                    }
                     collectionCard(title: "Magic", symbol: "sparkles", values: character.magic)
                     collectionCard(title: "Traits", symbol: "hare.fill", values: character.traits)
                     WayfolioEquipmentList(items: character.equipment)
@@ -43,7 +50,7 @@ struct WayfinderSessionView: View {
                     collectionCard(title: "Discoveries", symbol: "eye.fill", values: session.discoveries,
                                    emptyMessage: "The road has not yielded its secrets yet.")
                     collectionCard(title: "Journal", symbol: "book.closed.fill", values: session.journal,
-                                   emptyMessage: "Renn's field notes will appear here as the story unfolds.")
+                                   emptyMessage: "Field notes will appear here as the story unfolds.")
                 }
                 connectionCard
                 sceneCard
@@ -72,11 +79,11 @@ struct WayfinderSessionView: View {
         HStack(spacing: 14) {
             CharacterPortraitView(
                 characterID: session.selectedCharacterID,
-                characterName: session.character?.name ?? session.playerName,
+                characterName: characterDisplayName,
                 size: 58
             )
             VStack(alignment: .leading, spacing: 3) {
-                Text(session.character?.name ?? "Renn")
+                Text(characterDisplayName)
                     .font(WayfolioTypography.title)
                 Text(characterSubtitle)
                     .font(WayfolioTypography.caption)
@@ -88,6 +95,13 @@ struct WayfinderSessionView: View {
         .foregroundStyle(WayfolioPalette.ink)
         .padding(14)
         .parchmentSurface()
+    }
+
+    private var characterDisplayName: String {
+        guard let name = session.character?.name.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else {
+            return session.playerName
+        }
+        return name
     }
 
     private var gameScreensCard: some View {
@@ -364,15 +378,15 @@ struct WayfinderSessionView: View {
         .parchmentSurface()
     }
 
-    private func abilitiesCard(_ character: GameSessionClient.CharacterSummary) -> some View {
-        let order = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"]
-        return VStack(alignment: .leading, spacing: 10) {
+    private let abilityOrder = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"]
+
+    private func abilitiesCard(_ abilities: [(key: String, score: Int)]) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
             Label("Abilities", systemImage: "shield.lefthalf.filled")
                 .font(WayfolioTypography.headline)
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 7), count: 3), spacing: 7) {
-                ForEach(order, id: \.self) { key in
-                    let score = character.abilities[key] ?? 10
-                    statTile(String(key.prefix(3)).uppercased(), "\(score)  \(signed((score - 10) / 2))")
+                ForEach(abilities, id: \.key) { ability in
+                    statTile(String(ability.key.prefix(3)).uppercased(), "\(ability.score)  \(signed((ability.score - 10) / 2))")
                 }
             }
         }

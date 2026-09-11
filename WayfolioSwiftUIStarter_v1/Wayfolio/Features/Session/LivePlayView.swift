@@ -476,7 +476,7 @@ struct WayfolioEquipmentList: View {
                     HStack(alignment: .top, spacing: 11) {
                         Image(systemName: equipmentSymbol(for: item.slot)).foregroundStyle(WayfolioPalette.navy).frame(width: 24)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("\(item.slot.uppercased()) · QUALITY \(item.qualityLevel)").font(WayfolioTypography.tiny).tracking(0.9)
+                            Text(equipmentHeading(item)).font(WayfolioTypography.tiny).tracking(0.9)
                             Text(item.name).font(WayfolioTypography.headline)
                             Text(item.detail).font(WayfolioTypography.body).foregroundStyle(WayfolioPalette.ink.opacity(0.68))
                         }
@@ -493,6 +493,11 @@ struct WayfolioEquipmentList: View {
         if value.contains("weapon") || value.contains("hand") { return "bolt.fill" }
         if value.contains("armor") || value.contains("body") { return "shield.fill" }
         return "diamond.fill"
+    }
+
+    private func equipmentHeading(_ item: GameSessionClient.CharacterSummary.EquipmentItem) -> String {
+        guard let qualityLevel = item.qualityLevel else { return item.slot.uppercased() }
+        return "\(item.slot.uppercased()) · QUALITY \(qualityLevel)"
     }
 }
 
