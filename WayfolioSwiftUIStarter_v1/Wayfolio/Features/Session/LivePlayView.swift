@@ -128,7 +128,7 @@ struct WayfolioChoiceCard: View {
                 .buttonStyle(.borderedProminent).tint(WayfolioPalette.navy)
             }
         }
-        .wayfolioLedgerCard().chromaGlow(active: true, radius: 18)
+        .wayfolioLedgerCard()
     }
 }
 
@@ -589,6 +589,11 @@ struct LivePlayView: View {
 
     private var cinematicPhoneBody: some View {
         GeometryReader { geometry in
+            let contentWidth = max(
+                0,
+                geometry.size.width - (WayfolioMetrics.contentInset * 2)
+            )
+
             ZStack(alignment: .bottom) {
                 WayfolioSceneBackdrop(visual: session.visualPresentation)
 
@@ -638,9 +643,12 @@ struct LivePlayView: View {
                     )
                     voiceStatus
                 }
+                .frame(width: contentWidth)
                 .padding(.horizontal, WayfolioMetrics.contentInset)
                 .padding(.vertical, 8)
             }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+            .clipped()
         }
     }
 
