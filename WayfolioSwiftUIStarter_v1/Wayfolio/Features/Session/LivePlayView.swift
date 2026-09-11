@@ -1,6 +1,7 @@
 import SwiftUI
 import Speech
 import AVFoundation
+import Combine
 
 // Presentation-only components. Campaign authority stays in GameSessionClient and the host.
 struct WayfolioStoryCard: View {
@@ -135,6 +136,7 @@ struct WayfolioResponseComposer: View {
     @EnvironmentObject private var session: GameSessionClient
     @Binding var text: String
     @Binding var isPublic: Bool
+    @FocusState.Binding var isFocused: Bool
     let isListening: Bool
     let onVoice: () -> Void
     let onSubmit: () -> Void
@@ -161,6 +163,7 @@ struct WayfolioResponseComposer: View {
                     .foregroundStyle(WayfolioPalette.ink)
                     .scrollContentBackground(.hidden)
                     .padding(10)
+                    .focused($isFocused)
                     .accessibilityLabel("Declare what \(activeName) says or does")
             }
             .frame(minHeight: 118)
@@ -189,7 +192,7 @@ struct WayfolioResponseComposer: View {
 
     private var voiceButton: some View {
         Button(action: onVoice) {
-            Label(isListening ? "Listening" : "Speak", systemImage: isListening ? "waveform" : "mic.fill")
+            Label(isListening ? "Stop" : "Speak", systemImage: isListening ? "stop.circle.fill" : "mic.fill")
                 .font(WayfolioTypography.caption)
                 .frame(minHeight: 40)
         }
@@ -313,8 +316,10 @@ private struct WayfolioCompactResponseComposer: View {
     @Binding var text: String
     @Binding var isPublic: Bool
     @Binding var isExpanded: Bool
+    @FocusState.Binding var isFocused: Bool
     let isListening: Bool
     let onVoice: () -> Void
+    let onCancel: () -> Void
     let onSubmit: () -> Void
 
     var body: some View {
@@ -324,15 +329,16 @@ private struct WayfolioCompactResponseComposer: View {
                     .lineLimit(2...4)
                     .font(WayfolioTypography.body)
                     .foregroundStyle(WayfolioPalette.parchment)
+                    .focused($isFocused)
                     .padding(.horizontal, 13)
                     .padding(.vertical, 10)
                     .background(WayfolioPalette.midnight.opacity(0.44), in: RoundedRectangle(cornerRadius: 11))
 
                 HStack(spacing: 8) {
-                    Button("Cancel") { text = ""; isExpanded = false }
+                    Button("Cancel", action: onCancel)
                         .buttonStyle(.bordered)
                     Button(action: onVoice) {
-                        Label(isListening ? "Listening" : "Speak", systemImage: isListening ? "waveform" : "mic.fill")
+                        Label(isListening ? "Stop" : "Speak", systemImage: isListening ? "stop.circle.fill" : "mic.fill")
                     }
                     .buttonStyle(.bordered)
                     .tint(WayfolioPalette.cyan)
@@ -366,6 +372,7 @@ private struct WayfolioCompactResponseComposer: View {
         Button {
             isPublic = publicValue
             isExpanded = true
+            Task { @MainActor in isFocused = true }
         } label: {
             Label(title, systemImage: symbol)
                 .font(.system(size: 14, weight: .semibold, design: .rounded))
@@ -511,6 +518,8 @@ struct LivePlayView: View {
     @State private var firstPhysicalDie = ""
     @State private var secondPhysicalDie = ""
     @State private var composerExpanded = false
+    @FocusState private var composerFocused: Bool
+    @State private var keyboardHeight: CGFloat = 0
 
     var body: some View {
         Group {
@@ -520,6 +529,7 @@ struct LivePlayView: View {
                 standardPhoneBody
             }
         }
+        .padding(.bottom, keyboardContentOverlap)
         .overlay {
             if session.awaitingSharedRoll { diceOverlay }
         }
@@ -535,6 +545,19 @@ struct LivePlayView: View {
             actionInputMode = "voice"
             composerExpanded = true
         }
+        .onChange(of: voiceInput.isListening) { wasListening, isListening in
+            if wasListening, !isListening, !voiceInput.transcript.isEmpty {
+                composerExpanded = true
+                composerFocused = true
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) {
+            updateKeyboard(from: $0)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) {
+            updateKeyboard(from: $0, forceHidden: true)
+        }
+        .onDisappear { voiceInput.stop() }
     }
 
     private var standardPhoneBody: some View {
@@ -552,6 +575,7 @@ struct LivePlayView: View {
                 WayfolioResponseComposer(
                     text: $actionText,
                     isPublic: $isPublic,
+                    isFocused: $composerFocused,
                     isListening: voiceInput.isListening,
                     onVoice: toggleVoiceInput,
                     onSubmit: submitAction
@@ -606,8 +630,10 @@ struct LivePlayView: View {
                         text: $actionText,
                         isPublic: $isPublic,
                         isExpanded: $composerExpanded,
+                        isFocused: $composerFocused,
                         isListening: voiceInput.isListening,
                         onVoice: toggleVoiceInput,
+                        onCancel: cancelComposer,
                         onSubmit: submitAction
                     )
                     voiceStatus
@@ -863,24 +889,69 @@ struct LivePlayView: View {
         actionText = ""
         actionInputMode = "typed"
         composerExpanded = false
+        composerFocused = false
     }
 
     private func toggleVoiceInput() {
         if voiceInput.isListening {
             voiceInput.stop()
         } else {
-            voiceInput.start()
+            composerExpanded = true
+            composerFocused = false
+            voiceInput.start(with: actionText)
         }
+    }
+
+    private func cancelComposer() {
+        voiceInput.stop()
+        actionText = ""
+        actionInputMode = "typed"
+        composerExpanded = false
+        composerFocused = false
+    }
+
+    private var keyboardContentOverlap: CGFloat {
+        max(0, keyboardHeight - WayfolioMetrics.dockHeight - windowBottomInset)
+    }
+
+    private var windowBottomInset: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)?
+            .safeAreaInsets.bottom ?? 0
+    }
+
+    private func updateKeyboard(from notification: Notification, forceHidden: Bool = false) {
+        let duration = (notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
+        let nextHeight: CGFloat
+        if forceHidden {
+            nextHeight = 0
+        } else if let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+                  let window = UIApplication.shared.connectedScenes
+                    .compactMap({ $0 as? UIWindowScene })
+                    .flatMap(\.windows)
+                    .first(where: \.isKeyWindow) {
+            nextHeight = max(0, window.bounds.intersection(window.convert(frame, from: nil)).height)
+        } else {
+            nextHeight = 0
+        }
+        withAnimation(.easeOut(duration: duration)) { keyboardHeight = nextHeight }
     }
 
     @ViewBuilder private var voiceStatus: some View {
         if let message = voiceInput.statusMessage {
-            Label(message, systemImage: voiceInput.isListening ? "waveform" : "exclamationmark.triangle.fill")
+            Label(message, systemImage: voiceStatusSymbol)
                 .font(WayfolioTypography.tiny)
                 .foregroundStyle(voiceInput.isListening ? WayfolioPalette.cyan : WayfolioPalette.parchment.opacity(0.78))
                 .padding(.horizontal, WayfolioMetrics.contentInset)
                 .accessibilityLabel(message)
         }
+    }
+
+    private var voiceStatusSymbol: String {
+        if voiceInput.isListening { return "waveform" }
+        return voiceInput.transcript.isEmpty ? "exclamationmark.triangle.fill" : "checkmark.circle.fill"
     }
 }
 
@@ -894,30 +965,104 @@ private final class WayfolioVoiceInput: NSObject, ObservableObject {
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var task: SFSpeechRecognitionTask?
     private var hasInputTap = false
+    private var draftPrefix = ""
 
-    func start() {
+    func start(with existingDraft: String) {
+        guard !isListening else { return }
         transcript = ""
+        draftPrefix = existingDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         statusMessage = "Requesting speech access…"
-        guard recognizer != nil else {
-            statusMessage = "Speech recognition is not available on this device."
+        guard let recognizer else {
+            statusMessage = "Speech recognition is not available on this device. You can continue typing."
             return
         }
         SFSpeechRecognizer.requestAuthorization { [weak self] status in
             guard status == .authorized else {
-                Task { @MainActor in self?.statusMessage = "Speech recognition permission is required." }
+                let message: String
+                switch status {
+                case .denied: message = "Speech Recognition is denied. Enable it in Settings to use Speak."
+                case .restricted: message = "Speech Recognition is restricted on this iPhone. You can continue typing."
+                case .notDetermined: message = "Speech Recognition permission was not granted. You can try Speak again."
+                case .authorized: return
+                @unknown default: message = "Speech Recognition is unavailable. You can continue typing."
+                }
+                Task { @MainActor in self?.statusMessage = message }
                 return
             }
             AVAudioApplication.requestRecordPermission { allowed in
                 guard allowed else {
-                    Task { @MainActor in self?.statusMessage = "Microphone permission is required." }
+                    Task { @MainActor in
+                        self?.statusMessage = "Microphone access is denied. Enable it in Settings to use Speak."
+                    }
                     return
                 }
-                Task { @MainActor in self?.beginRecognition() }
+                Task { @MainActor in
+                    guard recognizer.isAvailable else {
+                        self?.statusMessage = "Speech recognition is temporarily unavailable. You can continue typing."
+                        return
+                    }
+                    self?.beginRecognition(using: recognizer)
+                }
             }
         }
     }
 
     func stop() {
+        stop(deactivateSession: true)
+    }
+
+    private func beginRecognition(using recognizer: SFSpeechRecognizer) {
+        stop(preservingStatus: true, deactivateSession: false)
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playAndRecord, mode: .measurement, options: [.duckOthers, .defaultToSpeaker])
+            try session.setActive(true, options: .notifyOthersOnDeactivation)
+            let request = SFSpeechAudioBufferRecognitionRequest()
+            request.shouldReportPartialResults = true
+            self.request = request
+            let input = engine.inputNode
+            let format = input.outputFormat(forBus: 0)
+            guard format.sampleRate > 0, format.channelCount > 0 else {
+                throw VoiceInputError.invalidMicrophoneFormat
+            }
+            input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
+                request.append(buffer)
+            }
+            hasInputTap = true
+            engine.prepare()
+            try engine.start()
+            isListening = true
+            statusMessage = "Listening… speak naturally."
+            task = recognizer.recognitionTask(with: request) { [weak self] result, error in
+                Task { @MainActor in
+                    if let result, let self {
+                        let spoken = result.bestTranscription.formattedString
+                        self.transcript = [self.draftPrefix, spoken]
+                            .filter { !$0.isEmpty }
+                            .joined(separator: self.draftPrefix.isEmpty ? "" : " ")
+                    }
+                    if let error {
+                        self?.statusMessage = "Speech input stopped: \(error.localizedDescription)"
+                        self?.stop(preservingStatus: true)
+                    } else if result?.isFinal == true {
+                        self?.stop(preservingStatus: true)
+                        self?.statusMessage = "Speech added. Review or edit it before sending."
+                    }
+                }
+            }
+        } catch {
+            statusMessage = "Speech input could not start: \(error.localizedDescription)"
+            stop(preservingStatus: true)
+        }
+    }
+
+    private func stop(preservingStatus: Bool, deactivateSession: Bool = true) {
+        let priorStatus = statusMessage
+        stop(deactivateSession: deactivateSession)
+        if preservingStatus { statusMessage = priorStatus }
+    }
+
+    private func stop(deactivateSession: Bool) {
         if engine.isRunning { engine.stop() }
         if hasInputTap {
             engine.inputNode.removeTap(onBus: 0)
@@ -929,49 +1074,17 @@ private final class WayfolioVoiceInput: NSObject, ObservableObject {
         request = nil
         isListening = false
         statusMessage = nil
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-    }
-
-    private func beginRecognition() {
-        stop()
-        let session = AVAudioSession.sharedInstance()
-        do {
-            try session.setCategory(.record, mode: .measurement, options: .duckOthers)
-            try session.setActive(true, options: .notifyOthersOnDeactivation)
-            let request = SFSpeechAudioBufferRecognitionRequest()
-            request.shouldReportPartialResults = true
-            self.request = request
-            let input = engine.inputNode
-            let format = input.outputFormat(forBus: 0)
-            input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
-                request.append(buffer)
-            }
-            hasInputTap = true
-            engine.prepare()
-            try engine.start()
-            isListening = true
-            statusMessage = "Listening… speak naturally."
-            task = recognizer?.recognitionTask(with: request) { [weak self] result, error in
-                Task { @MainActor in
-                    if let result { self?.transcript = result.bestTranscription.formattedString }
-                    if let error {
-                        self?.statusMessage = "Speech input stopped: \(error.localizedDescription)"
-                        self?.stop(preservingStatus: true)
-                    } else if result?.isFinal == true {
-                        self?.stop()
-                    }
-                }
-            }
-        } catch {
-            statusMessage = "Speech input could not start: \(error.localizedDescription)"
-            stop(preservingStatus: true)
+        if deactivateSession {
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         }
     }
+}
 
-    private func stop(preservingStatus: Bool) {
-        let priorStatus = statusMessage
-        stop()
-        if preservingStatus { statusMessage = priorStatus }
+private enum VoiceInputError: LocalizedError {
+    case invalidMicrophoneFormat
+
+    var errorDescription: String? {
+        "The microphone did not provide a usable audio format. Try Speak again or continue typing."
     }
 }
 
