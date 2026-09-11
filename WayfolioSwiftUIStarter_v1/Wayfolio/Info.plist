@@ -45,7 +45,7 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Wayfolio uses the microphone only when you choose Speak to dictate a player declaration.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Wayfolio converts speech into the declaration you review before sending it to the game host.</string>
+	<string>Wayfolio converts speech into a declaration you review before using it in your game.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

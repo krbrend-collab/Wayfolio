@@ -348,7 +348,7 @@ private struct WayfolioCompactResponseComposer: View {
             } else {
                 HStack(spacing: 8) {
                     actionButton("Say / Act", symbol: "person.3.fill", isPublic: true)
-                    actionButton("Message DM", symbol: "eye.slash.fill", isPublic: false)
+                    actionButton(session.isStandaloneSession ? "Private note" : "Message DM", symbol: "eye.slash.fill", isPublic: false)
                 }
             }
         }
@@ -358,7 +358,8 @@ private struct WayfolioCompactResponseComposer: View {
     }
 
     private var prompt: String {
-        isPublic ? "What does \(session.character?.name ?? session.playerName) say or do?" : "Private message to the DM"
+        if isPublic { return "What does \(session.character?.name ?? session.playerName) say or do?" }
+        return session.isStandaloneSession ? "Private note on this Wayfolio" : "Private message to the DM"
     }
 
     private func actionButton(_ title: String, symbol: String, isPublic publicValue: Bool) -> some View {

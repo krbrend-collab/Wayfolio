@@ -20,6 +20,7 @@ struct WayfolioApp: App {
                     gameSession.presentationStateHandler = { state in
                         presentation.restore(state)
                     }
+                    gameSession.replayStandalonePresentation()
                 }
                 .onOpenURL { gameSession.handleJoinLink($0) }
         }

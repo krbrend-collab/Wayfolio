@@ -423,6 +423,17 @@ final class GameSessionClient: ObservableObject {
         persistStandaloneSnapshot()
     }
 
+    /// Replays the current phone-owned presentation after the app's audio
+    /// runtime has attached. Text and campaign state remain usable if the
+    /// network-backed voice service is unavailable.
+    func replayStandalonePresentation() {
+        guard isStandaloneSession else { return }
+        presentationEventHandler?([
+            "type": "ambience_scene", "profile": "forest_day", "action": "play"
+        ])
+        if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
+    }
+
     private func applyRennStandaloneSeed() {
         sceneTitle = "A Cry Beneath the Pine Roots"
         sceneText = "On the forest path outside Hemlock, a frightened blue-green slime lies punctured and immobilized by jagged rusted metal beneath the roots. It holds still while Renn approaches."
@@ -788,6 +799,7 @@ final class GameSessionClient: ObservableObject {
                 performance: nil
             )
             notice = "Private note recorded locally."
+            if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
             persistStandaloneSnapshot()
             return
         }
@@ -821,6 +833,7 @@ final class GameSessionClient: ObservableObject {
         )
         awaitingSharedRoll = true
         notice = inputMode == "spoken" ? "Spoken action understood. Roll on this iPhone." : "Action understood. Roll on this iPhone."
+        if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
         persistStandaloneSnapshot()
     }
 
@@ -846,6 +859,7 @@ final class GameSessionClient: ObservableObject {
             performance: nil
         )
         notice = "Choice recorded. Roll on this iPhone."
+        if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
         persistStandaloneSnapshot()
     }
 
@@ -901,6 +915,10 @@ final class GameSessionClient: ObservableObject {
             allowsFreeform: true
         )
         notice = succeeded ? "The check changed the situation." : "The failed check created a complication."
+        presentationEventHandler?([
+            "type": "sound_effect", "cue": succeeded ? "spell_chime" : "water_splash", "volume": 0.62
+        ])
+        if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
         persistStandaloneSnapshot()
     }
 
@@ -924,6 +942,17 @@ final class GameSessionClient: ObservableObject {
         journal.append("Used \(item.name) during the pine-root encounter.")
         notice = "Used \(item.name) with explicit automatic-spend authorization."
         persistStandaloneSnapshot()
+    }
+
+    private func emitStandaloneDialogue(_ dialogue: DialoguePresentation) {
+        presentationEventHandler?([
+            "type": "dialogue",
+            "line_id": dialogue.id,
+            "speaker_id": dialogue.speakerID,
+            "speaker_name": dialogue.speakerName,
+            "text": dialogue.text,
+            "performance": dialogue.performance ?? "neutral"
+        ])
     }
 
     func disconnect() {
