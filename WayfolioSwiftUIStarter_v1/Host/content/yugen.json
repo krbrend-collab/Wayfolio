@@ -1,0 +1,67 @@
+{
+  "id": "yugen",
+  "canonical_id": "character_yugen",
+  "name": "Yūgen",
+  "player_owner": "james",
+  "pronouns": "he/him",
+  "species": "Kitsune / Yōkai-Blooded",
+  "class_name": "Warlock",
+  "level": 1,
+  "background": "Lantern-Bound Wanderer",
+  "proficiency_bonus": 2,
+  "hp": {"current": 10, "maximum": 10},
+  "armor_class": 13,
+  "speed": 30,
+  "initiative": 2,
+  "passive_perception": 13,
+  "abilities": {"strength": 8, "dexterity": 14, "constitution": 14, "intelligence": 10, "wisdom": 12, "charisma": 17},
+  "skills": {"Insight": 3, "Survival": 3, "Perception": 3, "Medicine": 3, "Arcana": 2, "Investigation": 2},
+  "magic": ["Kitsunebi", "True Strike", "Minor Illusion", "Blue-Foxfire Ward", "Ofuda Curse"],
+  "traits": ["Veil Step (campaign approval pending)", "Lantern's Call (campaign approval pending)", "Passive Spiritual Ward (campaign approval pending)"],
+  "attacks": [
+    {"name": "Kitsunebi", "attack_bonus": 5, "range": "120 feet", "damage": "1d10 force", "presentation": "blue foxfire"},
+    {"name": "Ritual Staff Strike", "attack_bonus": 5, "range": "5 feet", "damage": "1d6+3 bludgeoning or radiant"}
+  ],
+  "equipment": [
+    {"slot": "Hand or carried", "name": "Ritual Staff", "detail": "Quarterstaff and channel for foxfire, talismans, and spiritual flame.", "equipment_family": "Equipment", "quality_level": 1},
+    {"slot": "Carried", "name": "Dōkontō, the Soul-Guiding Lantern", "detail": "Spellcasting focus; its origin remains unresolved.", "equipment_family": "Equipment", "quality_level": 1},
+    {"slot": "Face, head, or carried", "name": "White Kitsune Mask", "detail": "Ceremonial white fox mask with red markings.", "equipment_family": "Equipment", "quality_level": 1},
+    {"slot": "Protective Gear", "name": "Passive Spiritual Ward", "detail": "Invisible protective ward using leather-armor statistics; campaign approval pending.", "equipment_family": "Protective Gear", "quality_level": 1}
+  ],
+  "inventory": ["Ofuda", "Blank parchment", "Calligrapher's Supplies", "Herbalism Kit", "Utility Daggers (2)", "Travel Kit", "Coin Pouch (15 gp)", "Ritual Staff", "Dōkontō, the Soul-Guiding Lantern", "White Kitsune Mask"],
+  "visual_identity": {
+    "version": 1,
+    "status": "description_only",
+    "canonical_description": "A young adult male kitsune wanderer with a slim-athletic build, tousled black hair, dark eyes, upright fox ears, and exactly three large silver-white tails. He wears layered indigo, navy, ivory, and gold Japanese-inspired garments and carries a white kitsune mask with red markings amid cold blue foxfire.",
+    "immutable_features": ["young adult male", "tousled black hair", "dark eyes", "upright fox ears", "exactly three silver-white tails", "white kitsune mask with red markings", "blue foxfire"],
+    "palette": ["indigo", "navy", "ivory", "gold", "restrained crimson", "silver-white", "cold blue"],
+    "never_change": ["Keep exactly three silver-white tails", "Preserve visible fox ears, black hair, dark eyes, the white-and-red mask, and blue foxfire"],
+    "references": []
+  },
+  "character_profile": {
+    "background": {
+      "personality": "Gentle, calm, quiet, observant, empathetic, protective, and slow to trust.",
+      "speech_style": "Short, grounded, soft, and steady.",
+      "voice_guidance": "Speak calmly and directly. Show compassion through attention and useful action; avoid theatrical riddles."
+    },
+    "campaign_knowledge": {
+      "locations": [],
+      "people": [],
+      "creatures": [],
+      "discoveries": [{"name": "Unfamiliar Spiritual Trail", "description": "Hinosuke discovered a spiritual trail unfamiliar to him; its source and meaning are unknown."}],
+      "quests": [
+        {"name": "Follow the Spiritual Disturbance", "status": "Opening hook", "description": "Follow the trail and protect those affected."},
+        {"name": "Discover Dōkontō's Truth", "status": "Ongoing", "description": "Learn why the lantern binds Yūgen's fate without assuming unapproved lore."}
+      ],
+      "journal": []
+    },
+    "companions": [{
+      "name": "Hinosuke",
+      "record_id": "hinosuke",
+      "type": "Tiny one-tailed white kitsune spirit",
+      "role": "Scout, spirit tracker, companion, and guide",
+      "personality": "Playful, loyal, and quietly wise",
+      "appearance": "Pure-white fur, blue eyes and markings, exactly one fluffy tail, an indigo collar or cloak, a gold bell, and blue foxfire."
+    }]
+  }
+}

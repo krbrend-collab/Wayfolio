@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "milestone_id": "open-ended-renn-tutorial-first-creature-encounter",
+  "status": "approved_runtime_fixture",
+  "party": [
+    {
+      "id": "renn",
+      "name": "Renn Hazel",
+      "role": "player_character",
+      "present": true
+    },
+    {
+      "id": "soren",
+      "name": "Soren Hazel",
+      "role": "npc_companion",
+      "present": false,
+      "continuity": "Renn's younger sister and an established Hemlock caretaker. Bright, affectionate, curious, helpful, and never controlling of Renn."
+    },
+    {
+      "id": "lupin",
+      "name": "Lupin",
+      "role": "npc_companion",
+      "present": false,
+      "continuity": "Renn's established Harengon scout friend. Grounded, observant, protective, warmly expressive, and never controlling of Renn."
+    }
+  ],
+  "arrival_context": "Soren and Lupin have not yet been introduced in the played tutorial and are not present at the pine-root injury checkpoint. Their later arrival must occur only through continued open play, not as a prewritten outcome.",
+  "representative_encounter": {
+    "id": "injured-slime-beneath-pine-roots",
+    "entity_id": "injured-slime",
+    "name": "Injured Blue-Green Slime",
+    "kind": "creature_encounter",
+    "status": "active_pressure",
+    "location_id": "pine-root-path",
+    "public_state": {
+      "condition": "punctured_and_immobilized",
+      "stability": "temporarily_stable_if_kept_still",
+      "disposition": "frightened_and_in_pain",
+      "restraint": "jagged_rusted_metal_wedged_beneath_pine_roots"
+    },
+    "goals_and_instincts": [
+      "avoid further pain",
+      "remain still while danger is present",
+      "respond defensively to abrupt handling",
+      "accept careful aid when trust and safety are established"
+    ],
+    "valid_approach_examples": [
+      "observe",
+      "communicate",
+      "stabilize",
+      "seek specialist help",
+      "free it from the metal",
+      "alter the environment",
+      "use equipment or a remedy with player consent",
+      "withdraw and return better prepared"
+    ],
+    "possible_state_changes": [
+      "stabilized",
+      "freed_safely",
+      "trust_increased",
+      "distress_increased",
+      "injury_worsened",
+      "specialist_help_secured",
+      "new_observation_earned"
+    ],
+    "combat_required": false,
+    "prewritten_outcome": false,
+    "knowledge_rule": "Grant only observations Renn actually earns. Do not identify the slime's species, origin, motives, age, or name without gameplay support."
+  }
+}

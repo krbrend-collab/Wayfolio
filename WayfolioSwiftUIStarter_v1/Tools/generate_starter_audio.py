@@ -18,9 +18,20 @@ def envelope(t: float, duration: float, attack: float = 0.01, release: float = 0
     return min(1.0, t / attack) * min(1.0, (duration - t) / release)
 
 
-def write_cue(relative_path: str, samples: list[float]) -> None:
+def write_cue(relative_path: str, samples: list[float], target_rms: float | None = None) -> None:
     path = ROOT / relative_path
     path.parent.mkdir(parents=True, exist_ok=True)
+    if relative_path.startswith("Ambience/") and "/Details/" not in relative_path:
+        edge = min(int(RATE * 0.08), len(samples) // 4)
+        for index in range(edge):
+            fade = index / max(1, edge - 1)
+            samples[index] *= fade
+            samples[-1 - index] *= fade
+    if target_rms:
+        rms = math.sqrt(sum(sample * sample for sample in samples) / max(1, len(samples)))
+        if rms:
+            gain = min(64.0, target_rms / rms)
+            samples = [sample * gain for sample in samples]
     peak = max(1.0, max(abs(sample) for sample in samples) / 0.92)
     frames = b"".join(
         struct.pack("<h", int(max(-1, min(1, sample / peak)) * 32_767))
@@ -436,10 +447,10 @@ def main() -> None:
         "fungal_spore_release", "shell_armored_move", "floating_arcane_pulse",
     ):
         write_cue(f"SFX/Creature/Form/{profile}.wav", unusual_creature_sound(profile))
-    write_cue("Ambience/hemlock_forest.wav", forest_ambience())
-    write_cue("Ambience/hemlock_tavern.wav", tavern_ambience())
+    write_cue("Ambience/hemlock_forest.wav", forest_ambience(), target_rms=0.055)
+    write_cue("Ambience/hemlock_tavern.wav", tavern_ambience(), target_rms=0.055)
     for location in ("festival", "market", "river", "village", "cave", "ruins", "coast", "rain"):
-        write_cue(f"Ambience/{location}.wav", location_ambience(location))
+        write_cue(f"Ambience/{location}.wav", location_ambience(location), target_rms=0.055)
     for detail in (
         "mug_clink", "tavern_laugh", "festival_cheer", "festival_bells",
         "market_vendor", "cart_wheels", "river_splash", "river_bird",

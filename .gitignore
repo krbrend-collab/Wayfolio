@@ -1,0 +1,30 @@
+# Build products and Xcode local state
+build/
+Build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# JavaScript/Python dependencies and caches
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# macOS/editor metadata
+.DS_Store
+.idea/
+.vscode/
+
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.mobileprovision
+
+# Temporary output
+tmp/
+temp/
+*.log

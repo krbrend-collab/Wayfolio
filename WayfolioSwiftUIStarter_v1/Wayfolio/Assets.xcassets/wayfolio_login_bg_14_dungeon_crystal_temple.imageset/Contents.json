@@ -1,0 +1,8 @@
+{
+  "images" : [
+    { "filename" : "wayfolio_login_bg_14_dungeon_crystal_temple.png", "idiom" : "universal", "scale" : "1x" },
+    { "idiom" : "universal", "scale" : "2x" },
+    { "idiom" : "universal", "scale" : "3x" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}

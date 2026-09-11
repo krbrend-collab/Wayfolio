@@ -18,6 +18,14 @@ final class CreatureRecord {
     var assetName: String
     var fallbackSymbol: String
     var isCompanion: Bool
+    var armorClass: String = "Unknown"
+    var hitPoints: String = "Unknown"
+    var speed: String = "Unknown"
+    var challengeRating: String = "Unknown"
+    var abilities: String = "Unknown"
+    var mainActivities: String = "Unknown"
+    var signatureResponse: String = "Unknown"
+    var soundCue: String = "creature_beast_alert"
 
     init(
         id: UUID = UUID(),
@@ -34,7 +42,15 @@ final class CreatureRecord {
         fieldNote: String,
         assetName: String,
         fallbackSymbol: String,
-        isCompanion: Bool = false
+        isCompanion: Bool = false,
+        armorClass: String = "Unknown",
+        hitPoints: String = "Unknown",
+        speed: String = "Unknown",
+        challengeRating: String = "Unknown",
+        abilities: String = "Unknown",
+        mainActivities: String = "Unknown",
+        signatureResponse: String = "Unknown",
+        soundCue: String = "creature_beast_alert"
     ) {
         self.id = id
         self.name = name
@@ -51,5 +67,13 @@ final class CreatureRecord {
         self.assetName = assetName
         self.fallbackSymbol = fallbackSymbol
         self.isCompanion = isCompanion
+        self.armorClass = armorClass
+        self.hitPoints = hitPoints
+        self.speed = speed
+        self.challengeRating = challengeRating
+        self.abilities = abilities
+        self.mainActivities = mainActivities
+        self.signatureResponse = signatureResponse
+        self.soundCue = soundCue
     }
 }

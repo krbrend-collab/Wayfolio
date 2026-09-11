@@ -1,0 +1,56 @@
+{
+  "schema": "wayfolio.campaign-state-registry.seed.v1",
+  "campaign_id": "campaign_wayfolio_main",
+  "source": "Wayfolio Campaign State & Registry",
+  "source_status": "READY_FOR_FIRST_SYNC",
+  "source_revision": "WF-089",
+  "current_story_time": "UNKNOWN — no canonical clock time was stated in the played tutorial",
+  "shared_location": "Hemlock Creature Care Center",
+  "active_session_id": null,
+  "characters": {
+    "character_renn_hazel": {
+      "character_id": "character_renn_hazel",
+      "display_name": "Renn Hazel",
+      "owner_id": "kevin",
+      "current_location": "Inside the Hemlock Creature Care Center",
+      "hp": {"status": "UNKNOWN", "reason": "No confirmed HP value was stated in the played tutorial"},
+      "conditions": {"status": "UNKNOWN", "reason": "No confirmed mechanical condition was stated in the played tutorial"},
+      "sync_status": "CONFIRMED_WITH_EXPLICIT_UNKNOWNS"
+    },
+    "character_yugen": {
+      "character_id": "character_yugen",
+      "display_name": "Yūgen",
+      "owner_id": "james",
+      "current_location": "UNKNOWN — not established in the Renn Intro Tutorial",
+      "hp": {"current": 10, "maximum": 10},
+      "conditions": [],
+      "sync_status": "CONFIRMED"
+    }
+  },
+  "records": {
+    "npc_soren_hazel": {"record_id": "npc_soren_hazel", "kind": "npc", "display_name": "Soren Hazel"},
+    "npc_lupin": {"record_id": "npc_lupin", "kind": "npc", "display_name": "Lupin"},
+    "npc_mair_rowan": {"record_id": "npc_mair_rowan", "kind": "npc", "display_name": "Mair Rowan"},
+    "location_hemlock_herbal_workshop": {"record_id": "location_hemlock_herbal_workshop", "kind": "location", "display_name": "Hemlock Herbal Workshop"},
+    "location_hemlock_creature_care_center": {"record_id": "location_hemlock_creature_care_center", "kind": "location", "display_name": "Hemlock Creature Care Center"},
+    "creature_small_slime": {"record_id": "creature_small_slime", "kind": "creature", "display_name": "Unidentified Blue-Green Slime Companion"},
+    "creature_injured_slime": {"record_id": "creature_injured_slime", "kind": "creature", "display_name": "Injured Blue-Green Slime"},
+    "location_pine_root_path": {"record_id": "location_pine_root_path", "kind": "location", "display_name": "Pine-Root Forest Path"}
+  },
+  "shared_state": {
+    "checkpoint": {
+      "checkpoint_id": "renn-intro-creature-care-center-arrival",
+      "source_revision": "WF-089",
+      "journey_id": "renn-intro-tutorial",
+      "scene_title": "Hemlock Creature Care Center",
+      "scene_text": "Renn has entered the Hemlock Creature Care Center after leaving the two blue-green slimes at the pine-root path. A person identified only as Rowan is working at a nearby table. Renn has not approached or spoken to Rowan.",
+      "next_prompt": "The urgent situation at the pine-root path remains unresolved. Rowan is at the worktable. What does Renn say or do?",
+      "last_confirmed_action": "Renn entered the Creature Care Center seeking help.",
+      "pending_roll": null,
+      "immediate_objective": "Seek help for the injured slime without assuming Rowan's full identity.",
+      "party_present": ["renn"],
+      "party_absent": ["creature_small_slime", "creature_injured_slime", "soren", "lupin"],
+      "privacy": "PLAYER_KNOWN"
+    }
+  }
+}

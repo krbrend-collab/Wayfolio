@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MapPlaceholderView: View {
+    @EnvironmentObject private var audio: WayfolioAudioEngine
     @State private var scale: CGFloat = 1
     @State private var lastScale: CGFloat = 1
     @State private var offset: CGSize = .zero
@@ -85,6 +86,7 @@ struct MapPlaceholderView: View {
     }
 
     private func resetMap() {
+        audio.playUISound("navigation_select")
         withAnimation(.snappy(duration: 0.25)) {
             scale = 1
             lastScale = 1

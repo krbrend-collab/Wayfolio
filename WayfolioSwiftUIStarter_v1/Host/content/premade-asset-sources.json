@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-25T00:00:00-07:00",
+  "drive_workspace": {
+    "label": "Wayfolio Drive project",
+    "project_url": "https://drive.google.com/drive/project/1JcDdwJ1-JmcRmX67FMx_Bf9-xG3LyvJo",
+    "shared_parent_id": "0ACtwlgfgorcpUk9PVA",
+    "verified_children": [
+      "Wayfolio Campaign",
+      "Wayfolio Characters",
+      "Wayfolio Creatures",
+      "Wayfolio Icons",
+      "Wayfolio Places"
+    ],
+    "connector_note": "The Drive project URL is not a standard folder endpoint, but its child folders are independently accessible and share the same verified parent workspace."
+  },
+  "policy": {
+    "drive_is_read_only_source": true,
+    "approval_required_before_game_use": true,
+    "preserve_original_files": true,
+    "unknown_filename_requires_classification": true
+  },
+  "sources": [
+    {
+      "id": "wayfolio-campaign-workspace",
+      "label": "Wayfolio Campaign",
+      "folder_url": "https://drive.google.com/drive/folders/1ZrcoakXEaN_iOKyM788I0Kj63KCbKplh",
+      "allowed_categories": ["canon", "rules", "live_campaign", "journal", "checkpoint", "dm_private", "app_export", "reference"],
+      "folders": [
+        {"name": "01 Canon & Rules", "drive_id": "1PEvsQ-hoMmQ48V_UWgyi3pYLbznFNmrP"},
+        {"name": "02 Live Campaign", "drive_id": "1vAU1jARZifw-aLWhOn6rPufgcPa5ACZW"},
+        {"name": "03 Journal & Checkpoints", "drive_id": "13LyAHYyQ_KR2V6HRWabouEm3p97ilJ3W"},
+        {"name": "04 DM Private", "drive_id": "1ERpeLc7tI6m0fi5kWOfryK3RLLS1EZTS"},
+        {"name": "05 App Sync & Exports", "drive_id": "1Q5aUJoJMMF1o95JW8TnMSTYMy_CrgpMm"},
+        {"name": "06 Assets & References", "drive_id": "1f9RJAbFLZk1Y_h2GG9MNsTIvwcN0yLko"}
+      ]
+    },
+    {
+      "id": "premade-game-items",
+      "label": "Premade game items",
+      "folder_url": "https://drive.google.com/drive/folders/1aF9JYgkh3ALBAf00YgMDuovBY83Wq6X6",
+      "allowed_categories": ["character", "creature", "item", "equipment", "symbol", "logo", "scene", "animation"],
+      "items": [
+        {
+          "drive_id": "1iB_sWyPba5eUprhzXvFauEI0ndNRaytA",
+          "source_name": "CE74F8E3-B9CB-4C75-8F00-76715CA5BCBB.png",
+          "mime_type": "image/png",
+          "classification": "pending"
+        },
+        {
+          "drive_id": "1WnILce9E0PeYwD2WTGQK-ZU3hHQGyD3x",
+          "source_name": "1184857C-8906-4A6E-AEA6-04E5CCBAD8B7.png",
+          "mime_type": "image/png",
+          "classification": "pending"
+        },
+        {
+          "drive_id": "1CYA_syA5tupsZLyVldAW3OQzSDCgYxkp",
+          "source_name": "BC492891-FB46-42CE-ABE8-EF994B097113.png",
+          "mime_type": "image/png",
+          "classification": "pending"
+        }
+      ]
+    },
+    {
+      "id": "premade-game-places",
+      "label": "Premade places in the game",
+      "folder_url": "https://drive.google.com/drive/folders/1ArmQH4QqrkvYbR_f9r4sACm3hne1TqEo",
+      "allowed_categories": ["location", "location_logo", "establishment", "map", "scene_background"],
+      "items": [
+        {
+          "drive_id": "1whAHjl9aBDFwPg4N9Ah2sUSf4PWLCo02",
+          "source_name": "0D9DE928-B4E0-464A-8361-C844777833F6.png",
+          "mime_type": "image/png",
+          "classification": "pending"
+        },
+        {
+          "drive_id": "1z3QUBzKgEV-r0xtdyFqlVGUoc5z9u4HT",
+          "source_name": "D58BF065-EF50-49B8-874A-B1F69A2BF705.png",
+          "mime_type": "image/png",
+          "classification": "pending"
+        }
+      ]
+    },
+    {
+      "id": "premade-item-icons",
+      "label": "Premade item icons",
+      "folder_url": "https://drive.google.com/drive/folders/1ms1JKl6Om_aQcjUhOWpysJnccfEpRLhX",
+      "allowed_categories": ["item_icon", "equipment_icon", "consumable_icon", "ingredient_icon", "quest_item_icon"],
+      "scan": {
+        "scanned_at": "2026-08-25T00:00:00-07:00",
+        "file_count": 50,
+        "mime_types": ["image/png"],
+        "duplicate_filename_variants": 10,
+        "classification": "pending_visual_identification",
+        "deduplication_required": true
+      }
+    },
+    {
+      "id": "premade-creature-visuals",
+      "label": "Wayfolio Creatures",
+      "folder_url": "https://drive.google.com/drive/folders/1nNAGAOesmhFTiIbLWKfwnmizENzk4taD",
+      "allowed_categories": ["creature_portrait", "creature_full_body", "creature_encounter", "creature_variant", "creature_token", "creature_animation"],
+      "scan": {
+        "scanned_at": "2026-08-25T00:00:00-07:00",
+        "file_count": 0,
+        "classification": "ready_for_uploads",
+        "deduplication_required": false
+      }
+    }
+  ]
+}

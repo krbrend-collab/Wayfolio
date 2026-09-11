@@ -1,0 +1,212 @@
+{
+  "version": 4,
+  "sync_authority": {
+    "latest_applied": "WF-099",
+    "location_workflow": "WF-025",
+    "ui_feature_icons": "WF-026",
+    "ui_manifestation_assets": "WF-027",
+    "ui_primary_navigation": "WF-028",
+    "stage_1_wayfolio_ui_trigger": "implemented",
+    "runtime_asset_authority": "DRIVE_VISUAL_ASSET_MANIFEST",
+    "runtime_acceptance": "F41"
+  },
+  "pending_manifest_registration": [
+    {
+      "filename": "wayfolio_iphone_login_window_v01_APPROVED.png",
+      "drive_folder_id": "1evDI57HgFTfw1e3n8E1LPWVl7UFxvmsC",
+      "reason": "WF-099 approved the composition, but no approved-current row exists in the Drive Visual Asset Manifest yet. Folder presence alone is not runtime authority."
+    }
+  ],
+  "authority_rule": "Written canon controls facts and spatial relationships. Visual authority controls rendering and presentation only.",
+  "world_visual_authority": {
+    "title": "World Visual Design Philosophy — Architecture, Fashion & Technology — V2",
+    "source_id": "1QLDY5acmfE5lyRg6etxn1rkzpE15KLXnTGkKcSWOGSQ",
+    "status": "approved_direction",
+    "rule": "Modernity before magic. Use culturally specific late-19th/early-20th-century-adjacent fantasy design, Hemlock ecological sophistication, correct human-faced Harengon anatomy, and precision craft with selective magical information technology."
+  },
+  "location_media_roles": {
+    "wayfolio_record": "Clean discovered-place artwork used as media inside the World record; never a fake phone screen or flattened Wayfolio interface.",
+    "shared_ipad_exterior_approach": "Mandatory separate 4:3 full-bleed exterior, approach, or exterior-equivalent gameplay scene for every built location; a Wayfolio portrait never substitutes for it.",
+    "shared_ipad_gameplay_zone": "A 4:3 full-bleed interior, activity, or functional-zone scene that adds distinct playable information.",
+    "shared_ipad_first_person_counter": "A 4:3 first-person customer view from the player side of a shop or service counter.",
+    "shared_ipad_first_person_seated": "A 4:3 first-person seated-at-table view for a restaurant, cafe, tea house, or similar venue.",
+    "shared_ipad_first_person_table_service": "A 4:3 first-person seated view with a server taking the order when table service is supported.",
+    "weather_time_state": "A separately registered weather or lighting state that does not overwrite the location's existing approved presentation.",
+    "reuse": "An explicitly approved image may serve both roles when it provides the same useful information; do not manufacture redundant variants.",
+    "approval": "Generated outputs remain in review until explicitly approved by the user. Explicit approval is recorded by stable subject ID plus semantic role; folder presence and newest timestamps are not authority."
+  },
+  "asset_lifecycle": {
+    "default_status": "in_review",
+    "approved_current": "Explicitly approved active asset for one stable subject, semantic role, and context.",
+    "approved_reference": "Explicitly approved reference that may be used when no safe approved-current asset exists.",
+    "superseded": "Retained historical asset replaced atomically by a newer approved-current asset.",
+    "rejected_do_not_use": "Retained for audit but unavailable to player-facing retrieval.",
+    "safe_fallback_order": ["approved_current", "approved_reference", "neutral_placeholder_or_no_image"],
+    "forbidden_retrieval_basis": ["folder_order", "newest_timestamp"],
+    "player_safe_filter_required": true
+  },
+  "runtime_registry": {
+    "authority": "Wayfolio Visual Asset Manifest",
+    "spreadsheet_id": "1OX0wO4aVY0E8rJc2-8fDj8rvWf3z3QB0XNosIe8dcCA",
+    "sheet": "ASSETS",
+    "rule": "The Host downloads, validates, and caches approved-current rows at runtime. This local manifest and native bundle are bootstrap/fallback only.",
+    "registered_families": ["CHARACTER", "LOCATION", "CREATURE", "ITEM", "PROTECTIVE_GEAR"],
+    "excluded_from_approved_projection": ["IN_REVIEW", "SUPERSEDED", "REJECTED_DO_NOT_USE"]
+  },
+  "characters": [
+    {"id":"character_renn_hazel", "asset_id":"asset_character_renn_hazel_login_official", "storage_file_id":"1Eu3drHXu7VCyCmd_DjrPYKtAjeJwC2Lg", "role":"LOGIN_PORTRAIT", "status":"approved_current", "visibility":"assigned_character_only"},
+    {"id":"character_yugen", "asset_id":"asset_character_yugen_login_official", "storage_file_id":"1h33XrX1vPNqnWt1rh1oBWST2WAZtCG-Z", "role":"LOGIN_PORTRAIT", "status":"approved_current", "visibility":"assigned_character_only"},
+    {"id":"character_lark", "asset_id":"asset_character_lark_login_official", "storage_file_id":"1a8eXM3GS7LtjqdINjgAUbHkC7R-uOmqb", "role":"LOGIN_PORTRAIT", "status":"approved_current", "visibility":"assigned_character_only"},
+    {"id":"character_soren_hazel", "asset_id":"asset_character_soren_hazel_login_official", "storage_file_id":"1UL8PiQQS9mJc_B5KTpOzWVFfEZevSikN", "role":"LOGIN_PORTRAIT", "status":"approved_current", "visibility":"assigned_character_only"},
+    {"id":"character_lupin", "asset_id":"asset_character_lupin_login_official", "storage_file_id":"1EA3JnoJxAoa0vCYdVI5YaQU-2Ysh9VEE", "role":"LOGIN_PORTRAIT", "status":"approved_current", "visibility":"assigned_character_only"},
+    {"id":"character_emrys_gale", "asset_id":"asset_character_emrys_gale_login_official", "storage_file_id":"1MXihuHuOaGiAkMgEsZt4VbMjmfGZL3z7", "role":"LOGIN_PORTRAIT", "status":"approved_current", "visibility":"assigned_character_only"},
+    {"id":"creature_hinosuke", "asset_id":"asset_creature_hinosuke_login_official", "storage_file_id":"1-BAkLyPyxSeFz6H3HifhCzesQHeYn2hv", "role":"LOGIN_PORTRAIT", "status":"approved_current", "visibility":"assigned_character_only"}
+  ],
+  "protective_gear": [
+    {"id":"item_cuirass_l1_common", "asset_id":"asset_item_cuirass_l1_common", "storage_file_id":"1f0fyqQhGpUNqyfvc1A-VevXWJzCibFYo"},
+    {"id":"item_bracers_l1_common", "asset_id":"asset_item_bracers_l1_common", "storage_file_id":"1uTNCgw23uhonj1n7NiSgmpGnJGX0Qa67"},
+    {"id":"item_greaves_l1_common", "asset_id":"asset_item_greaves_l1_common", "storage_file_id":"1KnrKZKtNW-Gs9xsCuWv68GDB9EUnMw_u"},
+    {"id":"item_pauldrons_l1_common", "asset_id":"asset_item_pauldrons_l1_common", "storage_file_id":"1M8rEZylcWOtdvkejTnc2qeg9x1f135HT"},
+    {"id":"item_gauntlets_l1_common", "asset_id":"asset_item_gauntlets_l1_common", "storage_file_id":"1RWDSiq674Ul9cbroGV9h7ZWKlwb5FP98"},
+    {"id":"item_helmet_l1_common", "asset_id":"asset_item_helmet_l1_common", "storage_file_id":"1ltD9zDLx94tPJz_S76Iaedz74oXwVd6A"},
+    {"id":"item_mask_l1_common", "asset_id":"asset_item_mask_l1_common", "storage_file_id":"1oZy9GcsDA0v8tJf8hKZE5bVeseGBVg9e"},
+    {"id":"item_waist_guard_l1_common", "asset_id":"asset_item_waist_guard_l1_common", "storage_file_id":"14iMx2Ao6g3GZ3iUPsRPSud_UYHLsmAl8"}
+  ],
+  "protective_gear_classification": {
+    "subject_type":"ITEM", "asset_role":"ITEM_EQUIPMENT_ART", "status":"APPROVED_CURRENT",
+    "visibility":"PLAYER_SAFE_WHEN_ELIGIBLE", "canon_relationship":"PRESENTATION_REFERENCE_ONLY",
+    "knowledge_scope":"KNOWN_WHEN_ELIGIBLE", "level":"1", "rarity":"COMMON",
+    "superseded_family":"Midlevel Protective Gear rows remain historical and must not resolve."
+  },
+  "item_asset_policy": {
+    "approved_current":"Level 1 Common Protective Gear listed above.",
+    "in_review_not_projected":"Herbs, medicinal ingredients, tincture, potion, salve, bandage, and field healer kit remain review-only until explicit approval."
+  },
+  "monsters": [
+    {"id":"crown-hare", "file":"monsters/crown-hare.png", "status":"primary_rendering_master", "source":"Wayfolio Monster Visual Authority Pack v1.1 Chroma Cel", "use":"Daylight creatures, natural anatomy, cel-shaded fur, biological magical materials and bright anime-world environments."},
+    {"id":"gloam-hound", "file":"monsters/gloam-hound.png", "status":"primary_rendering_master", "source":"Wayfolio Monster Visual Authority Pack v1.1 Chroma Cel", "use":"Twilight, nocturnal, pack, predator, dark-fur, motion and saturated atmospheric scenes."},
+    {"id":"mimic-slime", "file":"monsters/mimic-slime.jpeg", "status":"approved_supporting_master", "source":"Wayfolio Monster Visual Authority Pack v1.1 Chroma Cel", "use":"Translucent materials, cute low-level monsters, simple silhouettes and behavior-led storytelling."},
+    {"id":"coppice-goblin", "file":"monsters/coppice-goblin.jpeg", "status":"approved_supporting_master", "source":"Wayfolio Monster Visual Authority Pack v1.1 Chroma Cel", "use":"Intelligent small folk, cultural species, tool use, settlements and gear studies."}
+  ],
+  "locations": {
+    "hemlock": {
+      "status": "visual_development_reference",
+      "source": "Hemlock Village Dossier with Visual Reference",
+      "warning": "The written Hemlock dossier overrides image simplification and spatial drift. Exact map relationships remain adjustable.",
+      "images": [
+        {"file":"locations/hemlock/image1.png", "subject":"Visual overview board"},
+        {"file":"locations/hemlock/image2.png", "subject":"Overhead master-map development reference"},
+        {"file":"locations/hemlock/image3.png", "subject":"Central village architecture"},
+        {"file":"locations/hemlock/image4.png", "subject":"Central commons"},
+        {"file":"locations/hemlock/image5.png", "subject":"Main Shrine Grove"},
+        {"id":"hemlock-location-04", "file":"locations/hemlock/image6.png", "subject":"Garden Shrine", "aliases":["Quiet Shrine","Hemlock Forest Shrine"], "status":"approved_reference", "note":"Stable location identity preserved; the display name changed under WF-025."},
+        {"file":"locations/hemlock/image7.png", "subject":"Healer Terrace"},
+        {"file":"locations/hemlock/image8.png", "subject":"Water Garden and Sacred Spring"},
+        {"file":"locations/hemlock/image9.png", "subject":"Residential Clusters and Garden Levels"},
+        {"file":"locations/hemlock/image10.png", "subject":"Animal Shelters and Companion Grounds"},
+        {"file":"locations/hemlock/image11.png", "subject":"Learning Platform and Agility Grounds"},
+        {"file":"locations/hemlock/image12.png", "subject":"Lookout Perches and Forest Edge Paths"}
+      ]
+    },
+    "hemlock_named_locations": {
+      "status": "approved_current_identity_map",
+      "records": [
+        {
+          "id": "hemlock-location-02",
+          "sequence": "2/32",
+          "display_name": "Commons Plaza",
+          "identity": "Hemlock's principal broad open-air market plaza adjoining the Central Commons; it must read as a plaza or civic market court.",
+          "distinct_from": ["hemlock-market-street"]
+        },
+        {
+          "id": "hemlock-market-street",
+          "display_name": "Market Street",
+          "sequence": "supplemental",
+          "identity": "A retained narrower commercial market environment and separate asset set; it does not replace or renumber Commons Plaza.",
+          "distinct_from": ["hemlock-location-02"]
+        },
+        {
+          "id": "hemlock-location-04",
+          "sequence": "4/32",
+          "display_name": "Garden Shrine",
+          "aliases": ["Quiet Shrine", "Hemlock Forest Shrine"],
+          "distinct_from": ["main-shrine-grove"],
+          "identity": "A deliberately maintained naturalistic garden shrine with controlled planting, water, framed paths, refined Hemlock materials, and a meaningful moon-gate threshold; no imported Earth religious identifiers."
+        },
+        {
+          "id": "hemlock-location-20",
+          "sequence": "20/32",
+          "display_name": "Root & Kettle",
+          "identity": "A bright daytime tea house and cafe plus community kitchen, with service circulation, counter ordering, food and tea display, communal and smaller tables, and garden access; not a tavern."
+        }
+      ]
+    },
+    "approved_location_asset_sets": {
+      "status": "approved_current_drive_registry",
+      "storage_note": "These filenames were approved and filed in Drive by WF-025. They are registry references, not claims that local bytes are packaged.",
+      "records": [
+        {
+          "location_id": "hemlock-location-04",
+          "display_name": "Garden Shrine",
+          "assets": [
+            {"filename":"04of32_Garden_Shrine__Wayfolio_Record__Portrait.png","role":"wayfolio_record"},
+            {"filename":"04of32_Garden_Shrine__iPad__01_Garden_Overview__4x3.png","role":"shared_ipad_exterior_approach"},
+            {"filename":"04of32_Garden_Shrine__iPad__02_Shrine_Close_View__4x3.png","role":"shared_ipad_gameplay_zone"},
+            {"filename":"04of32_Garden_Shrine__iPad__03_First_Person_Seated_Shrine__4x3.png","role":"shared_ipad_first_person_seated"},
+            {"filename":"04of32_Garden_Shrine__iPad__04_First_Person_Path_to_Moon_Gate__4x3.png","role":"shared_ipad_gameplay_zone"}
+          ]
+        },
+        {
+          "location_id": "hemlock-location-16",
+          "display_name": "Hemlock Village Paths & Raised Walkways",
+          "assets": [
+            {"filename":"16of32_Hemlock_Village_Paths_and_Raised_Walkways__Wayfolio_Record__Portrait.png","role":"wayfolio_record"},
+            {"filename":"16of32_Hemlock_Village_Paths_and_Raised_Walkways__iPad__01_Broad_Village_Route__4x3.png","role":"shared_ipad_exterior_approach"},
+            {"filename":"16of32_Hemlock_Village_Paths_and_Raised_Walkways__iPad__02_Covered_Junction__4x3.png","role":"shared_ipad_gameplay_zone"},
+            {"filename":"16of32_Hemlock_Village_Paths_and_Raised_Walkways__iPad__03_Bridge_Stair_Transition__4x3.png","role":"shared_ipad_gameplay_zone"}
+          ]
+        }
+      ]
+    },
+    "hazelfound": {
+      "status": "document_embedded_reference",
+      "source": "HazelFound Village Dossier",
+      "warning": "Retained as a documented location reference; not promoted above later explicit written canon.",
+      "images": [
+        {"file":"locations/hazelfound/image1.png", "subject":"Village map reference A"},
+        {"file":"locations/hazelfound/image2.png", "subject":"Village map reference B"},
+        {"file":"locations/hazelfound/image3.png", "subject":"Village map reference C"}
+      ]
+    }
+  },
+  "ui_graphics": {
+    "implementation_gate": "Package approved files and preserve their semantics now; do not begin the Stage 1 Wayfolio UI visual refactor until the sync trigger becomes READY.",
+    "group_1b_primary_navigation": {
+      "status": "implementation_ready",
+      "folder_id": "1awA5uSV0Lgr1Zi1bW7q81nwsdBPC-6vj",
+      "assets": [
+        {"semantic":"character","filename":"wayfolio_nav_character_v01.png","drive_id":"1pRKQOzCs7V-6cABxYI-UT-vruSgqjh5u","status":"approved_current","note":"Final profile/cameo version; earlier head-silhouette drafts are rejected."},
+        {"semantic":"pack","filename":"wayfolio_nav_pack_v01.png","drive_id":"1QitRd5C_RjPXda1Uk1nqX8JPPFwn7Io1","status":"approved_current"},
+        {"semantic":"live","filename":"wayfolio_nav_live_v01.png","drive_id":"1SDmEJZFjF2WppHsaKYm68T4oHf0qp4vj","status":"approved_current"},
+        {"semantic":"journal","filename":"wayfolio_nav_journal_v01.png","drive_id":"1TWbMnCoqYiQQ5_6sifHU7bsv_CJqCIeK","status":"approved_current"},
+        {"semantic":"world","filename":"wayfolio_nav_world_v01.png","drive_id":"1RpvxLdCDAGpE11lrkOwVAL4rkM52QtnQ","status":"approved_current","note":"Revised fantasy-world/astrolabe version; earlier Earth-like globe draft is rejected."}
+      ],
+      "runtime_states": "selected, inactive, pressed, focus, disabled, badges, glow, pulse, and reduced-motion behavior remain code-driven"
+    },
+    "group_5_system_feature_icons": {
+      "status": "approved_current_v1",
+      "semantics": ["character","abilities","inventory","crafting","companion","people_and_bonds","quests","connections","wallet","archive","settings"],
+      "rule": "Preserve the eleven v01 PNGs; do not add icons merely to mirror every screen control."
+    },
+    "group_6_manifestation_notifications": {
+      "status": "implementation_ready",
+      "semantics": ["new_record","record_updated","warning","connection_established","item_received","quest_update","visual_generating_loading"],
+      "rule": "Use modularly with projection/animation behavior and dynamic text; do not create unique raster art for every future notification."
+    }
+  },
+  "legacy_app_samples": {
+    "files": ["lanternshell", "mossglow", "hemlock-map"],
+    "status": "existing_prototype_assets",
+    "warning": "Do not treat these samples as newer monster visual authority when they conflict with the Chroma Cel pack."
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "generated_from_sync": "WF-122 and the 2026-09-08 iPhone Start Screen update",
+  "purpose": "Tracks whether approved UI graphics are present and safe to use without treating a locally available or newly generated file as approved.",
+  "rules": {
+    "approval_authority": "Wayfolio Development Sync plus the Drive Visual Asset Manifest",
+    "local_presence_is_not_approval": true,
+    "do_not_generate_missing_approved_assets": true,
+    "required_status_before_runtime_use": "approved_current"
+  },
+  "drive_metadata_verified_at": "2026-09-08",
+  "local_checksum_registry": "Specifications/UI/UI_ASSET_CHECKSUMS.json",
+  "verified_local_assets": [
+    {
+      "asset_id": "iphone_start_menu_compiled",
+      "catalog_name": "wayfolio-start-menu-approved",
+      "path": "Wayfolio/Assets.xcassets/wayfolio-start-menu-approved.imageset/wayfolio-start-menu-approved.png",
+      "width": 360,
+      "height": 640,
+      "sha256": "00d5ee6edee5350841aa6e695624de59717820fb0122e84135f55e51ae7baaf0",
+      "status": "approved_current",
+      "readiness": "present_low_resolution",
+      "action": "Obtain an approved Retina master or approved 2x and 3x exports. The current 1x file is displayed at up to 430 points and may appear soft on device."
+    },
+    {
+      "asset_id": "environment_treetop_village_bootstrap",
+      "catalog_name": "wayfolio-login-treetop",
+      "path": "Wayfolio/Assets.xcassets/wayfolio-login-treetop.imageset/wayfolio-login-treetop.png",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "2ff82e6014d13b31dcb421c3f137e2cbf75fbd25ba9ce978f4daf8318e7b7187",
+      "status": "bootstrap_present",
+      "readiness": "present_requires_registry_mapping",
+      "action": "Map this file to an approved broad-environment registry identity before dynamic selection."
+    },
+    {
+      "asset_id": "location_hemlock_gameplay",
+      "catalog_name": "hemlock-environment",
+      "path": "Wayfolio/Assets.xcassets/hemlock-environment.imageset/hemlock-environment.png",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "65e0a25af029e6578cfb4e92525f3580744455d1dd04a91de950efbf131a13f1",
+      "status": "bootstrap_present",
+      "readiness": "present"
+    },
+    {
+      "asset_id": "location_hemlock_map",
+      "catalog_name": "hemlock-map",
+      "path": "Wayfolio/Assets.xcassets/hemlock-map.imageset/hemlock-map.png",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "50265a47eb2cd734d4a4e5606308bffbfc8ef3cf600115d32b9765c54ed3f6f4",
+      "status": "bootstrap_present",
+      "readiness": "present"
+    },
+    {
+      "asset_id": "iphone_header_projection_rail_v01",
+      "catalog_name": "wayfolio_header_projection_rail_v01",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_header_projection_rail_v01.imageset/wayfolio_header_projection_rail_v01.png",
+      "width": 2172,
+      "height": 724,
+      "sha256": "bc97b1043c8c2439f0fb7480d3dc50db56f61a32eaa23c5158be3c00423ad45b",
+      "storage_file_id": "19EJVjm63VId9HSec-rLCLv7lZbNS-HQf",
+      "status": "approved_current",
+      "readiness": "present"
+    },
+    {
+      "asset_id": "neutral_wood_surface_v02",
+      "catalog_name": "BG_Fallback_Wood_Neutral_V02",
+      "path": "Wayfolio/Assets.xcassets/BG_Fallback_Wood_Neutral_V02.imageset/BG_Fallback_Wood_Neutral_V02.png",
+      "width": 1170,
+      "height": 2535,
+      "sha256": "cf8d8b30984973673df6a13a9379142007148ee19ba64b1f3d48b8f424888c7c",
+      "storage_file_id": "131jeYKayyF3oc1WaXD2Tm6UROpwqrUav",
+      "status": "approved_current",
+      "readiness": "present"
+    },
+    {
+      "asset_id": "renn_login_portrait_official",
+      "catalog_name": "renn_hazel_login_official",
+      "path": "Wayfolio/Assets.xcassets/renn_hazel_login_official.imageset/renn_hazel_login_official.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "d9a946afca1df5e224410531652f15851ea8e7df86efd6f4ba28fb88ab19ddb1",
+      "storage_file_id": "1Eu3drHXu7VCyCmd_DjrPYKtAjeJwC2Lg",
+      "status": "approved_current",
+      "readiness": "present"
+    },
+    {
+      "asset_id": "abilities_icon_v02",
+      "catalog_name": "wayfolio_feature_abilities_v02",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_feature_abilities_v02.imageset/wayfolio_feature_abilities_v02.png",
+      "width": 1024,
+      "height": 1024,
+      "sha256": "715cd85e953c92dfb545a09667a00c0d57ac9cd7df7a826b663bc23e9b284ba5",
+      "storage_file_id": "1DQMe5px_bekXx4iM3DD5qDSJQmIaSPzw",
+      "status": "approved_current",
+      "readiness": "present"
+    }
+  ],
+  "approved_assets_missing_locally": [],
+  "superseded_or_nonproduction_asset_references": [
+    {
+      "asset_id": "iphone_topbar_approved_composite",
+      "former_catalog_name": "wayfolio-topbar-approved",
+      "resolved_catalog_name": "wayfolio_header_projection_rail_v01",
+      "storage_file_id": "19EJVjm63VId9HSec-rLCLv7lZbNS-HQf",
+      "status": "superseded_by_current_approved_header_projection_rail"
+    },
+    {
+      "asset_id": "iphone_projector_back_v01",
+      "former_catalog_name": "wayfolio_projector_back_v01",
+      "status": "working_prototype_not_required_for_current_production"
+    },
+    {
+      "asset_id": "iphone_projector_front_lip_v01",
+      "former_catalog_name": "wayfolio_projector_front_lip_v01",
+      "status": "working_prototype_not_required_for_current_production"
+    }
+  ],
+  "navigation_assets_requiring_authority_reconciliation": [
+    {
+      "current_catalog_name": "wayfolio-nav-character",
+      "current_sha256": "69954f9f949a153a229eb5f1412c01cd299ed90b4757758bd4064af302883d49",
+      "sync_expected_name": "wayfolio_nav_character_v02"
+    },
+    {
+      "current_catalog_name": "wayfolio-nav-pack",
+      "current_sha256": "bf3ed8bdd99650754fa40160a208320b464bf3a1863b6d09968eecf01eefa53e",
+      "sync_expected_name": "wayfolio_nav_pack_v02"
+    },
+    {
+      "current_catalog_name": "wayfolio-nav-live",
+      "current_sha256": "c76d71fef0eef723ea397a2962b5444a51b8f785cb7fd1d06f176a964f5d60fd",
+      "sync_expected_name": "wayfolio_nav_live_v02"
+    },
+    {
+      "current_catalog_name": "wayfolio-nav-journal",
+      "current_sha256": "b2861fad504fe549e5a41be79638b55f4ea881c0477955b19621c338ddbe12b0",
+      "sync_expected_name": "wayfolio_nav_journal_v02"
+    },
+    {
+      "current_catalog_name": "wayfolio-nav-world",
+      "current_sha256": "32d7b8586fe042c9e7d76610dc38c109fb7770bfdecfb7c2e12199036e1d5305",
+      "sync_expected_name": "wayfolio_nav_world_v02"
+    }
+  ],
+  "approved_surface_library": {
+    "approved_folder_id": "1GxQ9POgaWIuYd5pGr77Rs3JFPza4T3e8",
+    "registry_file_id": "1IertbjfaLlv-Yufx4VGr6L6z9uvatjhC",
+    "registry_title": "wayfolio_group7_asset_registry.json",
+    "approved_count": 26,
+    "categories": [
+      "core_neutral_surfaces",
+      "natural_terrain_and_green_spaces",
+      "human_made_interior_and_built_surfaces",
+      "pathway_and_travel_surfaces"
+    ],
+    "registered_local_surface_themes": [
+      "wood_neutral",
+      "stone_neutral",
+      "forest_floor_neutral",
+      "cloth_interior_neutral",
+      "metal_workbench_neutral",
+      "notebook_cover_navy_cloth",
+      "leather_brown_worn",
+      "parchment_aged",
+      "sand_warm",
+      "water_shallow_clear",
+      "snow_frosted",
+      "mud_wet",
+      "moss_lush",
+      "grass_meadow",
+      "ferns_understory",
+      "riverbed_pebbles_wet",
+      "marsh_misty",
+      "clover_meadow",
+      "built_wood_golden_oak",
+      "built_textile_indigo_plaid",
+      "built_stone_paving_beige",
+      "built_terracotta_tile",
+      "path_cobblestone_mosaic",
+      "path_gravel_pale",
+      "path_terracotta_brick",
+      "path_cobblestone_rustic"
+    ],
+    "readiness": "registered_locally"
+  },
+  "broad_environment_scene_library": {
+    "source_folder_or_manifest": "Google Drive folder 1OCy91HAdgK6SOAhlpaBHuBjzMXHhHXG8",
+    "expected_categories": [
+      "treetop_village",
+      "market_square",
+      "mountain_shrine",
+      "harbor_village",
+      "desert_oasis",
+      "overgrown_ruins",
+      "crystal_sanctuary",
+      "yokai_shrine_village",
+      "yokai_onsen",
+      "bamboo_forest",
+      "redwood_forest",
+      "autumn_forest",
+      "dungeon_temple_hall",
+      "dungeon_crystal_temple",
+      "dungeon_crypt",
+      "crystal_cave"
+    ],
+    "registered_local_categories": [
+      "treetop_village",
+      "market_square",
+      "mountain_shrine",
+      "harbor_village",
+      "desert_oasis",
+      "overgrown_ruins",
+      "crystal_sanctuary",
+      "yokai_shrine_village",
+      "yokai_onsen",
+      "bamboo_forest",
+      "redwood_forest",
+      "autumn_forest",
+      "dungeon_temple_hall",
+      "dungeon_crystal_temple",
+      "dungeon_crypt",
+      "crystal_cave"
+    ],
+    "bootstrap_candidates_needing_registry_mapping": [],
+    "readiness": "approved_current_registered_locally"
+  }
+}

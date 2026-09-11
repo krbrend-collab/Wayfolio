@@ -2,8 +2,62 @@
   "id": "hemlock-bridge",
   "title": "The Motes Beneath the Bridge",
   "opening": "Evening settles over Hemlock Village. Blue motes gather beneath the old bridge, where the wood gives a low, familiar creak.",
+  "opening_dialogue": [
+    {
+      "line_id": "motes-opening-narrator",
+      "speaker_id": "narrator",
+      "text": "Evening settles over Hemlock Village. Blue motes gather beneath the old bridge, where the wood gives a low, familiar creak.",
+      "performance": "warm, measured, quietly mysterious"
+    },
+    {
+      "line_id": "motes-opening-soren",
+      "speaker_id": "soren",
+      "text": "Renn—look. They are moving against the wind. That is either very clever pollen, or not pollen at all.",
+      "performance": "bright curiosity softened by concern"
+    },
+    {
+      "line_id": "motes-opening-lupin",
+      "speaker_id": "lupin",
+      "text": "And something crossed under the southern rail. The tracks stop where the light begins.",
+      "performance": "grounded, watchful, quietly protective"
+    },
+    {
+      "line_id": "motes-opening-invitation",
+      "speaker_id": "narrator",
+      "text": "The motes drift closer. Renn, what do you do?",
+      "performance": "gentle invitation with suspended mystery"
+    }
+  ],
   "prompt_title": "Renn — what do you do?",
   "prompt_message": "The motes drift against the wind and collect around the southern rail.",
+  "freeform_hint": "Describe anything Renn says, attempts, investigates, or asks the others to do.",
+  "creature_prompt": {
+    "title": "The Crown Hare is watching",
+    "message": "The creature remains at the fern line. Soren waits beside Renn while Lupin watches the trail behind them. What does Renn say or do?"
+  },
+  "creature_success": {
+    "shared_title": "The Crown Hare's Invitation",
+    "shared_text": "The Crown Hare lowers its head. The motes gather around its paws, then spill into a narrow path leading deeper beneath the bridge.",
+    "private_text": "Renn recognizes the gesture as an invitation rather than surrender.",
+    "discovery": "Crown Hare — Accepted Renn's Approach",
+    "journal": "With Soren and Lupin beside him, Renn gained the Crown Hare's trust. It revealed a hidden route beneath the bridge.",
+    "dialogue": [
+      {"line_id":"hare-success-soren","speaker_id":"soren","text":"It likes you. I knew it would—though I reserve the right to be jealous if it gets the first hug.","performance":"relieved delight with affectionate teasing"},
+      {"line_id":"hare-success-lupin","speaker_id":"lupin","text":"Then we follow together. I will take the rear; Soren, stay where Renn can see you.","performance":"calm readiness with protective warmth"},
+      {"line_id":"hare-success-narrator","speaker_id":"narrator","text":"Side by side, the three Hazels step from the Lantern Road. The Crown Hare leads them toward a door of roots and blue light beneath the bridge.","performance":"warm forward motion and quiet wonder"}
+    ]
+  },
+  "creature_failure": {
+    "shared_title": "A Trail Still Open",
+    "shared_text": "The Crown Hare startles back, but does not flee. It leaves three luminous prints pointing beneath the bridge.",
+    "private_text": "The creature is wary, not hostile. Another careful approach may earn its trust later.",
+    "journal": "The Crown Hare kept its distance but marked a hidden route beneath the bridge with three luminous tracks.",
+    "dialogue": [
+      {"line_id":"hare-failure-soren","speaker_id":"soren","text":"Easy. You did not lose it—it is still listening. We can give it room.","performance":"gentle reassurance"},
+      {"line_id":"hare-failure-lupin","speaker_id":"lupin","text":"Those prints are deliberate. It wants us to notice the way under the bridge, even if it is not ready to lead us.","performance":"steady observation and encouragement"},
+      {"line_id":"hare-failure-narrator","speaker_id":"narrator","text":"With Soren close and Lupin guarding the path, Renn turns toward the three glowing tracks. The way forward remains open.","performance":"reassuring mystery and forward momentum"}
+    ]
+  },
   "choices": [
     {"label": "Reach gently toward the motes", "skill": "Animal Handling", "dc": 12},
     {"label": "Study them from a distance", "skill": "Nature", "dc": 11},
@@ -14,12 +68,36 @@
     "shared_text": "The motes tighten into a luminous trail beneath the bridge. For one breath, the forest seems to listen.",
     "private_text": "A whisper reaches Renn alone: “Do not trust the lantern keeper.”",
     "discovery": "Whisper Beneath the Hemlock Bridge",
-    "journal": "Blue motes gathered beneath the southern bridge and formed a trail. A private warning named the lantern keeper."
+    "journal": "Blue motes gathered beneath the southern bridge and formed a trail. A private warning named the lantern keeper.",
+    "dialogue": [
+      {"line_id":"motes-success-soren","speaker_id":"soren","text":"There—a path. Renn, they answered you.","performance":"hushed delight and growing wonder"},
+      {"line_id":"motes-success-lupin","speaker_id":"lupin","text":"Keep your eyes on the bank. We are not the only ones following it.","performance":"low, alert, protective"},
+      {"line_id":"motes-success-narrator","speaker_id":"narrator","text":"A small crowned silhouette slips from the fern line. Gold-tipped ears rise above the luminous trail, and an ancient little gaze settles on Renn.","performance":"wonder opening into gentle tension"}
+    ],
+    "creature": {
+      "id":"crown-hare",
+      "name":"Crown Hare",
+      "reveal_percent":20,
+      "summary":"A watchful forest hare with gold-tipped ears, glimpsed beside the motes.",
+      "sound":{"creature_id":"crown_hare","creature_type":"beast","body_form":"small_soft_bodied","size":"small","disposition":"curious","behavior":"alert","volume":0.58}
+    }
   },
   "failure": {
     "shared_title": "The Motes Scatter",
     "shared_text": "The motes flare and scatter into the trees. The bridge settles into silence before their pattern becomes clear.",
     "private_text": "Renn cannot yet determine what drew the motes to the bridge.",
-    "journal": "Blue motes gathered beneath the southern bridge, then scattered before their pattern could be understood."
+    "journal": "Blue motes gathered beneath the southern bridge, then scattered before their pattern could be understood.",
+    "dialogue": [
+      {"line_id":"motes-failure-soren","speaker_id":"soren","text":"Wait. Do not chase them—there is still one light beneath the rail.","performance":"concern turning toward hope"},
+      {"line_id":"motes-failure-lupin","speaker_id":"lupin","text":"And fresh tracks beside it. Small, four-footed, heading toward the fern line.","performance":"steady reassurance, observant"},
+      {"line_id":"motes-failure-narrator","speaker_id":"narrator","text":"The scattered glow leaves one clue behind: the brief outline of long ears watching from the brush.","performance":"quiet mystery with a softened landing"}
+    ],
+    "creature": {
+      "id":"crown-hare",
+      "name":"Crown Hare",
+      "reveal_percent":10,
+      "summary":"Only a long-eared silhouette is known; it watched from the fern line.",
+      "sound":{"creature_id":"crown_hare","creature_type":"beast","body_form":"small_soft_bodied","size":"small","disposition":"timid","behavior":"startle","volume":0.52}
+    }
   }
 }

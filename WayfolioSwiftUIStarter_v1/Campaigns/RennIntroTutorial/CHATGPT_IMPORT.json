@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "import_id": "chatgpt-renn-intro-tutorial-2026-08-25",
+  "campaign_id": "renn-intro-tutorial",
+  "campaign_title": "Renn Intro Tutorial",
+  "status": "staged_separate_journey",
+  "source": {
+    "kind": "chatgpt_project_conversation",
+    "conversation_id": "6a8baa15-a574-83e8-8d30-117edd4632b0",
+    "conversation_title": "Renn Intro Tutorial Chat",
+    "share_url": "https://chatgpt.com/share/6a8e5621-cd54-83e8-a9f8-6baf1059f5e8",
+    "project": "Dungeons & Dragons",
+    "imported_at": "2026-08-25T00:00:00-07:00"
+  },
+  "activation": {
+    "active": false,
+    "reason": "Preserved as a separate journey so importing it cannot overwrite the active Hemlock Bridge development save.",
+    "recommended_action": "Expose this checkpoint in the launcher as Resume Renn Intro Tutorial."
+  },
+  "resume": {
+    "revision": 5,
+    "source_revision": "WF-089",
+    "synced_through": "2026-09-03T00:00:00-07:00",
+    "location_id": "location_creature_care_center",
+    "location": "Hemlock Creature Care Center",
+    "scene_context_id": "main_interior",
+    "participants_present": ["renn", "unbound-rowan-reference"],
+    "participants_elsewhere": ["unidentified-slime-companion", "injured-slime", "soren", "lupin"],
+    "scene": "Renn has entered the Hemlock Creature Care Center after leaving the two blue-green slimes at the pine-root path. Inside, a person identified only as Rowan is working at a nearby table. Renn has not approached or spoken to Rowan, and this Rowan is not yet established as Mair Rowan.",
+    "next_prompt": "Renn stands inside the Creature Care Center with the urgent situation at the pine-root path still unresolved. Rowan remains at the worktable. What does Renn say or do?",
+    "player_control": "Do not choose ingredients, speech, feelings, conclusions, or actions for Renn. Accept any free-form response."
+  },
+  "confirmed_state": {
+    "characters": [
+      {
+        "id": "renn",
+        "role": "player_character",
+        "notes": ["A trainee herbalist under Master Aloe", "Treats the slime with patience, consent, and curiosity", "Wants to learn to make a healing potion"]
+      },
+      {
+        "id": "master-aloe",
+        "role": "teacher_npc",
+        "notes": ["Renn's herbalism teacher at Briar & Bough", "Former traveler and healer", "Teaches understanding and careful observation before intervention"]
+      },
+      {
+        "id": "lark",
+        "role": "peer_npc",
+        "pronouns": "they/them",
+        "notes": ["Young rabbitfolk apprentice who has trained alongside Renn for several years", "Friendly, careful, curious, humorous, and sometimes misplaces tools"]
+      },
+      {
+        "id": "aunt-mira-hazel",
+        "role": "family_npc",
+        "notes": ["Shared breakfast with Renn and the slime at Renn's home"]
+      },
+      {
+        "id": "unidentified-slime",
+        "role": "unidentified_creature",
+        "notes": ["Small blue-green slime", "Appeared near Renn's home and threw pinecones at the window", "Followed Renn after being invited", "Identity, origin, motives, age, and name remain unknown"]
+      }
+    ],
+    "locations": [
+      {"id": "briar-and-bough", "name": "Briar & Bough", "status": "known", "notes": ["Herbal workshop in Hemlock", "Visited earlier in the tutorial"]},
+      {"id": "pine-root-path", "name": "Pine-root forest path", "status": "active_quest_site", "notes": ["Ground-level path beneath a huge pine", "The unidentified slime companion and injured slime remain there", "Exact named sublocation remains unknown"]},
+      {"id": "renn-home", "name": "Renn's home", "status": "known", "notes": ["Where the slime first approached Renn"]},
+      {"id": "location_creature_care_center", "name": "Hemlock Creature Care Center", "status": "current", "notes": ["Renn entered seeking help for the injured slime", "A person identified only as Rowan is working at a table; their full identity is not established"]}
+    ],
+    "completed_work": [
+      "Sorted sage and bitterroot by suitability for a mild calming tincture.",
+      "Prepared, steeped, strained, inspected, bottled, and labeled a sage-and-bitterroot calming preparation.",
+      "Prepared, inspected, bottled, and labeled a basic healing potion under Master Aloe's supervision and added it to Renn's field kit.",
+      "Studied creature body classifications and how physiology changes assessment, treatment suitability, environmental care, topical treatment, and ingestion.",
+      "Inspected the finished preparation for appearance, smell, temperature, and sound; no unexpected activity was observed.",
+      "Established a comparative chamomile experiment using an ordinary control, slime-processed solids, and a separate pale-gold slime-extracted liquid."
+    ],
+    "confirmed_discoveries": [
+      "The slime responds positively to gentle encouragement and praise.",
+      "The slime can hold, move, and deliberately release small objects.",
+      "The slime placed a pebble inside a vial while holding both.",
+      "The slime can gently handle organic material.",
+      "The slime remained calmly near chamomile and partially processed it inside its body before stopping voluntarily.",
+      "The slime recovered partially changed chamomile and a pale-gold liquid into a vial.",
+      "Slime-processed chamomile initially remained physically stable, with softened fragments and finer suspended material than ordinary tea.",
+      "A measurable chemical or pH difference from ordinary chamomile tea was observed; its significance is unknown.",
+      "The slime can form temporary mossback-like bumps or sprouts as a visual mimicry behavior.",
+      "The slime sampled cooled chamomile tea voluntarily and recoiled from hot tea."
+      ,"The slime deliberately sought Renn and used pinecone mimicry while attempting to lead him toward an injured slime."
+      ,"A second small blue-green slime is punctured by a jagged point on a larger rusted metal piece buried and wedged between pine roots."
+      ,"The injured slime is in pain and frightened but did not appear to be rapidly worsening while kept completely still."
+      ,"Renn and his slime companion are both present beside the injured slime beneath the pine roots."
+    ],
+    "experiments": [
+      {
+        "id": "chamomile-comparison-01",
+        "question": "Does slime processing change the measurable strength or properties of chamomile?",
+        "samples": ["ordinary chamomile control tincture", "slime-processed chamomile solids tincture", "separate pale-gold slime-extracted liquid"],
+        "status": "awaiting_later_observation"
+      }
+    ],
+    "pending_threads": [
+      "Seek help at the Hemlock Creature Care Center for the injured slime at the pine-root path.",
+      "Safely address the injured slime's entrapment and injury without assuming Rowan's identity.",
+      "Reinspect the comparative chamomile samples after time has passed.",
+      "Observe the unusual mixed-state sage stem that was tagged and set aside.",
+      "Later study Leaf, Root & Sign: A Practical Guide to Common Plants.",
+      "Continue learning about the slime without assuming its identity or motives.",
+      "Decide whether and when to visit the Hemlock animal center.",
+      "Finalize whether Master Aloe's proposed travel field kit is actually given to Renn."
+    ],
+    "inventory": {
+      "confirmed_additions": ["Basic Healing Potion prepared under Master Aloe and added to Renn's field kit"],
+      "prepared_but_not_confirmed_as_owned": ["bandages", "simple salve", "fresh water", "lavender or chamomile", "charcoal", "small wooden mortar and pestle", "writing supplies"],
+      "rule": "Do not add prepared items to Renn's inventory until ownership is confirmed in play."
+    }
+  },
+  "wayfolio_records": {
+    "known_entries": ["Aunt Mira Hazel", "Master Aloe", "Lark", "Unidentified Slime", "Briar & Bough", "Hemlock"],
+    "device_convention": "The Wayfolio is a palm-sized oval magical field device with a durable body, brass trim, dark-green enchanted glass, tactile rune keys, and a selector ring. It records only information Renn actually learns and may speak brief notifications for meaningful record changes.",
+    "knowledge_rule": "Never reveal hidden campaign knowledge through the Wayfolio."
+  },
+  "governance": {
+    "open_play": true,
+    "fixed_choices_prohibited": true,
+    "prewritten_outcomes_prohibited": true,
+    "player_sovereignty": true,
+    "clarification_limit": 1,
+    "roll_policy": "Roll only when an action is uncertain, possible, and meaningfully consequential.",
+    "continuity_rule": "Treat confirmed facts as canon for this journey; preserve uncertainty where the conversation did not establish an answer."
+  }
+}

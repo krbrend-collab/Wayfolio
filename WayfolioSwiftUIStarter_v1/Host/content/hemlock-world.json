@@ -1,0 +1,32 @@
+{
+  "world_id": "hemlock-development-sandbox",
+  "schema_version": 1,
+  "provenance": "BOUNDED",
+  "location": {
+    "id": "hemlock-south-bridge",
+    "name": "Southern Hemlock Bridge",
+    "region": "Hemlock Village",
+    "description": "An old timber bridge at the forest edge. Blue motes have gathered beneath its southern rail.",
+    "connections": ["hemlock-village", "lantern-road", "bridge-rootway"]
+  },
+  "time": {"period": "evening", "elapsed_minutes": 0},
+  "party": [
+    {"id":"renn","name":"Renn Hazel","role":"player_character","present":true},
+    {"id":"soren","name":"Soren Hazel","role":"companion","present":true,"goal":"Help Renn understand the motes while keeping the group hopeful."},
+    {"id":"lupin","name":"Lupin","role":"companion","present":true,"goal":"Protect the group and watch for physical danger or hidden routes."}
+  ],
+  "active_entities": [
+    {"id":"bridge-motes","kind":"phenomenon","disposition":"curious","known":"They move against the wind."},
+    {"id":"crown-hare","kind":"creature","disposition":"wary","known":"A long-eared figure has been glimpsed near the fern line."}
+  ],
+  "open_pressures": [
+    "The motes are gathering around the southern rail.",
+    "Tracks end where the blue light begins.",
+    "The Crown Hare may reveal or conceal the route beneath the bridge."
+  ],
+  "known_clues": [],
+  "sealed_clues": ["A warning concerns the lantern keeper."],
+  "conditions": [],
+  "mode": "development_review",
+  "state_head": "HEMLOCK-GENESIS-1"
+}

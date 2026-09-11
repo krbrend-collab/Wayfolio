@@ -41,7 +41,12 @@
 		A10000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift */; };
 		A10000000000000000000009 /* Presentation/PresentationRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* Presentation/PresentationRuntime.swift */; };
 		A10000000000000000000010 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* Audio */; };
+		A10000000000000000000015 /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* Fonts */; };
+		A10000000000000000000011 /* Session/GameSessionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* Session/GameSessionClient.swift */; };
+		A10000000000000000000012 /* Features/Session/WayfinderSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* Features/Session/WayfinderSessionView.swift */; };
+		A10000000000000000000013 /* Features/Session/LivePlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* Features/Session/LivePlayView.swift */; };
 		A10000000000000000000014 /* Features/FieldGuide/CreatureSoundLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* Features/FieldGuide/CreatureSoundLibraryView.swift */; };
+		A30000000000000000000001 /* Models/CharacterImageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000001 /* Models/CharacterImageStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -81,7 +86,12 @@
 		A20000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/PresentationAudioCoordinator.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* Presentation/PresentationRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation/PresentationRuntime.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Audio; path = Resources/Audio; sourceTree = "<group>"; };
+		A20000000000000000000015 /* Fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Fonts; path = Resources/Fonts; sourceTree = "<group>"; };
+		A20000000000000000000011 /* Session/GameSessionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Session/GameSessionClient.swift; sourceTree = "<group>"; };
+		A20000000000000000000012 /* Features/Session/WayfinderSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Session/WayfinderSessionView.swift; sourceTree = "<group>"; };
+		A20000000000000000000013 /* Features/Session/LivePlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Session/LivePlayView.swift; sourceTree = "<group>"; };
 		A20000000000000000000014 /* Features/FieldGuide/CreatureSoundLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/FieldGuide/CreatureSoundLibraryView.swift; sourceTree = "<group>"; };
+		A40000000000000000000001 /* Models/CharacterImageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/CharacterImageStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,17 +133,21 @@
 				EF13B7F3F8B0343AD0B5E2E7 /* Features/Entries/EntriesView.swift */,
 				35573AA89571D3E16E197762 /* Features/FieldGuide/FieldGuideView.swift */,
 				A20000000000000000000014 /* Features/FieldGuide/CreatureSoundLibraryView.swift */,
+				A20000000000000000000012 /* Features/Session/WayfinderSessionView.swift */,
+				A20000000000000000000013 /* Features/Session/LivePlayView.swift */,
 				B4EFE08EEB3E1F52FE0F4B1E /* Features/Placeholders/GuideHomeView.swift */,
 				E77EA4FC7F7D2EC1DD89E684 /* Features/Placeholders/MapPlaceholderView.swift */,
 				6663E7A453742F05263D50BE /* Features/Placeholders/MorePlaceholderView.swift */,
 				219F64664A341AE859D5661F /* Features/Placeholders/NotesPlaceholderView.swift */,
 				37D404FC39287CF70B1F8E79 /* Models/CreatureRecord.swift */,
+				A40000000000000000000001 /* Models/CharacterImageStore.swift */,
 				4E1A407A19E4BB276DE7C73A /* Models/SampleData.swift */,
 				A20000000000000000000001 /* Presentation/PresentationEvent.swift */,
 				A20000000000000000000002 /* Presentation/PresentationEventChannel.swift */,
 				A20000000000000000000003 /* Presentation/WebSocketPresentationTransport.swift */,
 				A20000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift */,
 				A20000000000000000000009 /* Presentation/PresentationRuntime.swift */,
+				A20000000000000000000011 /* Session/GameSessionClient.swift */,
 				D1D602E1CDB39758E26DCA80 /* Shell/WayfolioDock.swift */,
 				9F22380DA0B8CBE4A84AD6AF /* Shell/WayfolioHeader.swift */,
 				4193B9372D70625A9CF565EB /* Shell/WayfolioQuickRail.swift */,
@@ -141,6 +155,7 @@
 				1A3EDC069AB6B9DA2F4EBD5B /* WayfolioApp.swift */,
 				8B40A3F1CAC9ADB66B78DD5C /* Assets.xcassets */,
 				A20000000000000000000010 /* Audio */,
+				A20000000000000000000015 /* Fonts */,
 				38ED30322495D02C679CFD76 /* Info.plist */,
 			);
 			path = Wayfolio;
@@ -214,6 +229,7 @@
 			files = (
 				7F541BB7BBCE1C0E2C548264 /* Assets.xcassets in Resources */,
 				A10000000000000000000010 /* Audio in Resources */,
+				A10000000000000000000015 /* Fonts in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,6 +258,7 @@
 				665F8EE93EA6A9266A4E0717 /* Features/Placeholders/MorePlaceholderView.swift in Sources */,
 				609B9681974BBD7DFC46CFCE /* Features/Placeholders/NotesPlaceholderView.swift in Sources */,
 				E69489841037A3D1C3DE3529 /* Models/CreatureRecord.swift in Sources */,
+				A30000000000000000000001 /* Models/CharacterImageStore.swift in Sources */,
 				B0905148CE5922D11DCD4642 /* Models/SampleData.swift in Sources */,
 				E38083C7041C8FE3C30D2E31 /* Shell/WayfolioDock.swift in Sources */,
 				CF2A57D3A8C3DD42B3BDAD02 /* Shell/WayfolioHeader.swift in Sources */,
@@ -257,6 +274,9 @@
 				A10000000000000000000007 /* Audio/WayfolioAudioEngine.swift in Sources */,
 				A10000000000000000000008 /* Presentation/PresentationAudioCoordinator.swift in Sources */,
 				A10000000000000000000009 /* Presentation/PresentationRuntime.swift in Sources */,
+				A10000000000000000000011 /* Session/GameSessionClient.swift in Sources */,
+				A10000000000000000000012 /* Features/Session/WayfinderSessionView.swift in Sources */,
+				A10000000000000000000013 /* Features/Session/LivePlayView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -270,7 +290,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 130;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Wayfolio/Info.plist;
 				MARKETING_VERSION = 1.0;
@@ -334,7 +354,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 130;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Wayfolio/Info.plist;
 				MARKETING_VERSION = 1.0;

@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "campaign_id": "hemlock-development",
+  "updated_at": "2026-08-27T00:00:00.000Z",
+  "records": [
+    {
+      "id": "governance:player-sovereignty",
+      "kind": "governance",
+      "title": "Open play and player sovereignty",
+      "content": {
+        "rules": [
+          "Never invent a player character's voluntary actions, speech, emotions, beliefs, conclusions, resource use, or consent.",
+          "Accept free-form declarations; never restrict players to fixed choices.",
+          "Ask at most one clarification only when resolution would materially change without it.",
+          "Do not roll for automatic, routine, or impossible actions.",
+          "Failure creates a fair forward-moving complication and leaves meaningful choices open.",
+          "Private declarations and discoveries remain private to their authorized recipient."
+        ]
+      },
+      "visibility": "party",
+      "status": "approved",
+      "pinned": true,
+      "tags": ["open-play", "sovereignty", "privacy", "interpretation"],
+      "provenance": {"source": "Wayfolio Hands-Off AI DM implementation packet", "authority": "approved"}
+    },
+    {
+      "id": "character:renn",
+      "kind": "character_canon",
+      "title": "Renn Hazel",
+      "subject_ids": ["renn"],
+      "content": {
+        "identity": "Harengon healer, herbalist, ranger, and explorer from Hemlock; curious, gentle, sincere, determined.",
+        "role": "Player character. Renn's decisions and inner life belong only to Renn's player.",
+        "appearance": "Dark tousled hair, violet eyes, long upright rabbit ears, cream-to-white lower-leg fur, cream tail, lean athletic build.",
+        "relationships": {"soren": "Younger sister", "lupin": "Childhood best friend"}
+      },
+      "visibility": "party", "status": "approved", "tags": ["renn", "hemlock", "player-character"],
+      "provenance": {"source": "approved Renn dossier and in-app canonical record", "authority": "approved"}
+    },
+    {
+      "id": "character:soren",
+      "kind": "character_canon",
+      "title": "Soren Hazel",
+      "subject_ids": ["soren", "renn"],
+      "content": {
+        "identity": "Renn's younger Harengon sister and Hemlock caretaker.",
+        "personality": "Bright, affectionate, energetic, curious, quick-witted, helpful, and protective without taking control.",
+        "appearance": "Rose-mauve hair, warm amber-brown eyes, long rabbit ears, cream tail, botanical field clothing.",
+        "voice_direction": "Warm, bright, emotionally responsive; teasing affection may soften tension."
+      },
+      "visibility": "party", "status": "approved", "tags": ["soren", "hemlock", "companion"],
+      "provenance": {"source": "approved character references and Wayfolio host profile", "authority": "approved"}
+    },
+    {
+      "id": "character:lupin",
+      "kind": "character_canon",
+      "title": "Lupin",
+      "subject_ids": ["lupin", "renn"],
+      "content": {
+        "identity": "Renn's childhood best friend, Harengon scout and Grove Runner from Hemlock.",
+        "personality": "Grounded, observant, dependable, warmly expressive, protective, and non-controlling.",
+        "appearance": "Moss-brown tousled hair, warm brown eyes, long rabbit ears, cream tail, lean runner's build.",
+        "voice_direction": "Calm, steady, watchful, concise; offers options and protection without ordering Renn."
+      },
+      "visibility": "party", "status": "approved", "tags": ["lupin", "hemlock", "companion"],
+      "provenance": {"source": "approved character references and Wayfolio host profile", "authority": "approved"}
+    },
+    {
+      "id": "location:hemlock-bridge",
+      "kind": "location_canon",
+      "title": "Southern Hemlock Bridge and Lantern Road",
+      "subject_ids": ["renn", "soren", "lupin"],
+      "content": {
+        "description": "An old timber bridge at Hemlock's forest edge, connected to Hemlock Village, the Lantern Road, and a rootway beneath the bridge.",
+        "current_situation": "Blue motes gather beneath the southern rail and move against the wind; tracks end where their light begins.",
+        "tone": "Luminous woodland mystery grounded in relationships, agency, and discoverable danger."
+      },
+      "visibility": "party", "status": "approved", "tags": ["hemlock", "bridge", "lantern-road"],
+      "provenance": {"source": "Hemlock world genesis", "authority": "approved development canon"}
+    },
+    {
+      "id": "visual:luminous-ledger",
+      "kind": "presentation_canon",
+      "title": "Luminous Ledger visual language",
+      "content": "Midnight navy shadows, soft ivory folio panels, antique gold framing, cyan and restrained violet luminous accents, botanical and rabbit motifs, tactile premium storybook detail, and clear readable hierarchy.",
+      "visibility": "party", "status": "approved", "pinned": true,
+      "tags": ["visual", "luminous-ledger", "presentation"],
+      "provenance": {"source": "Wayfolio Luminous Ledger style guide", "authority": "approved"}
+    },
+    {
+      "id": "visual:world-design-v2",
+      "kind": "presentation_canon",
+      "title": "World visual design philosophy V2",
+      "content": {
+        "scope": "Character, crowd, architecture, location, technology, material-culture, and environmental artwork. The Luminous Ledger remains the separate interface authority.",
+        "world_era": "Late-19th/early-20th-century-adjacent fantasy entering its own modernity; regional traditions evolve through precision craft, professional specialization, modernizing tailoring, and selective magical information technology.",
+        "hemlock_architecture": "Clean, maintained, modest-scale Harengon settlement integrating ecological and biophilic construction, restrained Art Nouveau organic geometry, selected Chinese garden-space and threshold ideas, and living temperate-forest systems.",
+        "hemlock_anatomy": "Humanlike faces without rabbit muzzles or human ears; true rabbit ears, compact rabbit tails, humanlike hands, rabbit-influenced semi-digitigrade lower legs and feet, and clothing engineered for the anatomy.",
+        "technology": "Precision craft plus selective magical information technology; do not infer steampunk clutter, contemporary consumer-electronics shorthand, or open global infrastructure.",
+        "production_rule": "Modernity before magic. Generate individual full-bleed assets for a defined gameplay/device role, preserve overlay space for shared presentation, reuse approved art when appropriate, and never promote generated work before explicit approval.",
+        "media_roles": {
+          "wayfolio_location_record": "Clean portrait location artwork used as media inside a discovered World record; never a fake device screen or precomposed UI.",
+          "shared_ipad_exterior_approach": "A mandatory separate 4:3 exterior, approach, or exterior-equivalent gameplay scene for every built location.",
+          "shared_ipad_gameplay_zone": "A 4:3 interior, activity, or functional-zone scene that contributes distinct playable information.",
+          "shared_ipad_first_person_counter": "A first-person customer view from the player side of a shop or service counter.",
+          "shared_ipad_first_person_seated": "A first-person seated-at-table view for dining or hospitality play.",
+          "shared_ipad_first_person_table_service": "A seated first-person view with a server taking an order when table service is supported.",
+          "weather_time_state": "A separately registered weather or lighting state that does not overwrite an earlier approved state."
+        }
+      },
+      "visibility": "party",
+      "status": "approved",
+      "pinned": true,
+      "tags": ["visual", "world-design", "hemlock", "locations", "characters", "technology", "wf-017"],
+      "provenance": {
+        "source": "World Visual Design Philosophy — Architecture, Fashion & Technology — V2; Wayfolio Development Sync WF-017",
+        "source_id": "1QLDY5acmfE5lyRg6etxn1rkzpE15KLXnTGkKcSWOGSQ",
+        "authority": "approved direction"
+      }
+    },
+    {
+      "id": "location-system:hemlock-group-8",
+      "kind": "location_canon",
+      "title": "Hemlock location identity and media mapping",
+      "content": {
+        "authority_split": {
+          "master_descriptive_guide": "Controls what a location is, its purpose, and its canon identity.",
+          "group_8_architectural_grammar": "Controls how Hemlock locations are visually expressed and how approved image sequences are composed.",
+          "world_location_framework": "Controls the reusable production and review process."
+        },
+        "identity_rules": [
+          "Map assets by stable location ID plus semantic role, never by folder order or newest timestamp.",
+          "Quiet Shrine is the canonical location identity for stable location 4/32. Garden Shrine is a production filename and visual-routing alias only; do not create a separate Garden Shrine or Hemlock Forest Shrine location.",
+          "Main Shrine Grove remains a distinct sacred location.",
+          "Commons Plaza is stable location 2/32 and remains distinct from supplemental Market Street.",
+          "Market Street does not renumber the 32-location production sequence.",
+          "Root & Kettle is stable location 20/32: a bright daytime tea house and cafe plus community kitchen, not a tavern."
+        ],
+        "location_ids": {
+          "hemlock-location-02": {"display_name":"Commons Plaza","sequence":"2/32"},
+          "hemlock-market-street": {"display_name":"Market Street","sequence":"supplemental"},
+          "hemlock-location-04": {"display_name":"Quiet Shrine","sequence":"4/32","aliases":["Garden Shrine"],"forbidden_duplicate":"Hemlock Forest Shrine"},
+          "hemlock-location-20": {"display_name":"Root & Kettle","sequence":"20/32"}
+        },
+        "approval_rule": "Folder presence alone is not authority. Explicit approval promotes a registered stable subject and semantic role to approved-current or approved-reference; player-facing retrieval must still filter status, visibility, and knowledge scope."
+      },
+      "visibility": "party",
+      "status": "approved",
+      "pinned": true,
+      "tags": ["hemlock", "locations", "group-8", "asset-registry", "wf-025"],
+      "provenance": {
+        "source": "Wayfolio Development Sync WF-018, WF-020, and WF-025",
+        "authority": "approved workflow and identity correction"
+      }
+    }
+  ],
+  "proposals": []
+}

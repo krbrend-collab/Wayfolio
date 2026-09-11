@@ -17,14 +17,53 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.kevinbrend.wayfolio.join</string>
+			<key>CFBundleURLSchemes</key>
+			<array><string>wayfolio</string></array>
+		</dict>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIRequiresFullScreen</key>
+	<true/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Wayfolio connects to the central game host on your local network.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Wayfolio uses the microphone only when you choose Speak to dictate a player declaration.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Wayfolio converts speech into the declaration you review before sending it to the game host.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>UIUserInterfaceStyle</key>
 	<string>Dark</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Fonts/Manrope-Regular.ttf</string>
+		<string>Fonts/Manrope-Medium.ttf</string>
+		<string>Fonts/Manrope-SemiBold.ttf</string>
+		<string>Fonts/Manrope-Bold.ttf</string>
+		<string>Fonts/EBGaramond-Regular.ttf</string>
+		<string>Fonts/EBGaramond-Medium.ttf</string>
+		<string>Fonts/EBGaramond-SemiBold.ttf</string>
+		<string>Fonts/EBGaramond-Bold.ttf</string>
+		<string>Fonts/EBGaramond-Italic.ttf</string>
+	</array>
 </dict>
 </plist>

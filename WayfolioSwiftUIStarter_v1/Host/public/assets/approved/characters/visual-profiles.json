@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "profiles": {
+    "renn": {"display_name":"Renn Hazel", "portrait":"/assets/approved/characters/renn-hazel.jpeg", "portrait_position":"50% 29%", "status":"approved_reference", "canon_source":"Renn Hazel Living Master Dossier"},
+    "narrator": {"display_name":"Narrator", "portrait":null, "status":"system_identity"},
+    "unknown_voice": {"display_name":"Unknown Voice", "portrait":null, "status":"intentionally_unidentified"}
+  }
+}

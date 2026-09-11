@@ -1,0 +1,8 @@
+{
+  "images" : [
+    { "filename" : "wayfolio_login_bg_01_treetop_village.png", "idiom" : "universal", "scale" : "1x" },
+    { "idiom" : "universal", "scale" : "2x" },
+    { "idiom" : "universal", "scale" : "3x" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}

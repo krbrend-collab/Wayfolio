@@ -1,0 +1,41 @@
+{
+  "id": "hinosuke",
+  "canonical_id": "creature_hinosuke",
+  "name": "Hinosuke",
+  "record_kind": "companion",
+  "owner_character_id": "yugen",
+  "species": "Kitsune Spirit",
+  "class_name": "Companion / Guide",
+  "level": 1,
+  "background": "Lantern Wisp",
+  "hp": {"current": 10, "maximum": 10},
+  "armor_class": 15,
+  "speed": 10,
+  "passive_perception": 13,
+  "abilities": {},
+  "skills": {"Perception": 3},
+  "magic": [],
+  "traits": ["Air Running", "Scout", "Spirit Tracker", "Help and Distract"],
+  "equipment": [
+    {"slot": "Neck and shoulders", "name": "Indigo Collar or Short Cloak", "detail": "A small dark garment sized for Hinosuke.", "equipment_family": "Equipment", "quality_level": 1},
+    {"slot": "Collar", "name": "Gold Bell", "detail": "A small bell associated with Hinosuke's bond to Yūgen; its supernatural origin is unresolved.", "equipment_family": "Equipment", "quality_level": 1}
+  ],
+  "inventory": ["Indigo Collar or Short Cloak", "Gold Bell"],
+  "visual_identity": {
+    "version": 1,
+    "status": "description_only",
+    "canonical_description": "A tiny pure-white kitsune spirit with blue eyes, luminous blue markings, large triangular ears, a small indigo collar or cloak, a gold bell, exactly one fluffy white tail, and cold blue foxfire.",
+    "immutable_features": ["tiny kitsune body", "pure-white fur", "blue eyes and markings", "exactly one tail", "indigo collar or cloak", "gold bell", "blue foxfire"],
+    "palette": ["pure white", "cold blue", "indigo", "navy", "gold"],
+    "never_change": ["Never give Hinosuke more than one tail", "Never portray him as a player character or generic pet"],
+    "references": []
+  },
+  "character_profile": {
+    "background": {
+      "personality": "Playful, loyal, active, curious, and quietly wise.",
+      "voice_guidance": "Use movement, expression, familiar-bond impressions, and small sounds. Exact speech capability remains unresolved."
+    },
+    "campaign_knowledge": {"locations": [], "people": [], "creatures": [], "discoveries": [], "quests": [], "journal": []},
+    "companions": []
+  }
+}

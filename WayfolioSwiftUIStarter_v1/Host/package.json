@@ -5,10 +5,44 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node test-session.mjs",
-    "test:audio-director": "node test-audio-director.mjs"
+    "test": "node test-safe-suite.mjs",
+    "test:restart": "node test-reconnect-restart.mjs",
+    "test:full-multiplayer": "node test-full-multiplayer.mjs",
+    "test:audio-director": "node test-audio-director.mjs",
+    "test:character-import": "node test-character-import.mjs",
+    "test:journey-start": "node test-journey-start.mjs",
+    "test:hands-off": "node test-two-player-turn.mjs",
+    "test:legacy-session": "node test-session.mjs",
+    "test:legacy-hands-off": "node test-hands-off.mjs",
+    "test:interpreter": "node test-interpreter.mjs",
+    "test:knowledge": "node test-knowledge-vault.mjs"
+    ,"test:encounter-privacy": "node test-encounter-privacy.mjs"
+    ,"test:journey-knowledge": "node test-journey-knowledge.mjs"
+    ,"test:party-state": "node test-party-state.mjs"
+    ,"test:party-state:integration": "node test-party-state-integration.mjs"
+    ,"test:campaign-state": "node test-campaign-state-service.mjs"
+    ,"test:storyteller": "node test-storyteller-runtime.mjs",
+    "test:storyteller-transport": "node test-storyteller-transport.mjs",
+    "test:storyteller-continuity": "node test-storyteller-continuity.mjs",
+    "test:equipment-quality": "node test-equipment-quality.mjs",
+    "test:storyteller-cost": "node test-storyteller-cost-policy.mjs",
+    "test:wf015": "node test-wf015-milestone.mjs",
+    "test:wf015:e2e": "node test-wf015-e2e.mjs",
+    "test:workspace-agent-poc": "node integrations/chatgpt-workspace-agent-poc/test-workspace-agent-poc.mjs",
+    "test:two-player": "node test-two-player-session.mjs",
+    "test:two-player-turn": "node test-two-player-turn.mjs",
+    "test:f41": "node test-f41-asset-resolver.mjs",
+    "test:medium": "node test-medium-gameplay.mjs",
+    "test:media": "node test-media-integrity.mjs"
+    ,"test:journey-continuity": "node test-journey-continuity.mjs"
+    ,"test:session-mode": "node test-session-mode.mjs"
+    ,"test:voice-assignment": "node test-voice-assignment.mjs"
+    ,"test:knowledge-records": "node test-knowledge-records.mjs"
+    ,"test:shared-stage": "node test-shared-stage-contract.mjs"
+    ,"test:native-shell": "node test-native-shell-contract.mjs"
   },
   "dependencies": {
+    "qrcode": "^1.5.4",
     "ws": "^8.18.0"
   }
 }

@@ -1,0 +1,20 @@
+{
+  "campaign_id": "wayfolio-hemlock-development",
+  "campaign_package_version": "1.1",
+  "campaign_schema_version": "1.1",
+  "compatible_engine": "AI-DM Engine >=4.0.1",
+  "created_at": "2026-08-19T18:43:29+00:00",
+  "current_projection_head": "state:66fbffa86e934245797385e0b7e5a60f71fc2c9471e77c6ca0d6d3959953324e",
+  "current_resume_hash": "2bace0270098f7adbe626ee9879382a2604df407e9cb2ca116466d6f033fa9b7",
+  "current_state_head": "state:66fbffa86e934245797385e0b7e5a60f71fc2c9471e77c6ca0d6d3959953324e",
+  "current_transaction_hash": "fc0f6d91c1af3857d9844b6945cc84f44924669b460b497ce2baea3f22c38545",
+  "engine_contract_version": "1.1",
+  "genesis_hash": "0cef50070f5870456acc083c0f397353b4e1798013b714891e65b59588409653",
+  "genesis_id": "genesis:wayfolio-hemlock-development",
+  "last_checkpoint_id": "checkpoint:b400a9bdddb852d0:be127bb189fe",
+  "normalization_register_hash": "aa67b9e74431a81caf1e7c0fcaf98e8d132e2009b43b3a8928507602fb7e4383",
+  "production": false,
+  "runtime_primer_hash": "04989cd4920c378681087433cac683f74a4798e4307e06f0d54dd93f48409947",
+  "story_so_far_hash": "025b689ae9ce59d8b3f8cc8a27555b6bc1bdc4944286f42452b9cb847b7cb667",
+  "updated_at": "2026-09-05T07:08:36+00:00"
+}

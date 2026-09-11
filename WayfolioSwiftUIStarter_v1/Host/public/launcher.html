@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Start Wayfolio Game</title>
+  <link rel="stylesheet" href="/style.css?v=wf-visual-structure-3">
+</head>
+<body>
+  <main class="launcher-main">
+    <div class="eyebrow">Wayfolio · Game Host</div>
+    <section class="panel launcher-panel">
+      <header class="launcher-heading">
+        <div>
+          <h1>Begin Your Journey</h1>
+          <p>Follow these three steps. Keep this private launcher on the Mac.</p>
+        </div>
+        <div class="readiness" aria-live="polite">
+          <span class="readiness-mark" aria-hidden="true"></span>
+          <div><strong>Session HEMLOCK</strong><span id="host-status">Checking the central game…</span></div>
+        </div>
+      </header>
+
+      <section class="device-readiness" aria-labelledby="device-readiness-title">
+        <div><div class="eyebrow">Live device roles</div><h2 id="device-readiness-title">Your Game Table</h2></div>
+        <div class="device-role ready"><span aria-hidden="true">✓</span><div><strong>Mac · Private Host</strong><small>Running the game and autosaves</small></div></div>
+        <div id="ipad-role" class="device-role waiting"><span aria-hidden="true">2</span><div><strong>iPad · Shared Table</strong><small>Waiting for the shared screen</small></div></div>
+        <div id="iphone-role" class="device-role waiting"><span aria-hidden="true">3</span><div><strong>iPhone · Player Wayfolio</strong><small>Waiting for a character</small></div></div>
+        <strong id="table-ready" class="setup-pill attention">Connect iPad and iPhone</strong>
+      </section>
+
+      <section class="story-readiness" aria-labelledby="story-readiness-title">
+        <div class="story-readiness-heading">
+          <div>
+            <div class="eyebrow">Story system</div>
+            <h2 id="story-readiness-title">How your Wayfolio thinks</h2>
+          </div>
+          <strong id="story-overall" class="setup-pill">Checking…</strong>
+        </div>
+        <div class="story-status-grid">
+          <article id="vault-card" class="story-status-card checking">
+            <span class="status-icon" aria-hidden="true">1</span>
+            <div><strong>Campaign Memory</strong><p id="vault-status">Checking the Knowledge Vault…</p></div>
+          </article>
+          <article id="live-ai-card" class="story-status-card checking">
+            <span class="status-icon" aria-hidden="true">2</span>
+            <div><strong>Live AI Storyteller</strong><p id="live-ai-status">Checking the active storyteller…</p></div>
+          </article>
+          <article id="chat-bridge-card" class="story-status-card optional">
+            <span class="status-icon" aria-hidden="true">3</span>
+            <div><strong>ChatGPT Creative Bridge</strong><p id="chat-bridge-status">Optional connection for project development; not needed to play.</p></div>
+          </article>
+        </div>
+        <div id="story-next-action" class="story-next-action" hidden>
+          <div><strong>Recommended next step</strong><p id="story-next-copy"></p></div>
+          <button id="show-ai-setup" type="button">Connect Live Storytelling</button>
+        </div>
+        <details class="story-roles">
+          <summary>What does each part do?</summary>
+          <dl>
+            <div><dt>ChatGPT</dt><dd>Develops characters, visuals, dialogue direction and approved canon with you.</dd></div>
+            <div><dt>Wayfolio AI</dt><dd>Improvises the live open-ended story during play using approved campaign memory.</dd></div>
+            <div><dt>Knowledge Vault</dt><dd>Keeps the same canon available across chats, accounts, devices and game sessions.</dd></div>
+            <div><dt>Codex</dt><dd>Builds and tests the app; it is not required during game night.</dd></div>
+          </dl>
+        </details>
+      </section>
+
+      <section class="library-readiness" aria-labelledby="journey-library-title">
+        <div class="story-readiness-heading">
+          <div><div class="eyebrow">Journeys & approved-source intake</div><h2 id="journey-library-title">Your Wayfolio Library</h2></div>
+          <strong id="library-overall" class="setup-pill">Loading…</strong>
+        </div>
+        <div id="journey-library" class="library-grid"><p class="quiet">Checking saved and imported journeys…</p></div>
+        <details class="asset-library-details">
+          <summary>View connected Drive libraries</summary>
+          <div id="asset-library" class="library-grid"><p class="quiet">Checking characters, creatures, places, icons, and campaign folders…</p></div>
+          <p class="quiet">Connected files remain review-only until identified and approved. Drive originals are never changed automatically.</p>
+        </details>
+        <section class="checkpoint-bridge" aria-labelledby="checkpoint-bridge-title">
+          <div><div class="eyebrow">ChatGPT ↔ Wayfolio</div><h3 id="checkpoint-bridge-title">Move This Journey Between Systems</h3><p>Export before continuing in ChatGPT. When you are ready to return, paste or upload the completed packet and review it before updating Wayfolio.</p></div>
+          <div class="checkpoint-actions"><a class="button-link" href="/api/checkpoint/export" download>Download for ChatGPT</a><button id="copy-sync-prompt" class="secondary" type="button">Copy ChatGPT Instructions</button></div>
+          <details class="checkpoint-import"><summary>Import an updated checkpoint from ChatGPT</summary><label class="field-label" for="checkpoint-file">Choose the JSON file ChatGPT returned</label><input id="checkpoint-file" type="file" accept="application/json,.json"><div class="checkpoint-divider">or paste its contents</div><textarea id="checkpoint-json" rows="7" placeholder="Paste the complete wayfolio-checkpoint-sync JSON packet here"></textarea><button id="review-checkpoint" type="button">Review Update</button><p id="checkpoint-status" class="quiet" role="status"></p><article id="checkpoint-preview" hidden><h4>Review before applying</h4><dl id="checkpoint-preview-values"></dl><button id="apply-checkpoint" type="button">Apply Approved Update</button><p class="quiet">Wayfolio saves a recovery copy before applying this update.</p></article></details>
+        </section>
+      </section>
+
+      <ol class="launch-steps">
+        <li class="launch-step shared-step">
+          <div class="step-number" aria-hidden="true">1</div>
+          <div class="step-content">
+            <div class="eyebrow">Shared iPad · landscape</div>
+            <h2>Open the Table Screen</h2>
+            <p>On the iPad, open Camera and scan this code. It opens the public shared screen directly.</p>
+            <div class="shared-connect">
+              <img src="/shared-qr.svg" alt="QR code that opens the Wayfolio shared table screen on the iPad">
+              <div>
+                <span class="field-label">Or enter this in Safari</span>
+                <code id="shared-address">Finding the iPad address…</code>
+                <button id="copy-shared" class="secondary compact" type="button">Copy iPad Address</button>
+              </div>
+            </div>
+            <p id="shared-message" class="quiet" role="status">Use this network address on the iPad. Do not enter localhost.</p>
+          </div>
+        </li>
+
+        <li class="launch-step">
+          <div class="step-number" aria-hidden="true">2</div>
+          <div class="step-content">
+            <div class="eyebrow">Each player’s iPhone</div>
+            <h2>Connect the Wayfolios</h2>
+            <p>Open Wayfolio → hare profile → Session. Choose a character, then enter:</p>
+            <dl class="connection-values">
+              <div><dt>Host</dt><dd id="wayfolio-host">Finding host…</dd></div>
+              <div><dt>Code</dt><dd>HEMLOCK</dd></div>
+            </dl>
+            <p class="quiet">Leave Transfer Code empty unless a character is moving from another phone.</p>
+          </div>
+        </li>
+
+        <li class="launch-step start-step">
+          <div class="step-number" aria-hidden="true">3</div>
+          <div class="step-content">
+            <div class="eyebrow">Private Mac screen</div>
+            <h2>Start the Adventure</h2>
+            <p>When the iPad and Wayfolios are connected, open the private story screen and begin play.</p>
+            <button id="open-review" type="button">Start or Continue the Journey</button>
+            <div class="support-actions">
+              <button id="open-dm" class="secondary" type="button">Open DM Controls</button>
+              <button id="open-shared" class="secondary" type="button">Preview Shared Screen on Mac</button>
+            </div>
+            <p class="quiet">Never place the story review or DM controls on the shared iPad.</p>
+          </div>
+        </li>
+      </ol>
+
+      <details id="ai-setup" class="ai-setup">
+        <summary><span>AI storyteller setup</span><strong id="ai-mode-summary">Checking…</strong></summary>
+        <section aria-labelledby="ai-setup-title">
+        <div class="eyebrow">Private laptop setting</div>
+        <h2 id="ai-setup-title">AI Storyteller</h2>
+        <p id="ai-mode" class="status">Checking the AI storyteller…</p>
+        <p class="quiet">This controls open-ended improvisation and character dialogue. Dice, saves, encounters, audio, and prepared play continue in fallback mode without it.</p>
+        <div id="ai-key-controls" hidden>
+          <label for="ai-key"><strong>OpenAI API key</strong></label>
+          <div class="key-entry">
+            <input id="ai-key" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Paste a key beginning with sk-">
+            <button id="show-key" class="secondary" type="button">Show</button>
+          </div>
+          <div class="key-actions">
+            <button id="save-key" type="button">Connect Storyteller</button>
+            <button id="recover-key" class="secondary" type="button">Retry Connection</button>
+            <button id="remove-key" class="secondary" type="button">Disconnect Storyteller</button>
+          </div>
+          <p id="ai-message" class="quiet" role="status"></p>
+          <p class="quiet">The key is stored only on this laptop and is never sent to the iPad, phones, or shared screen. Changing it does not change the campaign save.</p>
+          <div class="ai-budget-panel">
+            <div><strong>Live AI Storyteller</strong><p id="ai-budget-summary" class="quiet">Checking this play session…</p></div>
+            <label for="ai-budget"><strong>AI Storyteller spending limit</strong></label>
+            <div class="key-entry budget-entry"><span aria-hidden="true">$</span><input id="ai-budget" type="number" min="0.01" max="100" step="0.25" inputmode="decimal"><button id="save-budget" class="secondary" type="button">Save Limit</button></div>
+            <button id="reset-budget" class="secondary" type="button">Reset AI Spending Counter</button>
+            <p class="quiet">Routine exploration and conversation use the lower-cost storyteller route. Combat and other complex contested resolution may automatically use a higher-capability route. Dice, game state, inventory, damage, healing, audio, saves, and campaign records remain local.</p>
+            <p class="quiet">Wayfolio will not start an AI Storyteller request that would exceed this limit. If the limit is reached, the game can continue in Local Play without sending more AI Storyteller requests.</p>
+            <details><summary>Technical routing details</summary><p id="ai-routing-details" class="quiet"></p></details>
+          </div>
+        </div>
+        <p id="ai-local-only" class="quiet" hidden>For security, AI account changes can only be made from this launcher on the host laptop.</p>
+        </section>
+      </details>
+    </section>
+  </main>
+  <script>
+    document.getElementById('open-shared').addEventListener('click', () => window.open('/shared', 'wayfolio-shared'));
+    document.getElementById('open-dm').addEventListener('click', () => window.open('/dm', 'wayfolio-dm'));
+    document.getElementById('open-review').addEventListener('click', () => window.open('/review.html', 'wayfolio-review'));
+    const socket = new WebSocket(`ws://${location.host}/session`);
+    socket.addEventListener('open', () => socket.send(JSON.stringify({type:'join', role:'launcher', session_code:'HEMLOCK'})));
+    socket.addEventListener('message', event => {
+      const message = JSON.parse(event.data);
+      if (message.type === 'joined') {
+        document.getElementById('host-status').textContent = 'Central game ready';
+        document.querySelector('.readiness').classList.add('ready');
+      }
+      if (message.device_readiness) showDeviceReadiness(message.device_readiness);
+    });
+    socket.addEventListener('close', () => document.getElementById('host-status').textContent = 'Host connection closed. Reopen Start Wayfolio Game.');
+
+    const aiMode = document.getElementById('ai-mode');
+    const aiControls = document.getElementById('ai-key-controls');
+    const aiLocalOnly = document.getElementById('ai-local-only');
+    const aiMessage = document.getElementById('ai-message');
+    const aiKey = document.getElementById('ai-key');
+    const aiSetup = document.getElementById('ai-setup');
+    let sharedURL = '';
+    let checkpointToken = '';
+    const syncPrompt = `Continue this Wayfolio journey using the attached checkpoint packet as established state. Preserve player sovereignty and open-ended play. When I ask to return to Wayfolio, fill only the packet's proposed_update fields and return the complete valid JSON packet without deleting established history.`;
+
+    function showDeviceReadiness(readiness) {
+      const ipad = document.getElementById('ipad-role');
+      const iphone = document.getElementById('iphone-role');
+      const overall = document.getElementById('table-ready');
+      const ipadReady = readiness.shared_screens > 0;
+      const phoneReady = readiness.wayfolios.length > 0;
+      ipad.className = `device-role ${ipadReady ? 'ready' : 'waiting'}`;
+      ipad.querySelector('span').textContent = ipadReady ? '✓' : '2';
+      ipad.querySelector('small').textContent = ipadReady ? `${readiness.shared_screens} shared screen${readiness.shared_screens === 1 ? '' : 's'} connected` : 'Waiting for the shared screen';
+      iphone.className = `device-role ${phoneReady ? 'ready' : 'waiting'}`;
+      iphone.querySelector('span').textContent = phoneReady ? '✓' : '3';
+      iphone.querySelector('small').textContent = phoneReady ? readiness.wayfolios.map(player => player.name).join(', ') + ' connected' : 'Waiting for a character';
+      overall.textContent = readiness.ready_to_start ? 'All three roles ready' : ipadReady ? 'Connect a player Wayfolio' : phoneReady ? 'Connect the shared iPad' : 'Connect iPad and iPhone';
+      overall.className = `setup-pill ${readiness.ready_to_start ? 'ready' : 'attention'}`;
+    }
+
+    async function loadSessionInfo() {
+      try {
+        const response = await fetch('/session-info.json', {cache:'no-store'});
+        if (!response.ok) throw new Error('The shared address is not available yet.');
+        const info = await response.json();
+        sharedURL = info.shared_url;
+        document.getElementById('shared-address').textContent = info.shared_url;
+        document.getElementById('wayfolio-host').textContent = info.host;
+      } catch (error) {
+        document.getElementById('shared-address').textContent = error.message;
+        document.getElementById('wayfolio-host').textContent = 'Check the Mac network connection';
+      }
+    }
+
+    document.getElementById('copy-shared').addEventListener('click', async event => {
+      if (!sharedURL) return;
+      try {
+        await navigator.clipboard.writeText(sharedURL);
+        event.currentTarget.textContent = 'Address Copied';
+        document.getElementById('shared-message').textContent = 'The iPad address is copied and ready to send.';
+      } catch {
+        document.getElementById('shared-message').textContent = 'Select the address above and copy it manually.';
+      }
+    });
+
+    function showAIStatus(status) {
+      const labels = {CONNECTING:'Connecting…', ACTIVE:'Ready', GENERATING:'Responding…', SLOW:'Taking longer than expected…',
+        RECONNECTING:'Reconnecting…', REAUTHORIZATION_REQUIRED:'Reauthorization required', UNAVAILABLE:'Unavailable',
+        BUDGET_PAUSED:'AI spending limit reached', DISCONNECTED:'Disconnected'};
+      aiMode.textContent = status.configured
+        ? `${labels[status.state] || status.state} · ${status.mode} · ${status.model} · key ${status.key_hint}`
+        : `Disconnected · ${status.mode}`;
+      document.getElementById('ai-mode-summary').textContent = status.active ? 'Live AI Storyteller — Active' : status.configured ? labels[status.state] : 'Local Play — No AI Storyteller';
+      document.getElementById('remove-key').disabled = !status.configured || status.source === 'environment';
+      document.getElementById('recover-key').disabled = !status.configured || status.active;
+      document.getElementById('save-key').textContent = status.configured ? 'Validate Replacement Account' : 'Connect Storyteller';
+      const card = document.getElementById('live-ai-card');
+      card.className = `story-status-card ${status.active ? 'ready' : 'attention'}`;
+      card.querySelector('.status-icon').textContent = status.active ? '✓' : '!';
+      document.getElementById('live-ai-status').textContent = status.configured
+        ? status.active ? 'Live AI Storyteller is active. Routing is automatic.'
+          : status.state === 'BUDGET_PAUSED' ? 'AI Storyteller spending limit reached. No further AI Storyteller requests will be sent until you raise the limit or reset the AI spending counter. Local Play remains active.'
+            : `${labels[status.state] || 'Connection needs attention'}. Use the private controls below.`
+        : 'Local Play uses the authoritative saved campaign state and local game systems. No live AI Storyteller request is sent.';
+      const budget = status.low_cost_mode;
+      if (budget) {
+        document.getElementById('ai-budget').value = Number(budget.budget_usd).toFixed(2);
+        document.getElementById('ai-budget-summary').textContent = `Estimated AI spend $${Number(budget.spent_usd).toFixed(4)} · Remaining AI allowance $${Number(budget.remaining_usd).toFixed(4)} · Limit $${Number(budget.budget_usd).toFixed(2)} · ${budget.request_count} AI turn${budget.request_count === 1 ? '' : 's'}`;
+        document.getElementById('ai-routing-details').textContent = `${budget.routine_model} handles routine turns; ${budget.complex_model} handles complex mechanical turns. Estimates use provider-reported usage and are not the authoritative OpenAI invoice or billing-dashboard balance.`;
+      }
+      const next = document.getElementById('story-next-action');
+      next.hidden = status.active;
+      document.getElementById('story-next-copy').textContent = status.active ? ''
+        : 'Connect an OpenAI API account privately on this Mac. Your campaign save and ChatGPT subscription remain separate.';
+      updateOverallReadiness();
+      if (status.source === 'environment') aiMessage.textContent = 'The active key was provided when the host started. It can be replaced here, but removing it requires restarting without OPENAI_API_KEY.';
+    }
+
+    function updateOverallReadiness() {
+      const vaultReady = document.getElementById('vault-card').classList.contains('ready');
+      const aiReady = document.getElementById('live-ai-card').classList.contains('ready');
+      const overall = document.getElementById('story-overall');
+      overall.textContent = vaultReady && aiReady ? 'Full storytelling ready' : vaultReady ? 'Playable · setup recommended' : 'Checking…';
+      overall.className = `setup-pill ${vaultReady && aiReady ? 'ready' : vaultReady ? 'attention' : ''}`;
+    }
+
+    async function loadKnowledgeStatus() {
+      try {
+        const response = await fetch('/api/knowledge/status', {cache:'no-store'});
+        if (!response.ok) throw new Error('Campaign memory status unavailable');
+        const status = await response.json();
+        const vaultCard = document.getElementById('vault-card');
+        vaultCard.className = 'story-status-card ready';
+        vaultCard.querySelector('.status-icon').textContent = '✓';
+        document.getElementById('vault-status').textContent = `${status.approved_records} approved canon records are connected to every story turn.`;
+        const bridge = document.getElementById('chat-bridge-card');
+        if (status.chatgpt_bridge?.connected) {
+          bridge.className = 'story-status-card ready'; bridge.querySelector('.status-icon').textContent = '✓';
+          document.getElementById('chat-bridge-status').textContent = 'Connected for approved creative-development updates.';
+        }
+        updateOverallReadiness();
+      } catch (error) { document.getElementById('vault-status').textContent = error.message; }
+    }
+
+    function readableLibraryStatus(value) {
+      return ({active_campaign:'Current game', staged_separate_journey:'Prepared separately',
+        saved_journey:'Saved journey',
+        pending_visual_identification:'Needs visual review', pending_review:'Needs review',
+        ready_for_uploads:'Ready for uploads', connected:'Connected'})[value] || value.replaceAll('_', ' ');
+    }
+
+    async function loadLauncherLibrary() {
+      const journeys = document.getElementById('journey-library');
+      const assets = document.getElementById('asset-library');
+      try {
+        const response = await fetch('/api/launcher-library', {cache:'no-store'});
+        if (!response.ok) throw new Error('Wayfolio library status is unavailable.');
+        const library = await response.json();
+        journeys.replaceChildren(...library.journeys.map(journey => {
+          const card = document.createElement('article'); card.className = 'library-card';
+          const heading = document.createElement('div'); heading.className = 'library-card-heading';
+          const title = document.createElement('strong'); title.textContent = journey.title;
+          const status = document.createElement('span'); status.className = `library-state ${journey.safe_to_activate ? 'ready' : 'prepared'}`;
+          status.textContent = readableLibraryStatus(journey.status); heading.append(title, status);
+          const place = document.createElement('p'); place.textContent = `Resume: ${journey.resume_title}`;
+          card.append(heading, place);
+          if (journey.resume_text) {
+            const details = document.createElement('details');
+            const summary = document.createElement('summary'); summary.textContent = 'See imported stopping point';
+            const copy = document.createElement('p'); copy.textContent = journey.resume_text;
+            const note = document.createElement('p'); note.className = 'quiet'; note.textContent = journey.activation_note;
+            details.append(summary, copy, note); card.append(details);
+          }
+          const button = document.createElement('button');
+          button.className = journey.active ? 'secondary journey-select active' : 'journey-select';
+          button.textContent = journey.active ? 'Selected Journey' : `Select ${journey.title}`;
+          button.disabled = journey.active || !journey.safe_to_activate;
+          button.addEventListener('click', async () => {
+            const switchMessage = journey.current_journey_live
+              ? `Pause the current game, save it, and switch to ${journey.title}? You can return to the current game later.`
+              : `Switch to ${journey.title}? The current journey will be saved first.`;
+            if (!confirm(switchMessage)) return;
+            button.disabled = true; button.textContent = 'Saving and switching…';
+            try {
+              const response = await fetch('/api/launcher-library', {method:'POST', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({journey_id:journey.id})});
+              const result = await response.json();
+              if (!response.ok) throw new Error(result.error || 'The journey could not be selected.');
+              await loadLauncherLibrary();
+            } catch (error) { button.disabled = false; button.textContent = `Select ${journey.title}`; alert(error.message); }
+          });
+          card.append(button);
+          return card;
+        }));
+        assets.replaceChildren(...library.sources.map(source => {
+          const card = document.createElement('article'); card.className = 'library-card compact-card';
+          const heading = document.createElement('div'); heading.className = 'library-card-heading';
+          const title = document.createElement('strong'); title.textContent = source.label;
+          const count = document.createElement('span'); count.className = 'library-count'; count.textContent = `${source.file_count} ${source.file_count === 1 ? 'item' : 'items'}`;
+          const status = document.createElement('p'); status.textContent = readableLibraryStatus(source.status);
+          if (source.duplicate_count) status.textContent += ` · ${source.duplicate_count} duplicate variants flagged`;
+          heading.append(title, count); card.append(heading, status); return card;
+        }));
+        document.getElementById('library-overall').textContent = `${library.journeys.length} journeys · ${library.sources.length} sources`;
+        document.getElementById('library-overall').classList.add('ready');
+      } catch (error) {
+        journeys.innerHTML = `<p class="quiet">${error.message}</p>`;
+        assets.replaceChildren();
+      }
+    }
+
+    document.getElementById('show-ai-setup').addEventListener('click', () => {
+      aiSetup.open = true;
+      aiSetup.scrollIntoView({behavior:'smooth', block:'start'});
+      setTimeout(() => aiKey.focus({preventScroll:true}), 450);
+    });
+    document.getElementById('copy-sync-prompt').addEventListener('click', async event => {
+      await navigator.clipboard.writeText(syncPrompt); event.currentTarget.textContent = 'Instructions Copied';
+    });
+    document.getElementById('checkpoint-file').addEventListener('change', async event => {
+      const file = event.target.files?.[0]; if (!file) return; document.getElementById('checkpoint-json').value = await file.text();
+    });
+    document.getElementById('review-checkpoint').addEventListener('click', async () => {
+      const status = document.getElementById('checkpoint-status'); const previewPanel = document.getElementById('checkpoint-preview');
+      previewPanel.hidden = true; checkpointToken = ''; status.textContent = 'Checking the packet without changing your save…';
+      try {
+        const source = JSON.parse(document.getElementById('checkpoint-json').value);
+        const response = await fetch('/api/checkpoint/preview', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(source)});
+        const result = await response.json(); if (!response.ok) throw new Error(result.error);
+        checkpointToken = result.token; const value = result.preview;
+        document.getElementById('checkpoint-preview-values').innerHTML = `<div><dt>New scene</dt><dd>${escapeHTML(value.scene_title)}</dd></div><div><dt>Stopping point</dt><dd>${escapeHTML(value.scene_text)}</dd></div><div><dt>Next prompt</dt><dd>${escapeHTML(value.next_prompt)}</dd></div><div><dt>Additions</dt><dd>${value.known_clues_to_add.length} discoveries · ${value.inventory_to_add.length} inventory · ${value.open_threads_to_add.length} open threads</dd></div>`;
+        previewPanel.hidden = false; status.textContent = 'Ready for your approval. Nothing has changed yet.';
+      } catch (error) { status.textContent = error.message || 'The packet is not valid JSON.'; }
+    });
+    document.getElementById('apply-checkpoint').addEventListener('click', async event => {
+      if (!checkpointToken || !confirm('Apply this reviewed checkpoint to the selected journey? A recovery copy will be saved first.')) return;
+      event.currentTarget.disabled = true;
+      try { const response = await fetch('/api/checkpoint/apply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:checkpointToken})}); const result=await response.json(); if(!response.ok) throw new Error(result.error); document.getElementById('checkpoint-status').textContent=`Updated to “${result.result.scene_title}.” Use Start or Continue the Journey when ready.`; document.getElementById('checkpoint-preview').hidden=true; checkpointToken=''; await loadLauncherLibrary(); } catch(error){document.getElementById('checkpoint-status').textContent=error.message;} finally {event.currentTarget.disabled=false;}
+    });
+    function escapeHTML(value) { const node=document.createElement('span'); node.textContent=String(value||''); return node.innerHTML; }
+
+    async function loadAIStatus() {
+      try {
+        const response = await fetch('/api/ai-status', {cache:'no-store'});
+        if (response.status === 403) {
+          aiMode.textContent = 'Status is private to the host laptop'; aiLocalOnly.hidden = false; return;
+        }
+        if (!response.ok) throw new Error('AI status unavailable');
+        aiControls.hidden = false;
+        showAIStatus(await response.json());
+      } catch (error) { aiMode.textContent = error.message; }
+    }
+
+    document.getElementById('show-key').addEventListener('click', event => {
+      const showing = aiKey.type === 'text';
+      aiKey.type = showing ? 'password' : 'text';
+      event.currentTarget.textContent = showing ? 'Show' : 'Hide';
+    });
+    document.getElementById('save-key').addEventListener('click', async event => {
+      if (!aiKey.value.trim()) { aiMessage.textContent = 'Paste an API key first.'; return; }
+      event.currentTarget.disabled = true;
+      aiMessage.textContent = 'Testing the account securely…';
+      try {
+        const response = await fetch('/api/ai-status', {method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({action:'set', api_key:aiKey.value.trim()})});
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'The account could not be enabled.');
+        aiKey.value = ''; aiMessage.textContent = 'Connected. Full improvisational AI DM is ready.'; showAIStatus(result);
+      } catch (error) { aiMessage.textContent = error.message; }
+      event.currentTarget.disabled = false;
+    });
+    document.getElementById('remove-key').addEventListener('click', async () => {
+      if (!confirm('Disconnect the live storyteller? Your campaign save, scene, and continuity will remain unchanged.')) return;
+      try {
+        const response = await fetch('/api/ai-status', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'disconnect'})});
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'The account could not be removed.');
+        aiMessage.textContent = 'Local Play is active. The saved campaign is unchanged.'; showAIStatus(result);
+      } catch (error) { aiMessage.textContent = error.message; }
+    });
+    document.getElementById('recover-key').addEventListener('click', async event => {
+      event.currentTarget.disabled = true; aiMessage.textContent = 'Reconnecting and restoring the current scene…';
+      try {
+        const response = await fetch('/api/ai-status', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'recover'})});
+        const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Reauthorization is required.');
+        aiMessage.textContent = 'Storyteller reconnected. Campaign continuity was restored from the host save.'; showAIStatus(result);
+      } catch (error) { aiMessage.textContent = error.message; await loadAIStatus(); }
+      event.currentTarget.disabled = false;
+    });
+    document.getElementById('save-budget').addEventListener('click', async event => {
+      event.currentTarget.disabled = true; aiMessage.textContent = 'Saving the play-session cap…';
+      try {
+        const response = await fetch('/api/ai-status', {method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({action:'set_budget',budget_usd:Number(document.getElementById('ai-budget').value)})});
+        const result = await response.json(); if (!response.ok) throw new Error(result.error || 'The cap could not be saved.');
+        aiMessage.textContent = 'Cost cap saved on this Mac.'; showAIStatus(result);
+      } catch (error) { aiMessage.textContent = error.message; }
+      event.currentTarget.disabled = false;
+    });
+    document.getElementById('reset-budget').addEventListener('click', async event => {
+      if (!confirm('Reset the Wayfolio AI spending counter only? This does not restart, rewind, erase, or otherwise change the game session, campaign state, saves, continuity, or current scene.')) return;
+      event.currentTarget.disabled = true;
+      try {
+        const response = await fetch('/api/ai-status', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reset_budget'})});
+        const result = await response.json(); if (!response.ok) throw new Error(result.error || 'The cost session could not be reset.');
+        aiMessage.textContent = 'AI spending counter reset. Campaign progress and continuity were not changed.'; showAIStatus(result);
+      } catch (error) { aiMessage.textContent = error.message; }
+      event.currentTarget.disabled = false;
+    });
+    loadAIStatus();
+    loadKnowledgeStatus();
+    loadLauncherLibrary();
+    loadSessionInfo();
+  </script>
+</body>
+</html>

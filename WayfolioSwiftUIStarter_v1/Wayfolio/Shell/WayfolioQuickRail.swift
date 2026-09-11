@@ -1,20 +1,35 @@
 import SwiftUI
 
+enum WayfolioQuickAction: String, CaseIterable, Identifiable {
+    case discoveries
+    case creatures
+    case botanicals
+    case alchemy
+    case settings
+
+    var id: Self { self }
+
+    var symbol: String {
+        switch self {
+        case .discoveries: "sparkles"
+        case .creatures: "pawprint.fill"
+        case .botanicals: "leaf.fill"
+        case .alchemy: "flask.fill"
+        case .settings: "gearshape.fill"
+        }
+    }
+
+    var title: String { rawValue.capitalized }
+}
+
 struct WayfolioQuickRail: View {
-    private let actions: [(String, String)] = [
-        ("sparkles", "Discoveries"),
-        ("pawprint.fill", "Creatures"),
-        ("leaf.fill", "Botanicals"),
-        ("flask.fill", "Alchemy"),
-        ("gearshape.fill", "Settings")
-    ]
+    let onSelect: (WayfolioQuickAction) -> Void
 
     var body: some View {
         VStack(spacing: 7) {
-            ForEach(actions.indices, id: \.self) { index in
-                let action = actions[index]
-                Button(action: {}) {
-                    Image(systemName: action.0)
+            ForEach(WayfolioQuickAction.allCases) { action in
+                Button { onSelect(action) } label: {
+                    Image(systemName: action.symbol)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(WayfolioPalette.brassBright)
                         .frame(width: 44, height: 44)
@@ -28,7 +43,7 @@ struct WayfolioQuickRail: View {
                         }
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(action.1)
+                .accessibilityLabel(action.title)
             }
         }
         .padding(5)

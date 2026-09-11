@@ -1,0 +1,9 @@
+console.log('[Wayfolio test] Running the isolated gameplay suite.');
+await import('./test-voice-assignment.mjs');
+await import('./test-knowledge-records.mjs');
+await import('./test-gameplay-policy.mjs');
+await import('./test-shared-stage-contract.mjs');
+await import('./test-native-shell-contract.mjs');
+await import('./test-medium-gameplay.mjs');
+await import('./test-two-player-turn.mjs');
+console.log('[Wayfolio test] Isolated gameplay suite passed.');

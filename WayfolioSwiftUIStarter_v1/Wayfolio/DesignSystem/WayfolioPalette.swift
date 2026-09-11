@@ -6,7 +6,8 @@ enum WayfolioPalette {
     static let navyRaised = Color(hex: 0x10213A)
     static let parchment = Color(hex: 0xE8D8B4)
     static let parchmentDeep = Color(hex: 0xCDB889)
-    static let ink = Color(hex: 0x2A2015)
+    // Content now lives on projected glass instead of opaque parchment.
+    static let ink = Color(hex: 0xF6FBFD)
     static let brass = Color(hex: 0xC99B4C)
     static let brassBright = Color(hex: 0xF0C66D)
     static let cyan = Color(hex: 0x6BE7FF)

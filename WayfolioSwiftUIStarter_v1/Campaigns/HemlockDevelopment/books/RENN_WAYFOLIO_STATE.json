@@ -1,0 +1,23 @@
+{
+  "discoveries": [
+    "Whisper Beneath the Hemlock Bridge",
+    "Crown Hare — Accepted Renn's Approach"
+  ],
+  "inventory": [
+    "Herbalist pack",
+    "Herbalism kit",
+    "Healer's kit",
+    "Compact cook's utensils and wooden spoon",
+    "Potion of Healing brewed by Renn",
+    "Wayfolio",
+    "Field journal and recipe collection",
+    "Practical fire-starting gear",
+    "Ingredient and remedy containers"
+  ],
+  "journal": [
+    "Blue motes gathered beneath the southern bridge and formed a trail.",
+    "With Soren and Lupin beside him, Renn gained the Crown Hare's trust. It revealed a hidden route beneath the bridge.",
+    "Blue motes gathered beneath the southern bridge, then scattered before their pattern could be understood."
+  ],
+  "provenance": "BOUNDED"
+}

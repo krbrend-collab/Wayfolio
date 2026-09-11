@@ -5,6 +5,9 @@
   "class_name": "Ranger",
   "level": 1,
   "background": "Hemlock Herbalist",
+  "home": "Hemlock",
+  "height": "5'11\" to top of head; ears excluded",
+  "role": "Forest-raised herbalist, healer and mobile support ranger",
   "proficiency_bonus": 2,
   "hp": {"current": 10, "maximum": 10},
   "armor_class": 15,
@@ -22,9 +25,15 @@
     {"name": "Kunai", "attack_bonus": 5, "damage": "1d4+3 piercing", "properties": "Finesse, Light, Thrown 20/60, Nick"},
     {"name": "Quarterstaff", "attack_bonus": 1, "damage": "1d6-1 / 1d8-1 bludgeoning", "properties": "Topple, utility and control"}
   ],
+  "equipment": [
+    {"slot":"Protective Gear", "name":"Hemlock movement armor", "detail":"Studded-leather equivalent; AC 15 with DEX 16; no shield", "equipment_family":"Protective Gear", "quality_level":1},
+    {"slot":"Primary tool", "name":"Retractable ring-headed staff", "detail":"Quarterstaff; Topple mastery; field tool and defensive control", "equipment_family":"Equipment", "quality_level":1},
+    {"slot":"Weapons", "name":"Four kunai-style daggers", "detail":"Ordinary daggers; finesse, light and thrown", "equipment_family":"Equipment", "quality_level":1},
+    {"slot":"Spellcasting focus", "name":"Hemlock-sprig belt locket", "detail":"Preserved sprig from the great Hemlock; the staff is not the focus", "equipment_family":"Equipment", "quality_level":1}
+  ],
   "inventory": [
-    "Studded leather field armor", "Ring-and-T quarterstaff", "Kunai", "Herbalist pack",
-    "Herbalism kit", "Healer's kit", "Cook's utensils", "Potion of Healing brewed by Renn",
-    "Wayfolio", "Hemlock-sprig locket", "Field journal and recipe collection"
+    "Herbalist pack", "Herbalism kit", "Healer's kit", "Compact cook's utensils and wooden spoon",
+    "Potion of Healing brewed by Renn", "Wayfolio", "Field journal and recipe collection",
+    "Practical fire-starting gear", "Ingredient and remedy containers"
   ]
 }

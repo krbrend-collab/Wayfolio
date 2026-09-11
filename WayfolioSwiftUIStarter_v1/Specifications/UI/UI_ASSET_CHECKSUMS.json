@@ -1,0 +1,383 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-08",
+  "source": "Approved Google Drive originals",
+  "assets": [
+    {
+      "catalog_name": "BG_Built_Stone_Paving_Weathered_Beige_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Built_Stone_Paving_Weathered_Beige_V01.imageset/BG_Built_Stone_Paving_Weathered_Beige_V01.png",
+      "width": 941,
+      "height": 1672,
+      "size_bytes": 2662251,
+      "sha256": "e69a5b70ced49ad0726b87c2ba9e9bfaa4d095f123c4edd0d4906c2f62591fe3"
+    },
+    {
+      "catalog_name": "BG_Built_Terracotta_Tile_Mediterranean_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Built_Terracotta_Tile_Mediterranean_V01.imageset/BG_Built_Terracotta_Tile_Mediterranean_V01.png",
+      "width": 941,
+      "height": 1672,
+      "size_bytes": 2714244,
+      "sha256": "6f7b933cb1ea9957afba4d2ef8004956b22f9bd6fc22d7e37cb35e47aa396d23"
+    },
+    {
+      "catalog_name": "BG_Built_Textile_Indigo_Woven_Plaid_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Built_Textile_Indigo_Woven_Plaid_V01.imageset/BG_Built_Textile_Indigo_Woven_Plaid_V01.png",
+      "width": 941,
+      "height": 1672,
+      "size_bytes": 3574155,
+      "sha256": "1cc17473d1201ae33740c3e55d809b1b1805884210d734831a135caaffbd4c73"
+    },
+    {
+      "catalog_name": "BG_Built_Wood_Rustic_Golden_Oak_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Built_Wood_Rustic_Golden_Oak_V01.imageset/BG_Built_Wood_Rustic_Golden_Oak_V01.png",
+      "width": 941,
+      "height": 1672,
+      "size_bytes": 2701429,
+      "sha256": "be918ee155af945d277b02d312d7dc199189c9ab6b73f892e121eb8a3ec41b9c"
+    },
+    {
+      "catalog_name": "BG_Fallback_Cloth_Interior_Neutral_V02",
+      "path": "Wayfolio/Assets.xcassets/BG_Fallback_Cloth_Interior_Neutral_V02.imageset/BG_Fallback_Cloth_Interior_Neutral_V02.png",
+      "width": 1170,
+      "height": 2535,
+      "size_bytes": 2529476,
+      "sha256": "750de65ef9c991c781e4d4be5ecf362193fd7e52760723b5b55cbe6a1c70f98d"
+    },
+    {
+      "catalog_name": "BG_Fallback_Forest_Floor_Neutral_V02",
+      "path": "Wayfolio/Assets.xcassets/BG_Fallback_Forest_Floor_Neutral_V02.imageset/BG_Fallback_Forest_Floor_Neutral_V02.png",
+      "width": 1170,
+      "height": 2535,
+      "size_bytes": 2465225,
+      "sha256": "5916edfcffa2548a677788f6282c372aa0a1ca32da92453ce9ac5f443f63a234"
+    },
+    {
+      "catalog_name": "BG_Fallback_Leather_Brown_Worn_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Fallback_Leather_Brown_Worn_V01.imageset/BG_Fallback_Leather_Brown_Worn_V01.png",
+      "width": 1024,
+      "height": 1536,
+      "size_bytes": 3055383,
+      "sha256": "e430ce3e6d4a7eeb051e7a7d6029eb1d357b104d3d76671366f1c866606b9bd7"
+    },
+    {
+      "catalog_name": "BG_Fallback_Metal_Workbench_Neutral_V02",
+      "path": "Wayfolio/Assets.xcassets/BG_Fallback_Metal_Workbench_Neutral_V02.imageset/BG_Fallback_Metal_Workbench_Neutral_V02.png",
+      "width": 1170,
+      "height": 2535,
+      "size_bytes": 1744993,
+      "sha256": "f9ad3b4c205b6ed460b10eddf0ad97ff078b67aac64b5ffbb9761fe3cc1e4b2e"
+    },
+    {
+      "catalog_name": "BG_Fallback_Notebook_Cover_Navy_Cloth_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Fallback_Notebook_Cover_Navy_Cloth_V01.imageset/BG_Fallback_Notebook_Cover_Navy_Cloth_V01.png",
+      "width": 1024,
+      "height": 1536,
+      "size_bytes": 3684841,
+      "sha256": "6105a67ae0e7dd441c04986d196ba344963ee2cb623a6d56fd1f621b4e56951b"
+    },
+    {
+      "catalog_name": "BG_Fallback_Parchment_Aged_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Fallback_Parchment_Aged_V01.imageset/BG_Fallback_Parchment_Aged_V01.png",
+      "width": 1024,
+      "height": 1536,
+      "size_bytes": 2839298,
+      "sha256": "4bbdc5f286eaff0313056fa921c1a7123e1132c52b471c6305f2cadc1ce1a0bc"
+    },
+    {
+      "catalog_name": "BG_Fallback_Stone_Neutral_V02",
+      "path": "Wayfolio/Assets.xcassets/BG_Fallback_Stone_Neutral_V02.imageset/BG_Fallback_Stone_Neutral_V02.png",
+      "width": 1170,
+      "height": 2535,
+      "size_bytes": 2430776,
+      "sha256": "aded0ddfd1d1414710510a2f90cda3119862a5c27edc367c61ccc65d9351d670"
+    },
+    {
+      "catalog_name": "BG_Fallback_Wood_Neutral_V02",
+      "path": "Wayfolio/Assets.xcassets/BG_Fallback_Wood_Neutral_V02.imageset/BG_Fallback_Wood_Neutral_V02.png",
+      "width": 1170,
+      "height": 2535,
+      "size_bytes": 1870957,
+      "sha256": "cf8d8b30984973673df6a13a9379142007148ee19ba64b1f3d48b8f424888c7c"
+    },
+    {
+      "catalog_name": "BG_Path_Cobblestone_Mosaic_Weathered_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Path_Cobblestone_Mosaic_Weathered_V01.imageset/BG_Path_Cobblestone_Mosaic_Weathered_V01.png",
+      "width": 941,
+      "height": 1672,
+      "size_bytes": 3117307,
+      "sha256": "e18c9910810e0ddf91f9afd7192a63cbda0340719bb1d0155d4eb5006348b1df"
+    },
+    {
+      "catalog_name": "BG_Path_Cobblestone_Rustic_Earth_Toned_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Path_Cobblestone_Rustic_Earth_Toned_V01.imageset/BG_Path_Cobblestone_Rustic_Earth_Toned_V01.png",
+      "width": 941,
+      "height": 1672,
+      "size_bytes": 3359536,
+      "sha256": "b18f6f1a5a66f76b0050641479161f73d8ef752c840626845cfe73ee6c7ef388"
+    },
+    {
+      "catalog_name": "BG_Path_Gravel_Pale_Pebble_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Path_Gravel_Pale_Pebble_V01.imageset/BG_Path_Gravel_Pale_Pebble_V01.png",
+      "width": 941,
+      "height": 1672,
+      "size_bytes": 3711571,
+      "sha256": "a81d3850562e868567f87e9e1d9b66d945a4edbccac47fb700addf11c3fe4f28"
+    },
+    {
+      "catalog_name": "BG_Path_Terracotta_Brick_Weathered_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Path_Terracotta_Brick_Weathered_V01.imageset/BG_Path_Terracotta_Brick_Weathered_V01.png",
+      "width": 941,
+      "height": 1672,
+      "size_bytes": 3099087,
+      "sha256": "5c33b2d0da671ba3e14c9d025bfce25e30183de837bcb3ad5970890b93b8facc"
+    },
+    {
+      "catalog_name": "BG_Terrain_Clover_Lush_Meadow_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Terrain_Clover_Lush_Meadow_V01.imageset/BG_Terrain_Clover_Lush_Meadow_V01.png",
+      "width": 852,
+      "height": 1846,
+      "size_bytes": 2858450,
+      "sha256": "8728a3bf4528185b26dbdffd8e6745d3610394925b5421c6005b0591d893e5bc"
+    },
+    {
+      "catalog_name": "BG_Terrain_Ferns_Forest_Understory_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Terrain_Ferns_Forest_Understory_V01.imageset/BG_Terrain_Ferns_Forest_Understory_V01.png",
+      "width": 852,
+      "height": 1846,
+      "size_bytes": 2766103,
+      "sha256": "edcf4990ef57101ffe265c58653560dfa8ed3d830bda0062896262c5f8928c25"
+    },
+    {
+      "catalog_name": "BG_Terrain_Grass_Sunlit_Meadow_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Terrain_Grass_Sunlit_Meadow_V01.imageset/BG_Terrain_Grass_Sunlit_Meadow_V01.png",
+      "width": 852,
+      "height": 1846,
+      "size_bytes": 3663071,
+      "sha256": "91770b0363d7873ef9b0ef26b33db51454627f1508de268156e2ca59f9bf1d0b"
+    },
+    {
+      "catalog_name": "BG_Terrain_Marsh_Misty_Wetland_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Terrain_Marsh_Misty_Wetland_V01.imageset/BG_Terrain_Marsh_Misty_Wetland_V01.png",
+      "width": 852,
+      "height": 1846,
+      "size_bytes": 2660284,
+      "sha256": "f17f6a2d8029f0c9719ac2421dbfa80ad2101ce5bbbe6bd3cc818f051b7477c2"
+    },
+    {
+      "catalog_name": "BG_Terrain_Moss_Lush_Forest_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Terrain_Moss_Lush_Forest_V01.imageset/BG_Terrain_Moss_Lush_Forest_V01.png",
+      "width": 852,
+      "height": 1846,
+      "size_bytes": 3219471,
+      "sha256": "99fd919cb235a5b9f641f0b3bcd07a3a00f328140e919c57b4fa6a3f2a0ef1d0"
+    },
+    {
+      "catalog_name": "BG_Terrain_Mud_Wet_Earth_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Terrain_Mud_Wet_Earth_V01.imageset/BG_Terrain_Mud_Wet_Earth_V01.png",
+      "width": 852,
+      "height": 1846,
+      "size_bytes": 3024198,
+      "sha256": "24e4ac71c77fdd7427d797966892ba9938d185e3b454867ec7451cd366b0d0e1"
+    },
+    {
+      "catalog_name": "BG_Terrain_Pebbles_Wet_Riverbed_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Terrain_Pebbles_Wet_Riverbed_V01.imageset/BG_Terrain_Pebbles_Wet_Riverbed_V01.png",
+      "width": 852,
+      "height": 1846,
+      "size_bytes": 3020487,
+      "sha256": "b0a46ca7646f0b9aee6883550d8a2e43b15e7c03399f3b693b983bb12533cd90"
+    },
+    {
+      "catalog_name": "BG_Terrain_Sand_Warm_Desert_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Terrain_Sand_Warm_Desert_V01.imageset/BG_Terrain_Sand_Warm_Desert_V01.png",
+      "width": 852,
+      "height": 1846,
+      "size_bytes": 3103111,
+      "sha256": "b45f57fcc65f299e104ce85e715bdb6daaf66d846c8f7893cecae8a9f95c2ffa"
+    },
+    {
+      "catalog_name": "BG_Terrain_Snow_Frosted_Blue_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Terrain_Snow_Frosted_Blue_V01.imageset/BG_Terrain_Snow_Frosted_Blue_V01.png",
+      "width": 852,
+      "height": 1846,
+      "size_bytes": 2634622,
+      "sha256": "3a4bdc0efccd75046433fa2dfb765f41871c6dbd93032b538c6d992a633f4c7f"
+    },
+    {
+      "catalog_name": "BG_Terrain_Water_Shallow_Clear_V01",
+      "path": "Wayfolio/Assets.xcassets/BG_Terrain_Water_Shallow_Clear_V01.imageset/BG_Terrain_Water_Shallow_Clear_V01.png",
+      "width": 852,
+      "height": 1846,
+      "size_bytes": 2623857,
+      "sha256": "12df1ab6fda35edc7b8ae63bbf6a70686caa5717990dc2b6b175f29a552969d0"
+    },
+    {
+      "catalog_name": "renn_hazel_login_official",
+      "path": "Wayfolio/Assets.xcassets/renn_hazel_login_official.imageset/renn_hazel_login_official.png",
+      "width": 1024,
+      "height": 1536,
+      "size_bytes": 2124044,
+      "sha256": "d9a946afca1df5e224410531652f15851ea8e7df86efd6f4ba28fb88ab19ddb1"
+    },
+    {
+      "catalog_name": "wayfolio_feature_abilities_v02",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_feature_abilities_v02.imageset/wayfolio_feature_abilities_v02.png",
+      "width": 1024,
+      "height": 1024,
+      "size_bytes": 1191792,
+      "sha256": "715cd85e953c92dfb545a09667a00c0d57ac9cd7df7a826b663bc23e9b284ba5"
+    },
+    {
+      "catalog_name": "wayfolio_header_projection_rail_v01",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_header_projection_rail_v01.imageset/wayfolio_header_projection_rail_v01.png",
+      "width": 2172,
+      "height": 724,
+      "size_bytes": 779167,
+      "sha256": "bc97b1043c8c2439f0fb7480d3dc50db56f61a32eaa23c5158be3c00423ad45b"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_01_treetop_village",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_01_treetop_village.imageset/wayfolio_login_bg_01_treetop_village.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2745431,
+      "sha256": "2ff82e6014d13b31dcb421c3f137e2cbf75fbd25ba9ce978f4daf8318e7b7187",
+      "storage_file_id": "1qtkzW2Rp-pk-h7wxWHvkB7pb6u_zHE4d"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_02_market_square",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_02_market_square.imageset/wayfolio_login_bg_02_market_square.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2617701,
+      "sha256": "6b7a2c9dde12fef49e12785bb7cc48406f0850b06bcc8a83f45c75d39ec7c423",
+      "storage_file_id": "1TYhaYa_mkG4zkJfFASj54J8XACikeQCc"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_03_mountain_shrine",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_03_mountain_shrine.imageset/wayfolio_login_bg_03_mountain_shrine.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2386358,
+      "sha256": "dc5f6042633370e7807f2091bbc278f672e139a4a78b293cb723d41867795e78",
+      "storage_file_id": "1ZGa4UVHFOEvZ-ExT21pq_lrYoDikaR36"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_04_harbor_village",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_04_harbor_village.imageset/wayfolio_login_bg_04_harbor_village.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2604481,
+      "sha256": "61acc0ad528d1f25f5c41c1a48d790ce270b75b6a14bc9884c34c63797048561",
+      "storage_file_id": "1nneGfMFxeit2dgAdc7g0dXVE4P3avxnm"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_05_desert_oasis",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_05_desert_oasis.imageset/wayfolio_login_bg_05_desert_oasis.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2680639,
+      "sha256": "a04c2934d2ac614e25d5539d81f4ce7da444223182bd6898f12fb48b67cff684",
+      "storage_file_id": "1y8XSpOg9ExRZcTUhqFrk3n65RNBbC8Mp"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_06_overgrown_ruins",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_06_overgrown_ruins.imageset/wayfolio_login_bg_06_overgrown_ruins.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2460983,
+      "sha256": "a950bb26912edb3b351a2d1713b423c30479ee024b0328bf26c9a9af61eef64b",
+      "storage_file_id": "1BxN160a9rRvFywRvbVIyf_afanTBkaU0"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_07_crystal_sanctuary",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_07_crystal_sanctuary.imageset/wayfolio_login_bg_07_crystal_sanctuary.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2671060,
+      "sha256": "0970f907f0af66e7951e9e2e82e885342ecc609b76e259131bf0a316d18121ce",
+      "storage_file_id": "12zfDykpHPjzq6d7ZWhQCW5VTN_-njtue"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_08_yokai_shrine_village",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_08_yokai_shrine_village.imageset/wayfolio_login_bg_08_yokai_shrine_village.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2999465,
+      "sha256": "7ee2f669b266aa2bcfe5a6ff4153a12be4bd9ac8856e37557347027f21e77c49",
+      "storage_file_id": "10X72N97Ikkz7CbprkqSVbkSeXLlaKVIs"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_09_yokai_onsen",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_09_yokai_onsen.imageset/wayfolio_login_bg_09_yokai_onsen.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2691111,
+      "sha256": "73e307967ddfecd174af6ef2a1ff60d5e883c5aab930fa138cb6104345244dbc",
+      "storage_file_id": "1tW7gGjcFiPf6McnfOKth1y6CJ5UVJ4rw"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_10_bamboo_forest",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_10_bamboo_forest.imageset/wayfolio_login_bg_10_bamboo_forest.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2702135,
+      "sha256": "6871a4a54347d07226909a8e40ffbfcfee542c8023950cc5ae6a1a477a776c45",
+      "storage_file_id": "1H0BET-0RyGe3agoeBH-3J2SYbh8qQ4oy"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_11_redwood_forest",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_11_redwood_forest.imageset/wayfolio_login_bg_11_redwood_forest.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 3194107,
+      "sha256": "17dfb6e3db5330e121c4a52252ca3f2b8506f3577fae3ea08172ad5a1767fedb",
+      "storage_file_id": "1zHobwbFwIM0oJacs9PyC9btRGOVtdXLc"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_12_autumn_forest",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_12_autumn_forest.imageset/wayfolio_login_bg_12_autumn_forest.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 3033175,
+      "sha256": "147f47c4b33f8596e222e12059d0e1879e81b260e136da4a2a1d6513a6067a27",
+      "storage_file_id": "1cP62Hf2iYNbL4IE4zxA92Y-GGBF5ZAhn"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_13_dungeon_temple_hall",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_13_dungeon_temple_hall.imageset/wayfolio_login_bg_13_dungeon_temple_hall.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2704681,
+      "sha256": "893057df8b2e46a5dc4bc974fa801b18b4efccc6a963acfce2670722e355e74f",
+      "storage_file_id": "1HgA2jQoosjk3fx_jJ42PWb1u8rhdm7Y7"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_14_dungeon_crystal_temple",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_14_dungeon_crystal_temple.imageset/wayfolio_login_bg_14_dungeon_crystal_temple.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2853168,
+      "sha256": "9ee73147cbf9f4e253324823a464bb258b78cb36eb8da69618fa79c9d110767a",
+      "storage_file_id": "10ppgZYN7BzpWVGv0AXd_ccq4XSJxOIhH"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_15_dungeon_crypt",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_15_dungeon_crypt.imageset/wayfolio_login_bg_15_dungeon_crypt.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2703353,
+      "sha256": "79691b6ef35c9ce78e1bafea123f92f6ac9fc42b63fd418aedbfc29cc6eae30c",
+      "storage_file_id": "17nEHu4pxxNn4xRm-WawQcLtdtOLlaFuA"
+    },
+    {
+      "catalog_name": "wayfolio_login_bg_16_crystal_cave",
+      "path": "Wayfolio/Assets.xcassets/wayfolio_login_bg_16_crystal_cave.imageset/wayfolio_login_bg_16_crystal_cave.png",
+      "width": 1448,
+      "height": 1086,
+      "size_bytes": 2527062,
+      "sha256": "f2b571dbdf0d84532f402d08c383cc38d79de30717aeb60f1e79d92c4b71b2b8",
+      "storage_file_id": "1CAMimlsIFltPop1NmzpXMpej4PV6Pt0L"
+    }
+  ]
+}

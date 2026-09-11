@@ -1,0 +1,23 @@
+{
+  "campaign_id": "wayfolio-hemlock-development",
+  "normalizations": [
+    {
+      "classification": "BOUNDED",
+      "decision": "Imported the current accepted world and Wayfolio state as a clean Contract 1.1 genesis.",
+      "field": "campaign genesis"
+    },
+    {
+      "classification": "NOT_TRACKED",
+      "decision": "Repeated automated tests, undone transactions, and review clicks remain in the legacy JSON audit source but are not campaign canon.",
+      "field": "development action history"
+    },
+    {
+      "classification": "SEALED",
+      "decision": "Imported into sealed_state and excluded from all visible projections and public books.",
+      "field": "sealed clues"
+    }
+  ],
+  "production": false,
+  "source": "/Users/kevinbrend/.codex/.chatgpt-projects/g-p-6a781ac315ac819195c54db01242ff22/Wayfolio/WayfolioSwiftUIStarter_v1/Host/data/campaign-state.json",
+  "source_state_head": "HEMLOCK-GENESIS-1"
+}
