@@ -1018,7 +1018,7 @@ final class GameSessionClient: ObservableObject {
             performance: succeeded ? "Confirm the opening and leave the next action free." : "Present a fair forward-moving complication and leave the next action free."
         )
         prompt = standaloneFollowupPrompt(afterCheck: true)
-        notice = succeded ? "The check resolved. Continue the story." : "The failed check created a complication. Continue the story."
+        notice = succeeded ? "The check resolved. Continue the story." : "The failed check created a complication. Continue the story."
         if let dialoguePresentation {
             appendCompletedStoryBeat(
                 dialogues: [dialoguePresentation],

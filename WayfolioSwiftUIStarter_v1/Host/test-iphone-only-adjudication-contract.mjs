@@ -14,6 +14,10 @@ assert.match(session, /prompt = standaloneFollowupPrompt\(afterCheck: false\)/,
   'Automatic actions must reopen Live for the next declaration.');
 assert.match(session, /prompt = standaloneFollowupPrompt\(afterCheck: true\)/,
   'Resolved checks must reopen Live for the next declaration.');
+assert.match(session, /notice = succeeded \? "The check resolved\. Continue the story\."/,
+  'The post-check notice must use the computed success result.');
+assert.doesNotMatch(session, /\bsucceded\b/,
+  'The post-check path must not reference a misspelled, undefined success result.');
 assert.match(session, /The failure changes the situation rather than ending play/,
   'Failed checks must explicitly preserve forward progress.');
 assert.doesNotMatch(session, /The Creature Settles|The Metal Shifts/,
