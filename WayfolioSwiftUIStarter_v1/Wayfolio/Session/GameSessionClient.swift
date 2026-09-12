@@ -840,6 +840,61 @@ final class GameSessionClient: ObservableObject {
         }
     }
 
+    private struct StandaloneRuling {
+        let requiresRoll: Bool
+        let skill: String?
+        let difficulty: Int?
+        let reason: String
+    }
+
+    private func standaloneRuling(for declaration: String) -> StandaloneRuling {
+        let value = declaration.lowercased()
+        let containsAny: ([String]) -> Bool = { words in words.contains { value.contains($0) } }
+
+        let medicine = containsAny(["heal", "treat", "stabilize", "wound", "extract", "remove the", "pull the", "brace the"])
+        let animalHandling = containsAny(["calm", "soothe", "befriend", "animal", "creature", "slime"])
+        let stealth = containsAny(["hide", "sneak", "stealth"])
+        let perception = containsAny(["search", "track", "hidden", "trap", "listen for", "look for"])
+        let physicalRisk = containsAny(["attack", "force", "break", "climb", "jump", "leap", "chase", "escape"])
+        let socialRisk = containsAny(["convince", "persuade", "deceive", "threaten", "intimidate"])
+        let consequential = medicine || animalHandling || stealth || perception || physicalRisk || socialRisk
+
+        guard consequential else {
+            return StandaloneRuling(
+                requiresRoll: false,
+                skill: nil,
+                difficulty: nil,
+                reason: "The declared action is feasible and does not contain meaningful uncertainty or consequence."
+            )
+        }
+
+        let skill: String
+        if medicine { skill = "Medicine" }
+        else if animalHandling { skill = "Animal Handling" }
+        else if stealth { skill = "Stealth" }
+        else if perception { skill = "Perception" }
+        else { skill = "Survival" }
+
+        return StandaloneRuling(
+            requiresRoll: true,
+            skill: skill,
+            difficulty: 12,
+            reason: "The declared action can materially change the situation and its outcome is uncertain."
+        )
+    }
+
+    private func standaloneFollowupPrompt(afterCheck: Bool) -> Prompt {
+        Prompt(
+            id: "standalone-followup-\(standaloneStoryStep)-\(UUID().uuidString)",
+            title: "What does \(playerName) do next?",
+            message: afterCheck
+                ? "The check has resolved and the story is ready for the next declaration."
+                : "That action resolves without a check. Continue with any action or dialogue that makes sense.",
+            choices: [],
+            allowsFreeform: true
+        )
+    }
+
     private func handleStandaloneAction(_ text: String, isPublic: Bool, inputMode: String) {
         let action = GameAction(
             id: UUID().uuidString, text: text,
@@ -848,6 +903,8 @@ final class GameSessionClient: ObservableObject {
         actions.insert(action, at: 0)
         checkResult = nil
         prompt = nil
+        pendingRoll = nil
+        awaitingSharedRoll = false
         standaloneStoryStep += 1
 
         if !isPublic {
@@ -869,31 +926,39 @@ final class GameSessionClient: ObservableObject {
             return
         }
 
-        let lower = text.lowercased()
-        let skill: String
-        let modifier: Int
-        if lower.contains("calm") || lower.contains("speak") || lower.contains("gentle") {
-            skill = "Animal Handling"; modifier = character?.skills["Animal Handling"] ?? 0
-            sceneText = "Renn lowers their voice and posture. The slime's trembling eases, but the rusted metal shifts whenever it tries to respond."
-        } else if lower.contains("heal") || lower.contains("wound") || lower.contains("medicine") {
-            skill = "Medicine"; modifier = character?.skills["Medicine"] ?? 0
-            sceneText = "Renn studies where the metal enters the slime. Treating the wound safely will require keeping both the creature and the jagged fragment still."
-        } else if lower.contains("look") || lower.contains("observe") || lower.contains("examine") {
-            skill = "Perception"; modifier = character?.skills["Perception"] ?? 0
-            sceneText = "Renn studies the roots, the metal, and the creature's reactions before touching anything."
-        } else {
-            skill = "Survival"; modifier = character?.skills["Survival"] ?? 0
-            sceneText = "Renn begins the approach. The roots leave little room to work, and a careless movement could drive the metal deeper."
+        let ruling = standaloneRuling(for: text)
+        if !ruling.requiresRoll {
+            sceneTitle = "The Scene Moves Forward"
+            sceneText = "\(playerName) follows through. Nothing in the current situation makes the declared action uncertain enough to require a check, so play continues without rolling."
+            dialoguePresentation = DialoguePresentation(
+                id: UUID().uuidString, speakerID: "narrator", speakerName: "Narrator",
+                text: sceneText, performance: "Responsive and concise; leave the next action open."
+            )
+            prompt = standaloneFollowupPrompt(afterCheck: false)
+            notice = inputMode == "spoken" ? "Spoken action resolved without a check." : "Action resolved without a check."
+            if let dialoguePresentation {
+                appendCompletedStoryBeat(
+                    dialogues: [dialoguePresentation],
+                    audienceScope: Self.storyAudienceScope(for: action),
+                    originatingAction: action
+                )
+                emitStandaloneDialogue(dialoguePresentation)
+            }
+            persistStandaloneSnapshot()
+            return
         }
 
-        sceneTitle = "Renn Acts at the Pine Roots"
+        let skill = ruling.skill ?? "Survival"
+        let modifier = character?.skills[skill] ?? 0
+        sceneTitle = "A Check Is Needed"
+        sceneText = "\(playerName) commits to the approach. The outcome is uncertain enough to call for a \(skill) check."
         dialoguePresentation = DialoguePresentation(
             id: UUID().uuidString, speakerID: "narrator", speakerName: "Narrator",
-            text: sceneText, performance: "The creature watches every movement."
+            text: sceneText, performance: "State the uncertainty clearly without deciding the outcome."
         )
         pendingRoll = PendingRoll(
             id: UUID().uuidString, playerID: playerID, playerName: playerName,
-            skill: skill, modifier: modifier, difficulty: 12,
+            skill: skill, modifier: modifier, difficulty: ruling.difficulty,
             dieType: 20, diceCount: 1, selection: nil
         )
         awaitingSharedRoll = true
@@ -904,42 +969,14 @@ final class GameSessionClient: ObservableObject {
                 audienceScope: Self.storyAudienceScope(for: action),
                 originatingAction: action
             )
+            emitStandaloneDialogue(dialoguePresentation)
         }
-        if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
         persistStandaloneSnapshot()
     }
 
     private func handleStandaloneChoice(_ choice: String, prompt: Prompt) {
-        let lower = choice.lowercased()
-        let skill: String
-        if lower.contains("calm") { skill = "Animal Handling" }
-        else if lower.contains("metal") { skill = "Medicine" }
-        else { skill = "Perception" }
-        let modifier = character?.skills[skill] ?? 0
-        actions.insert(.init(id: UUID().uuidString, text: choice, visibility: "private", author: playerName), at: 0)
         self.prompt = nil
-        checkResult = nil
-        pendingRoll = PendingRoll(
-            id: "\(prompt.id)-roll-\(UUID().uuidString)", playerID: playerID, playerName: playerName,
-            skill: skill, modifier: modifier, difficulty: 12,
-            dieType: 20, diceCount: 1, selection: nil
-        )
-        awaitingSharedRoll = true
-        dialoguePresentation = DialoguePresentation(
-            id: UUID().uuidString, speakerID: "narrator", speakerName: "Narrator",
-            text: "Renn chooses to \(choice.lowercased()). The situation is uncertain enough to call for a \(skill) check.",
-            performance: nil
-        )
-        notice = "Choice recorded. Roll on this iPhone."
-        if let dialoguePresentation {
-            appendCompletedStoryBeat(
-                dialogues: [dialoguePresentation],
-                audienceScope: Self.storyAudienceScope(for: actions.first),
-                originatingAction: actions.first
-            )
-        }
-        if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
-        persistStandaloneSnapshot()
+        handleStandaloneAction(choice, isPublic: true, inputMode: "choice")
     }
 
     private func resolveStandaloneRoll(_ dice: [Int]) {
@@ -959,52 +996,38 @@ final class GameSessionClient: ObservableObject {
         awaitingSharedRoll = false
         standaloneStoryStep += 1
         if succeeded {
-            sceneTitle = "The Creature Settles"
-            sceneText = "Renn's careful approach changes the situation: the slime stops pulling against the metal and gives Renn room to inspect the restraint without worsening the wound."
-            let observation = "Careful movement keeps the injured slime stable while the rusted restraint is examined."
-            if !discoveries.contains(observation) { discoveries.append(observation) }
-            journal.append("Earned observation: \(observation)")
+            sceneTitle = "The Action Lands"
+            sceneText = "The \(roll.skill) attempt succeeds. The intended opening is gained, and the scene remains open for whatever \(playerName) chooses next."
             checkResult = CheckResult(
-                title: "The situation changes",
-                detail: "Rolled \(natural) + \(roll.modifier) = \(total). The slime is stable and trust has increased.",
+                title: "Check succeeded",
+                detail: "Rolled \(natural) + \(roll.modifier) = \(total) against DC \(roll.difficulty ?? 10).",
                 succeeded: true
             )
         } else {
-            sceneTitle = "The Metal Shifts"
-            sceneText = "The attempt changes the situation: a root flexes, the jagged metal shifts, and the slime recoils in pain. It is now more distressed and abrupt handling will worsen the injury."
-            journal.append("Complication: the rusted restraint shifted and the injured slime became more distressed.")
+            sceneTitle = "A Complication Opens"
+            sceneText = "The \(roll.skill) attempt falls short. The situation gains a complication instead of stopping, and \(playerName) still has meaningful choices."
             checkResult = CheckResult(
-                title: "A complication develops",
-                detail: "Rolled \(natural) + \(roll.modifier) = \(total). The restraint shifted and the creature's distress increased.",
+                title: "The situation changed",
+                detail: "Rolled \(natural) + \(roll.modifier) = \(total) against DC \(roll.difficulty ?? 10). The failure changes the situation rather than ending play.",
                 succeeded: false
             )
         }
         dialoguePresentation = DialoguePresentation(
             id: UUID().uuidString, speakerID: "narrator", speakerName: "Narrator",
-            text: sceneText, performance: succeeded ? "The creature grows still." : "A sharp tremor runs through the roots."
+            text: sceneText,
+            performance: succeeded ? "Confirm the opening and leave the next action free." : "Present a fair forward-moving complication and leave the next action free."
         )
-        prompt = Prompt(
-            id: "standalone-followup-\(standaloneStoryStep)", title: "What does Renn do next?",
-            message: succeeded
-                ? "The creature is stable for the moment. Renn can continue in any way that makes sense."
-                : "The creature is frightened and the restraint is less stable. Renn can still choose any approach.",
-            choices: succeeded
-                ? ["Inspect the restraint", "Prepare the healer's kit", "Try to communicate"]
-                : ["Pause and calm it", "Brace the metal", "Withdraw and seek help"],
-            allowsFreeform: true
-        )
-        notice = succeeded ? "The check changed the situation." : "The failed check created a complication."
-        presentationEventHandler?([
-            "type": "sound_effect", "cue": succeeded ? "spell_chime" : "water_splash", "volume": 0.62
-        ])
+        prompt = standaloneFollowupPrompt(afterCheck: true)
+        notice = succeded ? "The check resolved. Continue the story." : "The failed check created a complication. Continue the story."
         if let dialoguePresentation {
             appendCompletedStoryBeat(
                 dialogues: [dialoguePresentation],
                 audienceScope: Self.storyAudienceScope(for: actions.first),
+                originatingAction: actions.first,
                 checkResult: checkResult
             )
+            emitStandaloneDialogue(dialoguePresentation)
         }
-        if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
         persistStandaloneSnapshot()
     }
 

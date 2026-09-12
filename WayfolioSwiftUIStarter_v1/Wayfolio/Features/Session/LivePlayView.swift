@@ -682,7 +682,7 @@ struct LivePlayView: View {
                             } else if let dialogue = session.dialoguePresentation {
                                 WayfolioDialogueCard(dialogue: dialogue)
                             }
-                            if let prompt = session.prompt, !prompt.choices.isEmpty {
+                            if let prompt = session.prompt {
                                 WayfolioChoiceCard(prompt: prompt, onChoose: session.submitChoice)
                             } else if session.completedStoryBeats.isEmpty && session.dialoguePresentation == nil {
                                 VStack(alignment: .leading, spacing: 6) {
