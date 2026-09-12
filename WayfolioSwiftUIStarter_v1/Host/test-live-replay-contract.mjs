@@ -16,6 +16,10 @@ assert.match(session, /"speaker_id": segment\.speakerID/,
   'Replay must preserve speaker identity for canonical voice lookup.');
 assert.match(runtime, /for event in voiceable[^]*await self\.playVoice\(event\)/,
   'Replay must play the voice queue sequentially.');
+assert.match(runtime, /"pace": Self\.double\(direction\["pace"\]\) \?\? 1\.0/,
+  'Native speech requests must preserve the numeric pace returned by the voice director.');
+assert.doesNotMatch(runtime, /direction\["pace"\] as\? String/,
+  'Native speech requests must not convert numeric pace into a rejected string value.');
 assert.match(runtime, /func stopReplay\(\)/,
   'Replay must expose a stop action.');
 assert.match(live, /isReplaying \? "Stop" : "Replay"/,

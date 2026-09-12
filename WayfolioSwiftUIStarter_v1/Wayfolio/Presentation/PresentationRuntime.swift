@@ -196,7 +196,7 @@ final class PresentationRuntime: ObservableObject {
             request.httpBody = try JSONSerialization.data(withJSONObject: [
                 "speaker": speaker,
                 "text": text,
-                "pace": direction["pace"] as? String ?? "measured",
+                "pace": Self.double(direction["pace"]) ?? 1.0,
             ])
             let (voiceData, voiceResponse) = try await URLSession.shared.data(for: request)
             guard (voiceResponse as? HTTPURLResponse)?.statusCode == 200, !voiceData.isEmpty else { return nil }
