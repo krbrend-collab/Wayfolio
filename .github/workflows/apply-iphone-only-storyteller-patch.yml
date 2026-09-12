@@ -1,0 +1,290 @@
+name: Apply iPhone-only storyteller continuation patch
+
+on:
+  push:
+    branches:
+      - fix/iphone-only-storyteller-continuation-2026-09-12
+    paths:
+      - .github/workflows/apply-iphone-only-storyteller-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/iphone-only-storyteller-continuation-2026-09-12
+          fetch-depth: 0
+
+      - name: Apply focused standalone adjudication patch
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          session_path = Path('WayfolioSwiftUIStarter_v1/Wayfolio/Session/GameSessionClient.swift')
+          live_path = Path('WayfolioSwiftUIStarter_v1/Wayfolio/Features/Session/LivePlayView.swift')
+          test_path = Path('WayfolioSwiftUIStarter_v1/Host/test-iphone-only-adjudication-contract.mjs')
+
+          source = session_path.read_text()
+          start_marker = '    private func handleStandaloneAction(_ text: String, isPublic: Bool, inputMode: String) {'
+          end_marker = '    private func handleStandaloneItemUse(_ item: InventoryItem, quantity: Int) {'
+          start = source.find(start_marker)
+          end = source.find(end_marker, start)
+          if start < 0 or end < 0:
+              raise SystemExit('Could not locate the standalone adjudication block.')
+
+          replacement = r'''    private struct StandaloneRuling {
+        let requiresRoll: Bool
+        let skill: String?
+        let difficulty: Int?
+        let reason: String
+    }
+
+    private func standaloneRuling(for declaration: String) -> StandaloneRuling {
+        let value = declaration.lowercased()
+        let containsAny: ([String]) -> Bool = { words in words.contains { value.contains($0) } }
+
+        let medicine = containsAny(["heal", "treat", "stabilize", "wound", "extract", "remove the", "pull the", "brace the"])
+        let animalHandling = containsAny(["calm", "soothe", "befriend", "animal", "creature", "slime"])
+        let stealth = containsAny(["hide", "sneak", "stealth"])
+        let perception = containsAny(["search", "track", "hidden", "trap", "listen for", "look for"])
+        let physicalRisk = containsAny(["attack", "force", "break", "climb", "jump", "leap", "chase", "escape"])
+        let socialRisk = containsAny(["convince", "persuade", "deceive", "threaten", "intimidate"])
+        let consequential = medicine || animalHandling || stealth || perception || physicalRisk || socialRisk
+
+        guard consequential else {
+            return StandaloneRuling(
+                requiresRoll: false,
+                skill: nil,
+                difficulty: nil,
+                reason: "The declared action is feasible and does not contain meaningful uncertainty or consequence."
+            )
+        }
+
+        let skill: String
+        if medicine { skill = "Medicine" }
+        else if animalHandling { skill = "Animal Handling" }
+        else if stealth { skill = "Stealth" }
+        else if perception { skill = "Perception" }
+        else { skill = "Survival" }
+
+        return StandaloneRuling(
+            requiresRoll: true,
+            skill: skill,
+            difficulty: 12,
+            reason: "The declared action can materially change the situation and its outcome is uncertain."
+        )
+    }
+
+    private func standaloneFollowupPrompt(afterCheck: Bool) -> Prompt {
+        Prompt(
+            id: "standalone-followup-\(standaloneStoryStep)-\(UUID().uuidString)",
+            title: "What does \(playerName) do next?",
+            message: afterCheck
+                ? "The check has resolved and the story is ready for the next declaration."
+                : "That action resolves without a check. Continue with any action or dialogue that makes sense.",
+            choices: [],
+            allowsFreeform: true
+        )
+    }
+
+    private func handleStandaloneAction(_ text: String, isPublic: Bool, inputMode: String) {
+        let action = GameAction(
+            id: UUID().uuidString, text: text,
+            visibility: isPublic ? "public" : "private", author: playerName
+        )
+        actions.insert(action, at: 0)
+        checkResult = nil
+        prompt = nil
+        pendingRoll = nil
+        awaitingSharedRoll = false
+        standaloneStoryStep += 1
+
+        if !isPublic {
+            dialoguePresentation = DialoguePresentation(
+                id: UUID().uuidString, speakerID: "narrator", speakerName: "Wayfolio",
+                text: "Your private note is recorded on this iPhone. It has not been shown to a shared display.",
+                performance: nil
+            )
+            notice = "Private note recorded locally."
+            if let dialoguePresentation {
+                appendCompletedStoryBeat(
+                    dialogues: [dialoguePresentation],
+                    audienceScope: "PRIVATE",
+                    originatingAction: action
+                )
+            }
+            if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
+            persistStandaloneSnapshot()
+            return
+        }
+
+        let ruling = standaloneRuling(for: text)
+        if !ruling.requiresRoll {
+            sceneTitle = "The Scene Moves Forward"
+            sceneText = "\(playerName) follows through. Nothing in the current situation makes the declared action uncertain enough to require a check, so play continues without rolling."
+            dialoguePresentation = DialoguePresentation(
+                id: UUID().uuidString, speakerID: "narrator", speakerName: "Narrator",
+                text: sceneText, performance: "Responsive and concise; leave the next action open."
+            )
+            prompt = standaloneFollowupPrompt(afterCheck: false)
+            notice = inputMode == "spoken" ? "Spoken action resolved without a check." : "Action resolved without a check."
+            if let dialoguePresentation {
+                appendCompletedStoryBeat(
+                    dialogues: [dialoguePresentation],
+                    audienceScope: Self.storyAudienceScope(for: action),
+                    originatingAction: action
+                )
+                emitStandaloneDialogue(dialoguePresentation)
+            }
+            persistStandaloneSnapshot()
+            return
+        }
+
+        let skill = ruling.skill ?? "Survival"
+        let modifier = character?.skills[skill] ?? 0
+        sceneTitle = "A Check Is Needed"
+        sceneText = "\(playerName) commits to the approach. The outcome is uncertain enough to call for a \(skill) check."
+        dialoguePresentation = DialoguePresentation(
+            id: UUID().uuidString, speakerID: "narrator", speakerName: "Narrator",
+            text: sceneText, performance: "State the uncertainty clearly without deciding the outcome."
+        )
+        pendingRoll = PendingRoll(
+            id: UUID().uuidString, playerID: playerID, playerName: playerName,
+            skill: skill, modifier: modifier, difficulty: ruling.difficulty,
+            dieType: 20, diceCount: 1, selection: nil
+        )
+        awaitingSharedRoll = true
+        notice = inputMode == "spoken" ? "Spoken action understood. Roll on this iPhone." : "Action understood. Roll on this iPhone."
+        if let dialoguePresentation {
+            appendCompletedStoryBeat(
+                dialogues: [dialoguePresentation],
+                audienceScope: Self.storyAudienceScope(for: action),
+                originatingAction: action
+            )
+            emitStandaloneDialogue(dialoguePresentation)
+        }
+        persistStandaloneSnapshot()
+    }
+
+    private func handleStandaloneChoice(_ choice: String, prompt: Prompt) {
+        self.prompt = nil
+        handleStandaloneAction(choice, isPublic: true, inputMode: "choice")
+    }
+
+    private func resolveStandaloneRoll(_ dice: [Int]) {
+        guard let roll = pendingRoll else { return }
+        let values = dice.isEmpty
+            ? (0..<roll.requiredDiceCount).map { _ in Int.random(in: 1...max(2, roll.dieType)) }
+            : dice
+        guard !values.isEmpty else { return }
+        let natural: Int
+        if roll.selection == "advantage" { natural = values.max() ?? values[0] }
+        else if roll.selection == "disadvantage" { natural = values.min() ?? values[0] }
+        else { natural = values[0] }
+        let total = natural + roll.modifier
+        let succeeded = total >= (roll.difficulty ?? 10)
+
+        pendingRoll = nil
+        awaitingSharedRoll = false
+        standaloneStoryStep += 1
+        if succeeded {
+            sceneTitle = "The Action Lands"
+            sceneText = "The \(roll.skill) attempt succeeds. The intended opening is gained, and the scene remains open for whatever \(playerName) chooses next."
+            checkResult = CheckResult(
+                title: "Check succeeded",
+                detail: "Rolled \(natural) + \(roll.modifier) = \(total) against DC \(roll.difficulty ?? 10).",
+                succeeded: true
+            )
+        } else {
+            sceneTitle = "A Complication Opens"
+            sceneText = "The \(roll.skill) attempt falls short. The situation gains a complication instead of stopping, and \(playerName) still has meaningful choices."
+            checkResult = CheckResult(
+                title: "The situation changed",
+                detail: "Rolled \(natural) + \(roll.modifier) = \(total) against DC \(roll.difficulty ?? 10). The failure changes the situation rather than ending play.",
+                succeeded: false
+            )
+        }
+        dialoguePresentation = DialoguePresentation(
+            id: UUID().uuidString, speakerID: "narrator", speakerName: "Narrator",
+            text: sceneText,
+            performance: succeeded ? "Confirm the opening and leave the next action free." : "Present a fair forward-moving complication and leave the next action free."
+        )
+        prompt = standaloneFollowupPrompt(afterCheck: true)
+        notice = succeeded ? "The check resolved. Continue the story." : "The failed check created a complication. Continue the story."
+        if let dialoguePresentation {
+            appendCompletedStoryBeat(
+                dialogues: [dialoguePresentation],
+                audienceScope: Self.storyAudienceScope(for: actions.first),
+                originatingAction: actions.first,
+                checkResult: checkResult
+            )
+            emitStandaloneDialogue(dialoguePresentation)
+        }
+        persistStandaloneSnapshot()
+    }
+
+'''
+          session_path.write_text(source[:start] + replacement + source[end:])
+
+          live = live_path.read_text()
+          old = 'if let prompt = session.prompt, !prompt.choices.isEmpty {'
+          count = live.count(old)
+          if count < 1:
+              raise SystemExit('Could not locate the Live prompt visibility gate.')
+          live_path.write_text(live.replace(old, 'if let prompt = session.prompt {'))
+
+          test_path.write_text(r'''import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+
+const session = await readFile(new URL('../Wayfolio/Session/GameSessionClient.swift', import.meta.url), 'utf8');
+const live = await readFile(new URL('../Wayfolio/Features/Session/LivePlayView.swift', import.meta.url), 'utf8');
+
+assert.match(session, /private func standaloneRuling\(for declaration: String\)/,
+  'iPhone-only play must use an explicit standalone adjudication contract.');
+assert.match(session, /guard consequential else \{[^]*requiresRoll: false/,
+  'Routine declarations must have an automatic no-roll path.');
+assert.match(session, /medicine \|\| animalHandling \|\| stealth \|\| perception \|\| physicalRisk \|\| socialRisk/,
+  'Only meaningful uncertainty or consequence should promote a declaration to a roll.');
+assert.match(session, /if !ruling\.requiresRoll \{[^]*pendingRoll = nil|pendingRoll = nil[^]*if !ruling\.requiresRoll/,
+  'The no-roll path must not leave a pending roll behind.');
+assert.match(session, /prompt = standaloneFollowupPrompt\(afterCheck: false\)/,
+  'Automatic actions must reopen Live for the next declaration.');
+assert.match(session, /prompt = standaloneFollowupPrompt\(afterCheck: true\)/,
+  'Resolved checks must reopen Live for the next declaration.');
+assert.match(session, /The failure changes the situation rather than ending play/,
+  'Failed checks must explicitly preserve forward progress.');
+assert.doesNotMatch(session, /The Creature Settles|The Metal Shifts/,
+  'Standalone adjudication must not hard-code Pine Roots success/failure outcomes.');
+assert.match(live, /if let prompt = session\.prompt \{/,
+  'Live must show freeform prompts even when they contain no fixed choice buttons.');
+assert.doesNotMatch(live, /if let prompt = session\.prompt, !prompt\.choices\.isEmpty/,
+  'Live must not hide a valid freeform prompt just because it has no finite menu.');
+
+console.log('iPhone-only adjudication and continuation contract checks passed.');
+''')
+          PY
+
+      - name: Run focused contracts
+        run: |
+          node WayfolioSwiftUIStarter_v1/Host/test-live-replay-contract.mjs
+          node WayfolioSwiftUIStarter_v1/Host/test-iphone-only-adjudication-contract.mjs
+
+      - name: Commit focused repair
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "Patch already applied."
+            exit 0
+          fi
+          git config user.name "Wayfolio Repair Bot"
+          git config user.email "wayfolio-repair@users.noreply.github.com"
+          git add WayfolioSwiftUIStarter_v1/Wayfolio/Session/GameSessionClient.swift \
+                  WayfolioSwiftUIStarter_v1/Wayfolio/Features/Session/LivePlayView.swift \
+                  WayfolioSwiftUIStarter_v1/Host/test-iphone-only-adjudication-contract.mjs
+          git commit -m "Fix iPhone-only adjudication continuation"
+          git push origin HEAD:fix/iphone-only-storyteller-continuation-2026-09-12
