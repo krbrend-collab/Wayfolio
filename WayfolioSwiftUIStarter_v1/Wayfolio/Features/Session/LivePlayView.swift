@@ -276,6 +276,78 @@ struct WayfolioDialogueCard: View {
     }
 }
 
+private struct WayfolioRecentStoryContext: View {
+    let beats: [GameSessionClient.CompletedStoryBeat]
+    let isReplaying: Bool
+    let onReplay: () -> Void
+    let onStop: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("RECENT STORY")
+                    .font(WayfolioTypography.tiny)
+                    .tracking(1.1)
+                    .foregroundStyle(WayfolioPalette.cyan)
+                Spacer()
+                Button(action: isReplaying ? onStop : onReplay) {
+                    Label(
+                        isReplaying ? "Stop" : "Replay",
+                        systemImage: isReplaying ? "stop.fill" : "speaker.wave.2.fill"
+                    )
+                    .font(WayfolioTypography.caption)
+                }
+                .buttonStyle(.bordered)
+                .tint(WayfolioPalette.cyan)
+            }
+
+            ForEach(Array(beats.suffix(3))) { beat in
+                VStack(alignment: .leading, spacing: 7) {
+                    HStack {
+                        Text(beat.id == beats.last?.id ? "LATEST" : "EARLIER")
+                            .font(WayfolioTypography.tiny)
+                            .tracking(0.8)
+                            .foregroundStyle(beat.id == beats.last?.id ? WayfolioPalette.brassBright : WayfolioPalette.parchment.opacity(0.48))
+                        Spacer()
+                    }
+                    if let action = beat.originatingAction {
+                        storyLine(label: "PLAYER", text: action.text, isNarration: false)
+                    }
+                    ForEach(beat.segments.sorted(by: { $0.sequence < $1.sequence })) { segment in
+                        storyLine(
+                            label: segment.speakerName ?? (segment.kind == .checkResult ? "CHECK" : "WAYFOLIO"),
+                            text: segment.text,
+                            isNarration: segment.kind == .narrator
+                        )
+                    }
+                }
+                .padding(.bottom, beat.id == beats.last?.id ? 2 : 8)
+                .overlay(alignment: .bottom) {
+                    if beat.id != beats.last?.id {
+                        Divider().overlay(WayfolioPalette.cyan.opacity(0.18))
+                    }
+                }
+            }
+        }
+        .padding(12)
+        .projectionPane(.dialogue, radius: 14)
+        .accessibilityElement(children: .contain)
+    }
+
+    private func storyLine(label: String, text: String, isNarration: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label.uppercased())
+                .font(WayfolioTypography.tiny)
+                .tracking(0.7)
+                .foregroundStyle(WayfolioPalette.cyan.opacity(0.82))
+            Text(text)
+                .font(isNarration ? WayfolioTypography.caption.italic() : WayfolioTypography.caption)
+                .foregroundStyle(WayfolioPalette.parchment.opacity(0.88))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
 private struct WayfolioSceneBackdrop: View {
     @EnvironmentObject private var session: GameSessionClient
     let visual: GameSessionClient.VisualPresentation?
@@ -511,6 +583,7 @@ struct WayfolioEquipmentList: View {
 
 struct LivePlayView: View {
     @EnvironmentObject private var session: GameSessionClient
+    @EnvironmentObject private var presentation: PresentationRuntime
     @StateObject private var voiceInput = WayfolioVoiceInput()
     @State private var actionText = ""
     @State private var actionInputMode = "typed"
@@ -602,25 +675,28 @@ struct LivePlayView: View {
                     statusStrip
                     Spacer(minLength: 0)
 
-                    if let prompt = session.prompt, !prompt.choices.isEmpty {
-                        WayfolioChoiceCard(prompt: prompt, onChoose: session.submitChoice)
-                            .frame(maxHeight: geometry.size.height * 0.30)
-                    } else if let dialogue = session.dialoguePresentation {
-                        ScrollView {
-                            WayfolioDialogueCard(dialogue: dialogue)
+                    ScrollView {
+                        VStack(spacing: 8) {
+                            if !session.completedStoryBeats.isEmpty {
+                                recentStoryContext
+                            } else if let dialogue = session.dialoguePresentation {
+                                WayfolioDialogueCard(dialogue: dialogue)
+                            }
+                            if let prompt = session.prompt, !prompt.choices.isEmpty {
+                                WayfolioChoiceCard(prompt: prompt, onChoose: session.submitChoice)
+                            } else if session.completedStoryBeats.isEmpty && session.dialoguePresentation == nil {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(session.sceneTitle).font(WayfolioTypography.title)
+                                    Text(session.sceneText).font(WayfolioTypography.body).lineLimit(5)
+                                }
+                                .foregroundStyle(WayfolioPalette.parchment)
+                                .padding(14)
+                                .projectionPane(.dialogue)
+                            }
                         }
-                        .scrollIndicators(.hidden)
-                        .frame(maxHeight: geometry.size.height * 0.28)
-                    } else {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(session.sceneTitle).font(WayfolioTypography.title)
-                            Text(session.sceneText).font(WayfolioTypography.body).lineLimit(5)
-                        }
-                        .foregroundStyle(WayfolioPalette.parchment)
-                        .padding(14)
-                        .projectionPane(.dialogue)
-                        .frame(maxHeight: geometry.size.height * 0.25)
                     }
+                    .scrollIndicators(.hidden)
+                    .frame(maxHeight: geometry.size.height * 0.52)
 
                     if let latest = session.actions.first {
                         Label(latest.text, systemImage: latest.visibility == "public" ? "person.3.fill" : "eye.slash.fill")
@@ -727,31 +803,52 @@ struct LivePlayView: View {
     }
 
     private var recentTurnLog: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text("RECENT TURNS").font(WayfolioTypography.tiny).tracking(1)
-                .foregroundStyle(WayfolioPalette.cyan)
-            ScrollView {
-                VStack(alignment: .leading, spacing: 6) {
-                    if session.actions.isEmpty {
-                        Text("Your words and actions will appear here.")
-                            .font(WayfolioTypography.caption)
-                            .foregroundStyle(WayfolioPalette.parchment.opacity(0.58))
-                    } else {
-                        ForEach(session.actions.prefix(3)) { action in
-                            Label(action.text, systemImage: action.visibility == "public" ? "person.3.fill" : "eye.slash.fill")
-                                .font(WayfolioTypography.caption)
-                                .foregroundStyle(WayfolioPalette.parchment.opacity(0.86))
-                                .lineLimit(2)
+        Group {
+            if session.completedStoryBeats.isEmpty {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("RECENT TURNS").font(WayfolioTypography.tiny).tracking(1)
+                        .foregroundStyle(WayfolioPalette.cyan)
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 6) {
+                            if session.actions.isEmpty {
+                                Text("Your words and actions will appear here.")
+                                    .font(WayfolioTypography.caption)
+                                    .foregroundStyle(WayfolioPalette.parchment.opacity(0.58))
+                            } else {
+                                ForEach(session.actions.prefix(3)) { action in
+                                    Label(action.text, systemImage: action.visibility == "public" ? "person.3.fill" : "eye.slash.fill")
+                                        .font(WayfolioTypography.caption)
+                                        .foregroundStyle(WayfolioPalette.parchment.opacity(0.86))
+                                        .lineLimit(2)
+                                }
+                            }
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .frame(maxHeight: 62)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
+                .projectionPane(.compact, radius: 14)
+                .padding(.horizontal, WayfolioMetrics.contentInset)
+            } else {
+                recentStoryContext
+                    .padding(.horizontal, WayfolioMetrics.contentInset)
             }
-            .frame(maxHeight: 62)
         }
-        .padding(10)
-        .projectionPane(.compact, radius: 14)
-        .padding(.horizontal, WayfolioMetrics.contentInset)
+    }
+
+    private var recentStoryContext: some View {
+        WayfolioRecentStoryContext(
+            beats: session.completedStoryBeats,
+            isReplaying: presentation.isReplaying,
+            onReplay: replayLatestStoryBeat,
+            onStop: presentation.stopReplay
+        )
+    }
+
+    private func replayLatestStoryBeat() {
+        guard let beat = session.latestCompletedStoryBeat else { return }
+        presentation.replay(session.replayEvents(for: beat))
     }
 
     private var diceOverlay: some View {

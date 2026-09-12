@@ -5,10 +5,12 @@ import Foundation
 @MainActor
 final class PresentationRuntime: ObservableObject {
     let audio = WayfolioAudioEngine()
+    @Published private(set) var isReplaying = false
 
     private lazy var audioCoordinator = PresentationAudioCoordinator(audio: audio)
     private var channel: PresentationEventChannel?
     private var voiceTask: Task<Void, Never>?
+    private var replayTask: Task<Void, Never>?
 
     private struct AmbienceProfile {
         let cue: String
@@ -92,6 +94,37 @@ final class PresentationRuntime: ObservableObject {
         Task { await channel.disconnect() }
     }
 
+    func replay(_ events: [[String: Any]]) {
+        let voiceable = events.filter {
+            ($0["type"] as? String) == "dialogue"
+                && !(($0["text"] as? String) ?? "").isEmpty
+        }
+        guard !voiceable.isEmpty else { return }
+        stopReplay()
+        voiceTask?.cancel()
+        voiceTask = nil
+        audio.stopAllPresentationAudio()
+        isReplaying = true
+        replayTask = Task { [weak self] in
+            guard let self else { return }
+            for event in voiceable {
+                guard !Task.isCancelled else { break }
+                await self.playVoice(event)
+            }
+            guard !Task.isCancelled else { return }
+            self.isReplaying = false
+            self.replayTask = nil
+        }
+    }
+
+    func stopReplay() {
+        let wasReplaying = replayTask != nil || isReplaying
+        replayTask?.cancel()
+        replayTask = nil
+        isReplaying = false
+        if wasReplaying { audio.stopAllPresentationAudio() }
+    }
+
     private func applyAmbienceScene(_ event: [String: Any]) {
         if event["action"] as? String == "stop" {
             audio.stopAmbience()
@@ -114,28 +147,32 @@ final class PresentationRuntime: ObservableObject {
 
     private func queueVoice(_ event: [String: Any]) {
         guard let text = event["text"] as? String, !text.isEmpty else { return }
+        stopReplay()
         let previous = voiceTask
         voiceTask = Task { [weak self] in
             _ = await previous?.result
             guard !Task.isCancelled, let self else { return }
-            guard let url = await self.fetchVoice(
+            await self.playVoice(event)
+        }
+    }
+
+    private func playVoice(_ event: [String: Any]) async {
+        guard let text = event["text"] as? String, !text.isEmpty,
+              let url = await fetchVoice(
                 speakerID: event["voice_profile_id"] as? String ?? event["speaker_id"] as? String,
                 text: text,
                 performance: event["performance"] as? String ?? event["emotion"] as? String
-            ) else { return }
-            guard !Task.isCancelled else { return }
-            self.audio.playVoiceFile(at: url)
-            if let file = try? AVAudioFile(forReading: url), file.processingFormat.sampleRate > 0 {
-                let duration = Double(file.length) / file.processingFormat.sampleRate
-                try? await Task.sleep(for: .seconds(duration))
-            }
+              ), !Task.isCancelled else { return }
+        audio.playVoiceFile(at: url)
+        if let file = try? AVAudioFile(forReading: url), file.processingFormat.sampleRate > 0 {
+            let duration = Double(file.length) / file.processingFormat.sampleRate
+            try? await Task.sleep(for: .seconds(duration))
         }
     }
 
     private func fetchVoice(speakerID: String?, text: String, performance: String?) async -> URL? {
-        let supported = Set(["narrator", "soren", "lupin", "wayfolio"])
         let normalized = (speakerID ?? "narrator").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let speaker = supported.contains(normalized) ? normalized : "narrator"
+        let speaker = normalized.isEmpty ? "narrator" : normalized
         guard let directorURL = URL(string: "https://wayfolio-voice-proxy-wxlq.vercel.app/api/voice-director"),
               let speechURL = URL(string: "https://wayfolio-voice-proxy-wxlq.vercel.app/api/speech") else { return nil }
         do {
@@ -175,6 +212,7 @@ final class PresentationRuntime: ObservableObject {
     }
 
     private func stopAll() {
+        stopReplay()
         voiceTask?.cancel()
         voiceTask = nil
         audio.stopAllPresentationAudio()

@@ -10,6 +10,7 @@ struct WayfolioApp: App {
     var body: some Scene {
         WindowGroup {
             WayfolioRootView()
+                .environmentObject(presentation)
                 .environmentObject(presentation.audio)
                 .environmentObject(gameSession)
                 .environmentObject(characterImages)
@@ -20,7 +21,6 @@ struct WayfolioApp: App {
                     gameSession.presentationStateHandler = { state in
                         presentation.restore(state)
                     }
-                    gameSession.replayStandalonePresentation()
                 }
                 .onOpenURL { gameSession.handleJoinLink($0) }
         }

@@ -47,6 +47,37 @@ final class GameSessionClient: ObservableObject {
         let performance: String?
     }
 
+    struct StoryPresentationSegment: Identifiable, Equatable, Codable {
+        enum Kind: String, Codable {
+            case narrator
+            case characterDialogue = "character_dialogue"
+            case checkResult = "check_result"
+            case system
+        }
+
+        let id: String
+        let sequence: Int
+        let kind: Kind
+        let text: String
+        let speakerID: String?
+        let speakerName: String?
+        let performance: String?
+        let voiceable: Bool
+        let audienceScope: String
+    }
+
+    struct CompletedStoryBeat: Identifiable, Equatable, Codable {
+        let id: String
+        let completedAt: Date
+        let audienceScope: String
+        let originatingAction: GameAction?
+        let segments: [StoryPresentationSegment]
+
+        var replayableSegments: [StoryPresentationSegment] {
+            segments.filter { $0.voiceable && !$0.text.isEmpty }.sorted { $0.sequence < $1.sequence }
+        }
+    }
+
     struct VisualPresentation: Identifiable, Equatable, Codable {
         let id: String
         let title: String
@@ -228,6 +259,7 @@ final class GameSessionClient: ObservableObject {
     @Published private(set) var narrativeMoments: [NarrativeMoment] = []
     @Published private(set) var contextualAffordances: [ContextualAffordance] = []
     @Published private(set) var actions: [GameAction] = []
+    @Published private(set) var completedStoryBeats: [CompletedStoryBeat] = []
     @Published private(set) var encounter: Encounter?
     @Published private(set) var dialoguePresentation: DialoguePresentation?
     @Published private(set) var visualPresentation: VisualPresentation?
@@ -290,6 +322,7 @@ final class GameSessionClient: ObservableObject {
         let visual: VisualPresentation?
         let pendingRoll: PendingRoll?
         let storyStep: Int
+        let completedStoryBeats: [CompletedStoryBeat]?
     }
 
     init() {
@@ -434,12 +467,22 @@ final class GameSessionClient: ObservableObject {
         persistStandaloneSnapshot()
     }
 
-    /// Replays the current phone-owned presentation after the app's audio
-    /// runtime has attached. Text and campaign state remain usable if the
-    /// network-backed voice service is unavailable.
-    func replayStandalonePresentation() {
-        guard isStandaloneSession else { return }
-        if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
+    var latestCompletedStoryBeat: CompletedStoryBeat? {
+        completedStoryBeats.last(where: { !$0.replayableSegments.isEmpty })
+    }
+
+    func replayEvents(for beat: CompletedStoryBeat) -> [[String: Any]] {
+        beat.replayableSegments.map { segment in
+            [
+                "type": "dialogue",
+                "line_id": segment.id,
+                "speaker_id": segment.speakerID ?? "narrator",
+                "speaker_name": segment.speakerName ?? "Narrator",
+                "text": segment.text,
+                "performance": segment.performance ?? "neutral",
+                "audience_scope": segment.audienceScope
+            ]
+        }
     }
 
     private func applyRennStandaloneSeed() {
@@ -498,6 +541,9 @@ final class GameSessionClient: ObservableObject {
             id: "standalone-opening-narration", speakerID: "narrator", speakerName: "Narrator",
             text: sceneText, performance: "Quiet forest ambience; the creature trembles when the metal shifts."
         )
+        if let dialoguePresentation {
+            appendCompletedStoryBeat(dialogues: [dialoguePresentation], audienceScope: "CHARACTER")
+        }
         visualPresentation = VisualPresentation(
             id: "standalone-pine-root-path", title: "Pine-root path outside Hemlock",
             path: "bundle://hemlock-environment", revision: "approved-runtime-fixture-v1"
@@ -530,6 +576,9 @@ final class GameSessionClient: ObservableObject {
         pendingRoll = snapshot.pendingRoll
         awaitingSharedRoll = pendingRoll != nil
         standaloneStoryStep = snapshot.storyStep
+        completedStoryBeats = snapshot.completedStoryBeats ?? snapshot.dialogue.map {
+            [Self.completedBeat(dialogues: [$0], audienceScope: "CHARACTER")]
+        } ?? []
         return true
     }
 
@@ -542,7 +591,8 @@ final class GameSessionClient: ObservableObject {
             inventoryItems: inventoryItems, discoveries: discoveries, journal: journal,
             actions: actions, prompt: prompt, checkResult: checkResult,
             dialogue: dialoguePresentation, visual: visualPresentation,
-            pendingRoll: pendingRoll, storyStep: standaloneStoryStep
+            pendingRoll: pendingRoll, storyStep: standaloneStoryStep,
+            completedStoryBeats: completedStoryBeats
         )
         if let data = try? JSONEncoder().encode(snapshot) {
             UserDefaults.standard.set(data, forKey: "wayfolio.standalone.snapshot.\(selectedCharacterID).v1")
@@ -807,6 +857,13 @@ final class GameSessionClient: ObservableObject {
                 performance: nil
             )
             notice = "Private note recorded locally."
+            if let dialoguePresentation {
+                appendCompletedStoryBeat(
+                    dialogues: [dialoguePresentation],
+                    audienceScope: "PRIVATE",
+                    originatingAction: action
+                )
+            }
             if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
             persistStandaloneSnapshot()
             return
@@ -841,6 +898,13 @@ final class GameSessionClient: ObservableObject {
         )
         awaitingSharedRoll = true
         notice = inputMode == "spoken" ? "Spoken action understood. Roll on this iPhone." : "Action understood. Roll on this iPhone."
+        if let dialoguePresentation {
+            appendCompletedStoryBeat(
+                dialogues: [dialoguePresentation],
+                audienceScope: Self.storyAudienceScope(for: action),
+                originatingAction: action
+            )
+        }
         if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
         persistStandaloneSnapshot()
     }
@@ -867,6 +931,13 @@ final class GameSessionClient: ObservableObject {
             performance: nil
         )
         notice = "Choice recorded. Roll on this iPhone."
+        if let dialoguePresentation {
+            appendCompletedStoryBeat(
+                dialogues: [dialoguePresentation],
+                audienceScope: Self.storyAudienceScope(for: actions.first),
+                originatingAction: actions.first
+            )
+        }
         if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
         persistStandaloneSnapshot()
     }
@@ -926,6 +997,13 @@ final class GameSessionClient: ObservableObject {
         presentationEventHandler?([
             "type": "sound_effect", "cue": succeeded ? "spell_chime" : "water_splash", "volume": 0.62
         ])
+        if let dialoguePresentation {
+            appendCompletedStoryBeat(
+                dialogues: [dialoguePresentation],
+                audienceScope: Self.storyAudienceScope(for: actions.first),
+                checkResult: checkResult
+            )
+        }
         if let dialoguePresentation { emitStandaloneDialogue(dialoguePresentation) }
         persistStandaloneSnapshot()
     }
@@ -963,6 +1041,65 @@ final class GameSessionClient: ObservableObject {
         ])
     }
 
+    private func appendCompletedStoryBeat(
+        dialogues: [DialoguePresentation],
+        audienceScope: String,
+        originatingAction: GameAction? = nil,
+        checkResult: CheckResult? = nil
+    ) {
+        var beat = Self.completedBeat(
+            dialogues: dialogues,
+            audienceScope: audienceScope,
+            originatingAction: originatingAction
+        )
+        if let checkResult {
+            var segments = beat.segments
+            segments.append(.init(
+                id: "\(beat.id)-check", sequence: segments.count,
+                kind: .checkResult, text: checkResult.detail,
+                speakerID: nil, speakerName: nil, performance: nil,
+                voiceable: false, audienceScope: audienceScope
+            ))
+            beat = .init(
+                id: beat.id, completedAt: beat.completedAt,
+                audienceScope: beat.audienceScope,
+                originatingAction: beat.originatingAction,
+                segments: segments
+            )
+        }
+        completedStoryBeats.append(beat)
+    }
+
+    static func completedBeat(
+        dialogues: [DialoguePresentation],
+        audienceScope: String,
+        originatingAction: GameAction? = nil,
+        id: String = UUID().uuidString,
+        completedAt: Date = Date()
+    ) -> CompletedStoryBeat {
+        let segments = dialogues.enumerated().map { sequence, dialogue in
+            StoryPresentationSegment(
+                id: dialogue.id, sequence: sequence,
+                kind: dialogue.speakerID == "narrator" ? .narrator : .characterDialogue,
+                text: dialogue.text, speakerID: dialogue.speakerID,
+                speakerName: dialogue.speakerName, performance: dialogue.performance,
+                voiceable: true, audienceScope: audienceScope
+            )
+        }
+        return CompletedStoryBeat(
+            id: id, completedAt: completedAt, audienceScope: audienceScope,
+            originatingAction: originatingAction, segments: segments
+        )
+    }
+
+    private static func storyAudienceScope(for action: GameAction?) -> String {
+        switch action?.visibility.lowercased() {
+        case "public": return "PARTY"
+        case "private": return "PRIVATE"
+        default: return "CHARACTER"
+        }
+    }
+
     func disconnect() {
         intentionallyDisconnected = true
         UserDefaults.standard.set(false, forKey: "wayfolio.session.active")
@@ -997,6 +1134,7 @@ final class GameSessionClient: ObservableObject {
         narrativeMoments = []
         contextualAffordances = []
         actions = []
+        completedStoryBeats = []
         encounter = nil
         dialoguePresentation = nil
         visualPresentation = nil
