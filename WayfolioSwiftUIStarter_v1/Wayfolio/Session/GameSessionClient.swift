@@ -852,7 +852,10 @@ final class GameSessionClient: ObservableObject {
         let containsAny: ([String]) -> Bool = { words in words.contains { value.contains($0) } }
 
         let medicine = containsAny(["heal", "treat", "stabilize", "wound", "extract", "remove the", "pull the", "brace the"])
-        let animalHandling = containsAny(["calm", "soothe", "befriend", "animal", "creature", "slime"])
+        let animalHandling = value.range(
+            of: #"\b(calm|soothe|coax|befriend|restrain|handle|guide)\b"#,
+            options: .regularExpression
+        ) != nil
         let stealth = containsAny(["hide", "sneak", "stealth"])
         let perception = containsAny(["search", "track", "hidden", "trap", "listen for", "look for"])
         let physicalRisk = containsAny(["attack", "force", "break", "climb", "jump", "leap", "chase", "escape"])
@@ -888,11 +891,41 @@ final class GameSessionClient: ObservableObject {
             id: "standalone-followup-\(standaloneStoryStep)-\(UUID().uuidString)",
             title: "What does \(playerName) do next?",
             message: afterCheck
-                ? "The check has resolved and the story is ready for the next declaration."
-                : "That action resolves without a check. Continue with any action or dialogue that makes sense.",
+                ? "The moment has changed. What happens next is still yours to decide."
+                : "The moment moves on. Continue with any action or dialogue that makes sense.",
             choices: [],
             allowsFreeform: true
         )
+    }
+
+    private func standaloneSuccessNarration(for skill: String) -> String {
+        switch skill {
+        case "Perception":
+            return "Careful attention reveals a useful detail, opening a clearer way forward."
+        case "Animal Handling":
+            return "The creature responds just enough for the careful approach to gain ground."
+        case "Medicine":
+            return "The careful treatment takes hold, creating a useful opening for what comes next."
+        case "Stealth":
+            return "Controlled movement finds its opening, and the situation shifts in \(playerName)'s favor."
+        default:
+            return "The approach finds purchase, changing the situation and opening a way forward."
+        }
+    }
+
+    private func standaloneFailureNarration(for skill: String) -> String {
+        switch skill {
+        case "Perception":
+            return "The crucial detail stays obscured as the situation shifts, adding pressure to the next choice."
+        case "Animal Handling":
+            return "The creature recoils from the approach, shifting the moment and demanding a different response."
+        case "Medicine":
+            return "The careful treatment meets resistance, and the changing situation calls for another response."
+        case "Stealth":
+            return "A small sound betrays the movement, changing the situation before the approach can settle."
+        default:
+            return "The approach meets resistance, and the situation shifts in a way that demands a new response."
+        }
     }
 
     private func handleStandaloneAction(_ text: String, isPublic: Bool, inputMode: String) {
@@ -929,7 +962,7 @@ final class GameSessionClient: ObservableObject {
         let ruling = standaloneRuling(for: text)
         if !ruling.requiresRoll {
             sceneTitle = "The Scene Moves Forward"
-            sceneText = "\(playerName) follows through. Nothing in the current situation makes the declared action uncertain enough to require a check, so play continues without rolling."
+            sceneText = "\(playerName) follows through. Attention shifts with the moment, and the scene opens naturally to what comes next."
             dialoguePresentation = DialoguePresentation(
                 id: UUID().uuidString, speakerID: "narrator", speakerName: "Narrator",
                 text: sceneText, performance: "Responsive and concise; leave the next action open."
@@ -951,7 +984,7 @@ final class GameSessionClient: ObservableObject {
         let skill = ruling.skill ?? "Survival"
         let modifier = character?.skills[skill] ?? 0
         sceneTitle = "A Check Is Needed"
-        sceneText = "\(playerName) commits to the approach. The outcome is uncertain enough to call for a \(skill) check."
+        sceneText = "\(playerName) commits to the approach. The moment tightens as the outcome hangs in the balance."
         dialoguePresentation = DialoguePresentation(
             id: UUID().uuidString, speakerID: "narrator", speakerName: "Narrator",
             text: sceneText, performance: "State the uncertainty clearly without deciding the outcome."
@@ -997,7 +1030,7 @@ final class GameSessionClient: ObservableObject {
         standaloneStoryStep += 1
         if succeeded {
             sceneTitle = "The Action Lands"
-            sceneText = "The \(roll.skill) attempt succeeds. The intended opening is gained, and the scene remains open for whatever \(playerName) chooses next."
+            sceneText = standaloneSuccessNarration(for: roll.skill)
             checkResult = CheckResult(
                 title: "Check succeeded",
                 detail: "Rolled \(natural) + \(roll.modifier) = \(total) against DC \(roll.difficulty ?? 10).",
@@ -1005,10 +1038,10 @@ final class GameSessionClient: ObservableObject {
             )
         } else {
             sceneTitle = "A Complication Opens"
-            sceneText = "The \(roll.skill) attempt falls short. The situation gains a complication instead of stopping, and \(playerName) still has meaningful choices."
+            sceneText = standaloneFailureNarration(for: roll.skill)
             checkResult = CheckResult(
                 title: "The situation changed",
-                detail: "Rolled \(natural) + \(roll.modifier) = \(total) against DC \(roll.difficulty ?? 10). The failure changes the situation rather than ending play.",
+                detail: "Rolled \(natural) + \(roll.modifier) = \(total) against DC \(roll.difficulty ?? 10).",
                 succeeded: false
             )
         }
@@ -1018,7 +1051,7 @@ final class GameSessionClient: ObservableObject {
             performance: succeeded ? "Confirm the opening and leave the next action free." : "Present a fair forward-moving complication and leave the next action free."
         )
         prompt = standaloneFollowupPrompt(afterCheck: true)
-        notice = succeeded ? "The check resolved. Continue the story." : "The failed check created a complication. Continue the story."
+        notice = succeeded ? "An opening appears. Continue the story." : "The situation changed. Continue the story."
         if let dialoguePresentation {
             appendCompletedStoryBeat(
                 dialogues: [dialoguePresentation],

@@ -50,6 +50,13 @@ enum ProjectionPaneVariant {
         case .info, .detail, .list, .media, .map, .settings, .dialogue: WayfolioPalette.cyan
         }
     }
+
+    var readabilityScrimOpacity: Double {
+        switch self {
+        case .dialogue: 0.72
+        default: 0
+        }
+    }
 }
 
 struct EnvironmentalBackgroundLayer: View {
@@ -120,17 +127,21 @@ struct ProjectionPane: ViewModifier {
     func body(content: Content) -> some View {
         content
             .background(
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .fill(
+                ZStack {
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .fill(WayfolioPalette.midnight.opacity(variant.readabilityScrimOpacity))
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .fill(
                         LinearGradient(
-                        colors: [
-                            Wayfolio.violetGlass,
-                            WayfolioPalette.midnight.opacity(variant.tintOpacity)
+                            colors: [
+                                Wayfolio.violetGlass,
+                                WayfolioPalette.midnight.opacity(variant.tintOpacity)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
-                    )
+                        )
+                }
             )
             .background(.ultraThinMaterial.opacity(0.22), in: RoundedRectangle(cornerRadius: radius, style: .continuous))
             .overlay {

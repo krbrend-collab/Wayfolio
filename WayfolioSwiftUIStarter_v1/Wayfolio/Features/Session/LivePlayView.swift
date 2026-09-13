@@ -989,7 +989,7 @@ struct LivePlayView: View {
     }
 
     private func submitAction() {
-        voiceInput.stop()
+        voiceInput.resetAfterSubmission()
         session.submitAction(actionText, isPublic: isPublic, inputMode: actionInputMode)
         actionText = ""
         actionInputMode = "typed"
@@ -1071,9 +1071,12 @@ private final class WayfolioVoiceInput: NSObject, ObservableObject {
     private var task: SFSpeechRecognitionTask?
     private var hasInputTap = false
     private var draftPrefix = ""
+    private var recognitionGeneration = 0
 
     func start(with existingDraft: String) {
         guard !isListening else { return }
+        recognitionGeneration += 1
+        let generation = recognitionGeneration
         transcript = ""
         draftPrefix = existingDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         statusMessage = "Requesting speech access…"
@@ -1102,21 +1105,31 @@ private final class WayfolioVoiceInput: NSObject, ObservableObject {
                     return
                 }
                 Task { @MainActor in
+                    guard self?.recognitionGeneration == generation else { return }
                     guard recognizer.isAvailable else {
                         self?.statusMessage = "Speech recognition is temporarily unavailable. You can continue typing."
                         return
                     }
-                    self?.beginRecognition(using: recognizer)
+                    self?.beginRecognition(using: recognizer, generation: generation)
                 }
             }
         }
     }
 
     func stop() {
+        recognitionGeneration += 1
         stop(deactivateSession: true)
     }
 
-    private func beginRecognition(using recognizer: SFSpeechRecognizer) {
+    func resetAfterSubmission() {
+        recognitionGeneration += 1
+        stop(deactivateSession: true)
+        transcript = ""
+        draftPrefix = ""
+    }
+
+    private func beginRecognition(using recognizer: SFSpeechRecognizer, generation: Int) {
+        guard recognitionGeneration == generation else { return }
         stop(preservingStatus: true, deactivateSession: false)
         let session = AVAudioSession.sharedInstance()
         do {
@@ -1140,18 +1153,21 @@ private final class WayfolioVoiceInput: NSObject, ObservableObject {
             statusMessage = "Listening… speak naturally."
             task = recognizer.recognitionTask(with: request) { [weak self] result, error in
                 Task { @MainActor in
-                    if let result, let self {
+                    guard let self, self.recognitionGeneration == generation else { return }
+                    if let result {
                         let spoken = result.bestTranscription.formattedString
                         self.transcript = [self.draftPrefix, spoken]
                             .filter { !$0.isEmpty }
                             .joined(separator: self.draftPrefix.isEmpty ? "" : " ")
                     }
                     if let error {
-                        self?.statusMessage = "Speech input stopped: \(error.localizedDescription)"
-                        self?.stop(preservingStatus: true)
+                        self.statusMessage = "Speech input stopped: \(error.localizedDescription)"
+                        self.recognitionGeneration += 1
+                        self.stop(preservingStatus: true)
                     } else if result?.isFinal == true {
-                        self?.stop(preservingStatus: true)
-                        self?.statusMessage = "Speech added. Review or edit it before sending."
+                        self.recognitionGeneration += 1
+                        self.stop(preservingStatus: true)
+                        self.statusMessage = "Speech added. Review or edit it before sending."
                     }
                 }
             }
