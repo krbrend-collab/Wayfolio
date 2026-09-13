@@ -665,7 +665,12 @@ final class GameSessionClient: ObservableObject {
     }
 
     func submitDigitalRoll() {
+        debugDigitalRollTrace("submitDigitalRoll entered")
         submitRoll(mode: "digital", dice: [])
+    }
+
+    func traceDigitalRollButtonTap() {
+        debugDigitalRollTrace("Roll d20 digitally button action")
     }
 
     func submitPhysicalRoll(_ dice: [Int]) {
@@ -1055,6 +1060,7 @@ final class GameSessionClient: ObservableObject {
     }
 
     private func resolveStandaloneRoll(_ dice: [Int]) {
+        debugDigitalRollTrace("resolveStandaloneRoll entered")
         guard !isResolvingStandaloneRoll else { return }
         guard let roll = pendingRoll else { return }
         isResolvingStandaloneRoll = true
@@ -1062,6 +1068,7 @@ final class GameSessionClient: ObservableObject {
         let values = dice.isEmpty
             ? (0..<roll.requiredDiceCount).map { _ in Int.random(in: 1...max(2, roll.dieType)) }
             : dice
+        debugDigitalRollTrace("digital values generated", generatedDice: values)
         guard !values.isEmpty else { return }
         let natural: Int
         if roll.selection == "advantage" { natural = values.max() ?? values[0] }
@@ -1072,6 +1079,7 @@ final class GameSessionClient: ObservableObject {
 
         pendingRoll = nil
         awaitingSharedRoll = false
+        debugDigitalRollTrace("canonical roll state cleared", generatedDice: values)
         standaloneStoryStep += 1
         if succeeded {
             sceneTitle = "The Action Lands"
@@ -1107,6 +1115,7 @@ final class GameSessionClient: ObservableObject {
             emitStandaloneDialogue(dialoguePresentation)
         }
         persistStandaloneSnapshot()
+        debugDigitalRollTrace("resulting story beat persisted", generatedDice: values)
     }
 
     private func handleStandaloneItemUse(_ item: InventoryItem, quantity: Int) {
@@ -1510,10 +1519,13 @@ final class GameSessionClient: ObservableObject {
     }
 
     private func submitRoll(mode: String, dice: [Int]) {
+        debugDigitalRollTrace("submitRoll entered mode=\(mode)")
         if isStandaloneSession {
+            debugDigitalRollTrace("submitRoll standalone branch")
             resolveStandaloneRoll(mode == "digital" ? [] : dice)
             return
         }
+        debugDigitalRollTrace("submitRoll shared branch")
         guard let pendingRoll, pendingRoll.playerID == playerID else { return }
         notice = mode == "digital" ? "Rolling the dice…" : "Sending your physical roll…"
         Task {
@@ -1530,6 +1542,26 @@ final class GameSessionClient: ObservableObject {
                 notice = "The roll could not be sent. Check the connection and try again."
             }
         }
+    }
+
+    private func debugDigitalRollTrace(_ stage: String, generatedDice: [Int]? = nil) {
+#if DEBUG
+        let pendingRollID = pendingRoll?.id ?? "nil"
+        let pendingRollPlayerID = pendingRoll?.playerID ?? "nil"
+        let generatedDiceDescription = generatedDice.map { String(describing: $0) } ?? "nil"
+        print(
+            "[DigitalRollTrace] stage=\(stage) " +
+            "state=\(String(describing: state)) " +
+            "playMode=\(playMode.rawValue) " +
+            "isStandaloneSession=\(isStandaloneSession) " +
+            "pendingRoll.id=\(pendingRollID) " +
+            "pendingRoll.playerID=\(pendingRollPlayerID) " +
+            "playerID=\(playerID) " +
+            "awaitingSharedRoll=\(awaitingSharedRoll) " +
+            "webSocketExists=\(socket != nil) " +
+            "generatedDice=\(generatedDiceDescription)"
+        )
+#endif
     }
 
     private func sendAny(_ object: [String: Any]) async throws {

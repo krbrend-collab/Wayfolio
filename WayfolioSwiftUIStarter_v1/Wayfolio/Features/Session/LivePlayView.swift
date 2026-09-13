@@ -866,7 +866,10 @@ struct LivePlayView: View {
                         .multilineTextAlignment(.center)
 
                     if session.playMode == .iPhoneOnly {
-                        Button { session.submitDigitalRoll() } label: {
+                        Button {
+                            session.traceDigitalRollButtonTap()
+                            session.submitDigitalRoll()
+                        } label: {
                             Label("Roll d\(roll.dieType) digitally", systemImage: "die.face.5.fill")
                                 .frame(maxWidth: .infinity)
                         }
