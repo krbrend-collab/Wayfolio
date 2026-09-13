@@ -25,7 +25,8 @@ assert.doesNotMatch(session, /\bsucceded\b/,
   'The post-check path must not reference a misspelled, undefined success result.');
 assert.match(session, /standaloneFailureNarration\(for skill: String\)/,
   'Failed checks must produce a fictional, forward-moving complication.');
-assert.doesNotMatch(session, /Nothing in the current situation makes the declared action uncertain enough|play continues without rolling/,
+const standaloneAction = session.match(/private func handleStandaloneAction\(_ text: String, isPublic: Bool, inputMode: String\) \{[^]*?\n    \}/)?.[0] ?? '';
+assert.doesNotMatch(standaloneAction, /Nothing in the current situation makes the declared action uncertain enough|play continues without rolling/,
   'Visible no-roll narration must not explain adjudication machinery.');
 assert.doesNotMatch(session, /The outcome is uncertain enough to call for a/,
   'Visible check-request narration must not redundantly explain the roll classification.');
@@ -45,7 +46,9 @@ assert.match(live, /guard let self, self\.recognitionGeneration == generation el
   'Late callbacks from an invalidated recognition generation must not repopulate the composer.');
 assert.match(live, /func resetAfterSubmission\(\) \{[^]*recognitionGeneration \+= 1[^]*transcript = ""/,
   'Submission must invalidate recognition and clear its prior transcript.');
-assert.match(surfaces, /case \.dialogue: 0\.72/,
-  'Dialogue panes must use the approved dedicated midnight readability scrim.');
+assert.match(surfaces, /case \.dialogue: 0\.50/,
+  'Dialogue panes must retain a dedicated but translucent midnight readability scrim.');
+assert.match(surfaces, /\.fill\(\.ultraThinMaterial\)[^]*\.fill\(WayfolioPalette\.midnight\.opacity\(variant\.readabilityScrimOpacity\)\)/,
+  'Dialogue glass must diffuse the environment before applying its readability tint.');
 
 console.log('iPhone-only adjudication and continuation contract checks passed.');

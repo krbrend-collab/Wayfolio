@@ -53,10 +53,14 @@ enum ProjectionPaneVariant {
 
     var readabilityScrimOpacity: Double {
         switch self {
-        case .dialogue: 0.72
+        case .dialogue: 0.50
         default: 0
         }
     }
+
+    var materialOpacity: Double { self == .dialogue ? 0.62 : 0.22 }
+    var edgeOpacity: Double { self == .dialogue ? 0.70 : 0.52 }
+    var glowOpacity: Double { self == .dialogue ? 0.24 : 0.13 }
 }
 
 struct EnvironmentalBackgroundLayer: View {
@@ -129,6 +133,9 @@ struct ProjectionPane: ViewModifier {
             .background(
                 ZStack {
                     RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                        .opacity(variant.materialOpacity)
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
                         .fill(WayfolioPalette.midnight.opacity(variant.readabilityScrimOpacity))
                     RoundedRectangle(cornerRadius: radius, style: .continuous)
                         .fill(
@@ -143,12 +150,11 @@ struct ProjectionPane: ViewModifier {
                         )
                 }
             )
-            .background(.ultraThinMaterial.opacity(0.22), in: RoundedRectangle(cornerRadius: radius, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
                     .stroke(
                         LinearGradient(
-                            colors: [variant.edgeColor.opacity(0.52), variant.edgeColor.opacity(0.18)],
+                            colors: [variant.edgeColor.opacity(variant.edgeOpacity), variant.edgeColor.opacity(0.20)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
@@ -156,7 +162,7 @@ struct ProjectionPane: ViewModifier {
                     )
             }
             .shadow(color: Color.black.opacity(0.12), radius: 7, y: 3)
-            .shadow(color: variant.edgeColor.opacity(0.13), radius: 10)
+            .shadow(color: variant.edgeColor.opacity(variant.glowOpacity), radius: variant == .dialogue ? 14 : 10)
     }
 }
 

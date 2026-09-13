@@ -299,6 +299,10 @@ final class GameSessionClient: ObservableObject {
     private var pendingItemUseMessages: [String: [String: String]] = [:]
     private var pendingItemUseRetryTasks: [String: Task<Void, Never>] = [:]
     private var standaloneStoryStep = 0
+    private var isResolvingStandaloneRoll = false
+    private static let currentStandaloneSnapshotSchemaVersion = 2
+    private static let obsoleteNoRollNarrationFragment =
+        "Nothing in the current situation makes the declared action uncertain enough to require a check"
 
     /// Durable canonical state for play that is owned by this iPhone rather than
     /// by a WebSocket transport. Presentation devices may observe this state,
@@ -556,10 +560,20 @@ final class GameSessionClient: ObservableObject {
         let key = "wayfolio.standalone.snapshot.\(selectedCharacterID).v1"
         guard let data = UserDefaults.standard.data(forKey: key),
               let snapshot = try? JSONDecoder().decode(StandaloneSnapshot.self, from: data),
-              snapshot.schemaVersion == 1,
+              (1...Self.currentStandaloneSnapshotSchemaVersion).contains(snapshot.schemaVersion),
               snapshot.characterID == selectedCharacterID else { return false }
+        let migratedSceneText = Self.containsObsoleteNoRollNarration(snapshot.sceneText)
+            ? "\(snapshot.character.name) follows through. Attention shifts with the moment, and the scene opens naturally to what comes next."
+            : snapshot.sceneText
+        let migratedDialogue = snapshot.dialogue.flatMap {
+            Self.containsObsoleteNoRollNarration($0.text) ? nil : $0
+        }
+        let restoredBeats = snapshot.completedStoryBeats ?? snapshot.dialogue.map {
+            [Self.completedBeat(dialogues: [$0], audienceScope: "CHARACTER")]
+        } ?? []
+        let migratedBeats = Self.removingObsoleteStandaloneNarration(from: restoredBeats)
         sceneTitle = snapshot.sceneTitle
-        sceneText = snapshot.sceneText
+        sceneText = migratedSceneText
         currentLocation = snapshot.currentLocation
         timeOfDay = snapshot.timeOfDay
         weather = snapshot.weather
@@ -571,21 +585,49 @@ final class GameSessionClient: ObservableObject {
         actions = snapshot.actions
         prompt = snapshot.prompt
         checkResult = snapshot.checkResult
-        dialoguePresentation = snapshot.dialogue
+        dialoguePresentation = migratedDialogue
         visualPresentation = snapshot.visual
         pendingRoll = snapshot.pendingRoll
         awaitingSharedRoll = pendingRoll != nil
         standaloneStoryStep = snapshot.storyStep
-        completedStoryBeats = snapshot.completedStoryBeats ?? snapshot.dialogue.map {
-            [Self.completedBeat(dialogues: [$0], audienceScope: "CHARACTER")]
-        } ?? []
+        completedStoryBeats = migratedBeats
+        if snapshot.schemaVersion < Self.currentStandaloneSnapshotSchemaVersion
+            || migratedSceneText != snapshot.sceneText
+            || migratedDialogue != snapshot.dialogue
+            || migratedBeats != restoredBeats {
+            persistStandaloneSnapshot()
+        }
         return true
+    }
+
+    private static func containsObsoleteNoRollNarration(_ text: String) -> Bool {
+        text.localizedCaseInsensitiveContains(obsoleteNoRollNarrationFragment)
+    }
+
+    private static func removingObsoleteStandaloneNarration(
+        from beats: [CompletedStoryBeat]
+    ) -> [CompletedStoryBeat] {
+        beats.compactMap { beat in
+            let retainedSegments = beat.segments.filter {
+                !containsObsoleteNoRollNarration($0.text)
+            }
+            guard !retainedSegments.isEmpty else { return nil }
+            guard retainedSegments.count != beat.segments.count else { return beat }
+            return CompletedStoryBeat(
+                id: beat.id,
+                completedAt: beat.completedAt,
+                audienceScope: beat.audienceScope,
+                originatingAction: beat.originatingAction,
+                segments: retainedSegments
+            )
+        }
     }
 
     private func persistStandaloneSnapshot() {
         guard isStandaloneSession, let character else { return }
         let snapshot = StandaloneSnapshot(
-            schemaVersion: 1, characterID: selectedCharacterID,
+            schemaVersion: Self.currentStandaloneSnapshotSchemaVersion,
+            characterID: selectedCharacterID,
             sceneTitle: sceneTitle, sceneText: sceneText, currentLocation: currentLocation,
             timeOfDay: timeOfDay, weather: weather, character: character,
             inventoryItems: inventoryItems, discoveries: discoveries, journal: journal,
@@ -1013,7 +1055,10 @@ final class GameSessionClient: ObservableObject {
     }
 
     private func resolveStandaloneRoll(_ dice: [Int]) {
+        guard !isResolvingStandaloneRoll else { return }
         guard let roll = pendingRoll else { return }
+        isResolvingStandaloneRoll = true
+        defer { isResolvingStandaloneRoll = false }
         let values = dice.isEmpty
             ? (0..<roll.requiredDiceCount).map { _ in Int.random(in: 1...max(2, roll.dieType)) }
             : dice
@@ -1465,11 +1510,11 @@ final class GameSessionClient: ObservableObject {
     }
 
     private func submitRoll(mode: String, dice: [Int]) {
-        guard let pendingRoll, pendingRoll.playerID == playerID else { return }
         if isStandaloneSession {
             resolveStandaloneRoll(mode == "digital" ? [] : dice)
             return
         }
+        guard let pendingRoll, pendingRoll.playerID == playerID else { return }
         notice = mode == "digital" ? "Rolling the dice…" : "Sending your physical roll…"
         Task {
             do {
