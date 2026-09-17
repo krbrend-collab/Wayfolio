@@ -24,7 +24,7 @@ jobs:
           python -m pip install --quiet requests
           mkdir -p sonoko-koori-output
           python - <<'PY'
-          import json, math, pathlib, requests
+          import json, pathlib, requests
 
           TEXT = "This hill is staring at me. What kind? Oh... I liked it. They're judging me. There's a union?"
           BASE = "https://nymbo-tools.hf.space/gradio_api/call/Generate_Speech"
@@ -103,17 +103,9 @@ jobs:
               pathlib.Path(f"sonoko-koori-output/SONOKO_Koori_Option_{c['option']}.wav").write_bytes(wav)
           PY
 
-      - name: Convert to MP3
-        shell: bash
-        run: |
-          set -euo pipefail
-          for f in sonoko-koori-output/*.wav; do
-            ffmpeg -v error -y -i "$f" -codec:a libmp3lame -q:a 3 "${f%.wav}.mp3"
-          done
-
       - name: Upload Koori audition files
         uses: actions/upload-artifact@v4
         with:
           name: sonoko-koori-round1
-          path: sonoko-koori-output/*.mp3
+          path: sonoko-koori-output/*.wav
           retention-days: 7
