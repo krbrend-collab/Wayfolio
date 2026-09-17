@@ -1,0 +1,83 @@
+name: SONOKO Enishi auditions round 1
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-enishi-auditions-round1.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Enishi auditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+          mkdir -p sonoko-enishi-r1
+          python - <<'PY'
+          import struct, shutil
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          pipeline = KPipeline(lang_code='a')
+          text = (
+              "People hold what they can see. It was the same butterfly. "
+              "I believed you. It was still belief. Some lights are harder to see when everything else is bright. "
+              "You kept watch as far as your light could reach. It was not mine to share. I do too. "
+              "I prefer adorable. Mostly is generous."
+          )
+
+          def pitch_wav(src, dst, semitones):
+              shutil.copyfile(src, dst)
+              factor = 2**(semitones/12)
+              with open(dst, 'r+b') as f:
+                  data = f.read()
+                  i = data.find(b'fmt ')
+                  sr_off = i + 12
+                  br_off = i + 16
+                  sr = struct.unpack('<I', data[sr_off:sr_off+4])[0]
+                  br = struct.unpack('<I', data[br_off:br_off+4])[0]
+                  f.seek(sr_off); f.write(struct.pack('<I', round(sr*factor)))
+                  f.seek(br_off); f.write(struct.pack('<I', round(br*factor)))
+
+          configs = [
+              ('am_echo', 0.990, +0.25, None),
+              ('am_liam', 0.985, +0.10, None),
+              ('am_adam', 0.980, +0.40, None),
+              ('blend',   0.988, +0.20, ('am_echo','am_liam',0.58,0.42)),
+          ]
+
+          for idx, (voice_name, final_speed, pitch, blend) in enumerate(configs, 1):
+              factor = 2**(pitch/12)
+              gen_speed = final_speed / factor
+              if blend:
+                  a,b,wa,wb = blend
+                  voice = pipeline.load_voice(a)*wa + pipeline.load_voice(b)*wb
+              else:
+                  voice = voice_name
+
+              audio = []
+              for r in pipeline(text, voice=voice, speed=gen_speed):
+                  audio.extend(r.audio.tolist())
+
+              raw = f'sonoko-enishi-r1/raw_{idx}.wav'
+              out = f'sonoko-enishi-r1/SONOKO_Enishi_Option_{idx}.wav'
+              sf.write(raw, audio, 24000)
+              pitch_wav(raw, out, pitch)
+
+          PY
+          rm sonoko-enishi-r1/raw_*.wav
+      - name: Upload Enishi auditions
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-enishi-round1
+          path: sonoko-enishi-r1/*.wav
+          retention-days: 7
