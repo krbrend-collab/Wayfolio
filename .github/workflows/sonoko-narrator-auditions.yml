@@ -1,0 +1,112 @@
+name: SONOKO narrator auditions
+
+on:
+  push:
+    branches:
+      - sonoko-auditions-host
+    paths:
+      - .github/workflows/sonoko-narrator-auditions.yml
+      - sonoko-auditions/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate narrator auditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet requests
+          mkdir -p sonoko-output
+          python - <<'PY'
+          import json, math, pathlib, requests
+
+          TEXT = "Three decades had passed since Sonoyama-sama’s footsteps last touched the hill. Early spring had come to Sonoyama. Snow still clung to the shadows, but the air was softer now. Koori padded up the path he knew by heart."
+          BASE = "https://nymbo-tools.hf.space/gradio_api/call/Generate_Speech"
+          CANDIDATES = [
+              {"option": 1, "voice": "af_river", "speed": 0.98, "pitch": -0.7},
+              {"option": 2, "voice": "bf_emma", "speed": 0.98, "pitch": -0.7},
+              {"option": 3, "voice": "am_echo", "speed": 0.99, "pitch": -0.6},
+              {"option": 4, "voice": "bm_fable", "speed": 0.98, "pitch": -0.8},
+          ]
+
+          def parse_complete(s):
+              for block in s.replace('\r\n', '\n').split('\n\n'):
+                  event = None
+                  data = []
+                  for line in block.split('\n'):
+                      if line.startswith('event:'):
+                          event = line[6:].strip()
+                      elif line.startswith('data:'):
+                          data.append(line[5:].strip())
+                  if event == 'error' and data:
+                      raise RuntimeError('Nymbo error: ' + '\n'.join(data))
+                  if event == 'complete' and data:
+                      return json.loads('\n'.join(data))
+              raise RuntimeError('No complete event')
+
+          def find_url(v):
+              if isinstance(v, str):
+                  return v if v.startswith(('http://','https://')) else None
+              if isinstance(v, list):
+                  for x in v:
+                      u = find_url(x)
+                      if u: return u
+              if isinstance(v, dict):
+                  if isinstance(v.get('url'), str) and v['url'].startswith(('http://','https://')):
+                      return v['url']
+                  for x in v.values():
+                      u = find_url(x)
+                      if u: return u
+              return None
+
+          def pitch_shift_wav_header(data, rate):
+              b = bytearray(data)
+              if len(b) < 44 or b[:4] != b'RIFF' or b[8:12] != b'WAVE' or abs(rate - 1) < 1e-6:
+                  return bytes(b)
+              off = 12
+              while off + 8 <= len(b):
+                  cid = bytes(b[off:off+4])
+                  size = int.from_bytes(b[off+4:off+8], 'little')
+                  d = off + 8
+                  if cid == b'fmt ' and size >= 16 and d + 16 <= len(b):
+                      sr = int.from_bytes(b[d+4:d+8], 'little')
+                      br = int.from_bytes(b[d+8:d+12], 'little')
+                      b[d+4:d+8] = max(1, round(sr * rate)).to_bytes(4, 'little')
+                      b[d+8:d+12] = max(1, round(br * rate)).to_bytes(4, 'little')
+                      return bytes(b)
+                  off = d + size + (size % 2)
+              return bytes(b)
+
+          for c in CANDIDATES:
+              pitch_rate = 2 ** (c['pitch'] / 12)
+              generation_speed = c['speed'] / pitch_rate
+              r = requests.post(BASE, json={"data": [TEXT, generation_speed, c['voice']]}, timeout=90)
+              r.raise_for_status()
+              event_id = r.json().get('event_id')
+              if not event_id:
+                  raise RuntimeError(f"No event_id for option {c['option']}")
+              rr = requests.get(f"{BASE}/{event_id}", headers={"Accept":"text/event-stream"}, timeout=240)
+              rr.raise_for_status()
+              complete = parse_complete(rr.text)
+              audio_url = find_url(complete)
+              if not audio_url:
+                  raise RuntimeError(f"No audio URL for option {c['option']}")
+              ar = requests.get(audio_url, timeout=120)
+              ar.raise_for_status()
+              wav = pitch_shift_wav_header(ar.content, pitch_rate)
+              pathlib.Path(f"sonoko-output/SONOKO_Narrator_Option_{c['option']}.wav").write_bytes(wav)
+          PY
+
+      - name: Upload audition files
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-narrator-round1
+          path: sonoko-output/*.wav
+          retention-days: 7
