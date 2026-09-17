@@ -1,0 +1,87 @@
+name: SONOKO Maro tendency blend experiment
+
+on:
+  push:
+    branches:
+      - sonoko-auditions-host
+    paths:
+      - .github/workflows/sonoko-maro-tendency-blends-r1.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Maro tendency blends
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+          mkdir -p sonoko-maro-tendency-r1
+          python - <<'PY'
+          import io, struct, pathlib
+          import numpy as np
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          TEXT = "You weren’t supposed to see that. That’s… unhelpful. Don’t look at me like that. I nudge things. Sometimes I become a wheel. That was new. It’s easier to be the funny stranger. People don’t expect anything real from a stranger. I don’t want to be the problem. Please don’t grow extra limbs. The festival committee will have to make a whole new safety poster. Great for when you want to think about something, and also when you don’t."
+
+          pipeline = KPipeline(lang_code='a')
+          base = pipeline.load_voice('af_nova')
+          puck = pipeline.load_voice('am_puck')
+          eric = pipeline.load_voice('am_eric')
+          heart = pipeline.load_voice('af_heart')
+
+          # Keep Maro Round-2 Option-3's overall register and pace stable.
+          FINAL_SPEED = 1.020
+          PITCH = -1.45
+          factor = 2**(PITCH/12)
+          generation_speed = FINAL_SPEED / factor
+
+          blends = [
+              ('A', base * 0.94 + puck * 0.06),
+              ('B', base * 0.90 + puck * 0.10),
+              ('C', base * 0.92 + eric * 0.08),
+              ('D', base * 0.92 + heart * 0.08),
+          ]
+
+          def pitch_header(raw, semitones):
+              b = bytearray(raw)
+              fac = 2**(semitones/12)
+              pos = 12
+              while pos + 8 <= len(b):
+                  cid = bytes(b[pos:pos+4])
+                  size = struct.unpack_from('<I', b, pos+4)[0]
+                  if cid == b'fmt ':
+                      sr = struct.unpack_from('<I', b, pos+12)[0]
+                      br = struct.unpack_from('<I', b, pos+16)[0]
+                      struct.pack_into('<I', b, pos+12, max(1, round(sr*fac)))
+                      struct.pack_into('<I', b, pos+16, max(1, round(br*fac)))
+                      return bytes(b)
+                  pos += 8 + size + (size & 1)
+              raise RuntimeError('fmt chunk not found')
+
+          for label, voice in blends:
+              chunks = []
+              for result in pipeline(TEXT, voice=voice, speed=generation_speed):
+                  chunks.append(result.audio.detach().cpu().numpy() if hasattr(result.audio, 'detach') else np.asarray(result.audio))
+              audio = np.concatenate(chunks).astype('float32')
+              buf = io.BytesIO()
+              sf.write(buf, audio, 24000, format='WAV', subtype='PCM_16')
+              pitched = pitch_header(buf.getvalue(), PITCH)
+              pathlib.Path(f'sonoko-maro-tendency-r1/SONOKO_Maro_Tendency_{label}.wav').write_bytes(pitched)
+          PY
+
+      - name: Upload Maro tendency blend auditions
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-maro-tendency-round1
+          path: sonoko-maro-tendency-r1/*.wav
+          retention-days: 7
