@@ -1,0 +1,109 @@
+name: SONOKO Koori brighter youthful round
+
+on:
+  push:
+    branches:
+      - sonoko-auditions-host
+    paths:
+      - .github/workflows/sonoko-koori-aanglike-round3.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate four distinct Koori bases
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet requests
+          mkdir -p sonoko-koori-round3/raw sonoko-koori-round3/final
+          python - <<'PY'
+          import json, pathlib, requests
+
+          TEXT = "This hill is staring at me. There’s a union? I don’t want you to not be here. Rude. Hello. You got tall. Dramatic choice."
+          BASE = "https://nymbo-tools.hf.space/gradio_api/call/Generate_Speech"
+          CANDIDATES = [
+              {"option": 1, "voice": "am_eric",  "speed": 1.06},
+              {"option": 2, "voice": "bm_fable", "speed": 1.055},
+              {"option": 3, "voice": "am_echo",  "speed": 1.07},
+              {"option": 4, "voice": "am_puck",  "speed": 1.075},
+          ]
+
+          def parse_complete(s):
+              for block in s.replace('\r\n','\n').split('\n\n'):
+                  event=None; data=[]
+                  for line in block.split('\n'):
+                      if line.startswith('event:'): event=line[6:].strip()
+                      elif line.startswith('data:'): data.append(line[5:].strip())
+                  if event == 'error' and data:
+                      raise RuntimeError('Nymbo error: ' + '\n'.join(data))
+                  if event == 'complete' and data:
+                      return json.loads('\n'.join(data))
+              raise RuntimeError('No complete event')
+
+          def find_url(v):
+              if isinstance(v,str):
+                  return v if v.startswith(('http://','https://')) else None
+              if isinstance(v,list):
+                  for x in v:
+                      u=find_url(x)
+                      if u: return u
+              if isinstance(v,dict):
+                  if isinstance(v.get('url'),str) and v['url'].startswith(('http://','https://')):
+                      return v['url']
+                  for x in v.values():
+                      u=find_url(x)
+                      if u: return u
+              return None
+
+          for c in CANDIDATES:
+              r=requests.post(BASE,json={"data":[TEXT,c['speed'],c['voice']]},timeout=90)
+              r.raise_for_status()
+              event_id=r.json().get('event_id')
+              if not event_id: raise RuntimeError(f"No event_id for option {c['option']}")
+              rr=requests.get(f"{BASE}/{event_id}",headers={"Accept":"text/event-stream"},timeout=240)
+              rr.raise_for_status()
+              url=find_url(parse_complete(rr.text))
+              if not url: raise RuntimeError(f"No audio URL for option {c['option']}")
+              ar=requests.get(url,timeout=120); ar.raise_for_status()
+              pathlib.Path(f"sonoko-koori-round3/raw/option_{c['option']}.wav").write_bytes(ar.content)
+          PY
+
+      - name: Apply substantial youthful pitch while preserving tempo
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Each option uses a genuinely different base voice. Pitch shifts are intentionally stronger
+          # than the prior round, while tempo is restored with atempo so the voice is not simply sped up.
+          pitch_preserve() {
+            in="$1"; out="$2"; semis="$3"
+            sr=$(ffprobe -v error -select_streams a:0 -show_entries stream=sample_rate -of default=nw=1:nk=1 "$in")
+            factor=$(python - <<PY
+          import math
+          print(2**($semis/12))
+          PY
+          )
+            inv=$(python - <<PY
+          f=float("$factor")
+          print(1/f)
+          PY
+          )
+            ffmpeg -v error -y -i "$in" -af "asetrate=${sr}*${factor},aresample=${sr},atempo=${inv}" -c:a pcm_s16le "$out"
+          }
+          pitch_preserve sonoko-koori-round3/raw/option_1.wav sonoko-koori-round3/final/SONOKO_Koori_Youthful_Option_1.wav 2.0
+          pitch_preserve sonoko-koori-round3/raw/option_2.wav sonoko-koori-round3/final/SONOKO_Koori_Youthful_Option_2.wav 2.4
+          pitch_preserve sonoko-koori-round3/raw/option_3.wav sonoko-koori-round3/final/SONOKO_Koori_Youthful_Option_3.wav 2.7
+          pitch_preserve sonoko-koori-round3/raw/option_4.wav sonoko-koori-round3/final/SONOKO_Koori_Youthful_Option_4.wav 2.2
+
+      - name: Upload Koori youthful files
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-koori-youthful-round3
+          path: sonoko-koori-round3/final/*.wav
+          retention-days: 7
