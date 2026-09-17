@@ -17,6 +17,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install audio tools
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
       - name: Generate four distinct Koori bases
         shell: bash
         run: |
@@ -79,8 +85,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Each option uses a genuinely different base voice. Pitch shifts are intentionally stronger
-          # than the prior round, while tempo is restored with atempo so the voice is not simply sped up.
           pitch_preserve() {
             in="$1"; out="$2"; semis="$3"
             sr=$(ffprobe -v error -select_streams a:0 -show_entries stream=sample_rate -of default=nw=1:nk=1 "$in")
