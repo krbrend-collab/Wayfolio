@@ -1,0 +1,94 @@
+name: SONOKO Koori true blend round 8
+
+on:
+  push:
+    branches:
+      - sonoko-auditions-host
+    paths:
+      - .github/workflows/sonoko-koori-localblend-round8.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Kokoro
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -qq -y espeak-ng >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+
+      - name: Generate true blended Koori voices
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p sonoko-koori-r8
+          python - <<'PY'
+          from pathlib import Path
+          import math
+          import soundfile as sf
+          import torch
+          from kokoro import KPipeline
+
+          TEXT = "This hill is staring at me. There’s a union? I don’t want you to not be here. Rude. Hello. You got tall. Dramatic choice. I’ll keep coming back. You remember her. I’ll remember with you."
+          pipeline = KPipeline(lang_code='a')
+          eric = pipeline.load_voice('am_eric')
+          michael = pipeline.load_voice('am_michael')
+
+          # Finalist 1: Eric, speed 1.07, pitch +1.4
+          # Finalist 4: Michael, speed 1.08, pitch +1.9
+          # Three real embedding blends across the space between them.
+          candidates = [
+              {"option": 1, "eric": 0.60, "michael": 0.40, "final_speed": 1.074, "pitch": 1.60},
+              {"option": 2, "eric": 0.50, "michael": 0.50, "final_speed": 1.075, "pitch": 1.65},
+              {"option": 3, "eric": 0.40, "michael": 0.60, "final_speed": 1.076, "pitch": 1.70},
+          ]
+
+          def pitch_shift_wav_header(path, rate):
+              data = path.read_bytes()
+              b = bytearray(data)
+              if len(b) < 44 or b[:4] != b'RIFF' or b[8:12] != b'WAVE' or abs(rate - 1) < 1e-6:
+                  return
+              off = 12
+              while off + 8 <= len(b):
+                  cid = bytes(b[off:off+4])
+                  size = int.from_bytes(b[off+4:off+8], 'little')
+                  d = off + 8
+                  if cid == b'fmt ' and size >= 16 and d + 16 <= len(b):
+                      sr = int.from_bytes(b[d+4:d+8], 'little')
+                      br = int.from_bytes(b[d+8:d+12], 'little')
+                      b[d+4:d+8] = max(1, round(sr * rate)).to_bytes(4, 'little')
+                      b[d+8:d+12] = max(1, round(br * rate)).to_bytes(4, 'little')
+                      path.write_bytes(bytes(b))
+                      return
+                  off = d + size + (size % 2)
+
+          for c in candidates:
+              blend = eric * c['eric'] + michael * c['michael']
+              rate = 2 ** (c['pitch'] / 12)
+              generation_speed = c['final_speed'] / rate
+              pieces = []
+              for result in pipeline(TEXT, voice=blend, speed=generation_speed, split_pattern=r'\n+'):
+                  if result.audio is not None:
+                      pieces.append(result.audio.detach().cpu())
+              if not pieces:
+                  raise RuntimeError(f"No audio for option {c['option']}")
+              audio = torch.cat(pieces).numpy()
+              out = Path(f"sonoko-koori-r8/SONOKO_Koori_TrueBlend_Option_{c['option']}.wav")
+              sf.write(out, audio, 24000, subtype='PCM_16')
+              pitch_shift_wav_header(out, rate)
+          PY
+
+      - name: Upload Koori true blends
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-koori-trueblend-round8
+          path: sonoko-koori-r8/*.wav
+          retention-days: 7
