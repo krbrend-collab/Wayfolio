@@ -1,0 +1,66 @@
+name: SONOKO Pudding-Chan blend options 1 and 4 round 3
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-puddingchan-blend-1-4-round3.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate blended Pudding-Chan voice
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+          mkdir -p sonoko-puddingchan-r3
+          python - <<'PY'
+          import struct, shutil
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          pipeline=KPipeline(lang_code='a')
+          text="I found it! I found the good one! Look, look—this part is colder. No, wait! This part. Definitely this part. I knew it! I could feel it in my whole body. Can we keep it? Please? I promise I will be extremely responsible. Probably!"
+
+          # Round 2 Option 1 = 100% af_sky, speed 1.11, pitch +3.0
+          # Round 2 Option 4 = 62% af_sky + 38% af_bella, speed 1.115, pitch +3.4
+          # Exact 50/50 midpoint between those identities = 81% af_sky + 19% af_bella.
+          voice = pipeline.load_voice('af_sky')*0.81 + pipeline.load_voice('af_bella')*0.19
+          final_speed=1.1125
+          pitch=3.2
+          factor=2**(pitch/12)
+          gen_speed=final_speed/factor
+
+          audio=[]
+          for r in pipeline(text, voice=voice, speed=gen_speed):
+              audio.extend(r.audio.tolist())
+
+          raw='sonoko-puddingchan-r3/raw.wav'
+          out='sonoko-puddingchan-r3/SONOKO_PuddingChan_Blend_1_4.wav'
+          sf.write(raw,audio,24000)
+          shutil.copyfile(raw,out)
+          with open(out,'r+b') as f:
+              data=f.read()
+              i=data.find(b'fmt ')
+              sr_off=i+12
+              br_off=i+16
+              sr=struct.unpack('<I',data[sr_off:sr_off+4])[0]
+              br=struct.unpack('<I',data[br_off:br_off+4])[0]
+              f.seek(sr_off); f.write(struct.pack('<I',round(sr*factor)))
+              f.seek(br_off); f.write(struct.pack('<I',round(br*factor)))
+          PY
+          rm sonoko-puddingchan-r3/raw.wav
+      - name: Upload blend
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-puddingchan-blend-1-4-round3
+          path: sonoko-puddingchan-r3/*.wav
+          retention-days: 7
