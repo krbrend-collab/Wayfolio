@@ -1,0 +1,89 @@
+name: SONOKO Amia pitch refinement round 2
+
+on:
+  push:
+    branches:
+      - sonoko-auditions-host
+    paths:
+      - .github/workflows/sonoko-amia-pitch-refinement-round2.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Amia Option 1 pitch refinements
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet requests
+          mkdir -p sonoko-amia-r2
+          python - <<'PY'
+          import json, pathlib, requests, struct
+
+          TEXT = "Some nights are harder to sort out than others. Because of too many feelings at the same time. Sometimes I can tell where something begins inside a person—the first hurt, or the hope under the hurt. And sometimes it all comes at once: the grief, the love, the wanting, the fear of wanting. I like having you here. I want you to stay with us more often. I like having you around. I want to see you because you're you. I want this to be joyful, not just useful. I want to sing because it feels good. Even if it sparkles?"
+          BASE = "https://nymbo-tools.hf.space/gradio_api/call/Generate_Speech"
+          VOICE = "af_heart"
+          FINAL_SPEED = 1.035
+          OPTIONS = [(1,0.75),(2,1.25),(3,1.75),(4,2.25)]
+
+          def parse_complete(s):
+              for block in s.replace('\r\n','\n').split('\n\n'):
+                  event=None; data=[]
+                  for line in block.split('\n'):
+                      if line.startswith('event:'): event=line[6:].strip()
+                      elif line.startswith('data:'): data.append(line[5:].strip())
+                  if event == 'error' and data: raise RuntimeError('Nymbo error: '+'\n'.join(data))
+                  if event == 'complete' and data: return json.loads('\n'.join(data))
+              raise RuntimeError('No complete event')
+
+          def find_url(v):
+              if isinstance(v,str): return v if v.startswith(('http://','https://')) else None
+              if isinstance(v,list):
+                  for x in v:
+                      u=find_url(x)
+                      if u:return u
+              if isinstance(v,dict):
+                  if isinstance(v.get('url'),str) and v['url'].startswith(('http://','https://')): return v['url']
+                  for x in v.values():
+                      u=find_url(x)
+                      if u:return u
+              return None
+
+          def pitch_header(raw, semitones):
+              b=bytearray(raw); factor=2**(semitones/12)
+              pos=12
+              while pos+8 <= len(b):
+                  cid=bytes(b[pos:pos+4]); size=struct.unpack_from('<I',b,pos+4)[0]
+                  if cid == b'fmt ':
+                      sr=struct.unpack_from('<I',b,pos+12)[0]
+                      br=struct.unpack_from('<I',b,pos+16)[0]
+                      struct.pack_into('<I',b,pos+12,round(sr*factor))
+                      struct.pack_into('<I',b,pos+16,round(br*factor))
+                      return bytes(b)
+                  pos += 8 + size + (size & 1)
+              raise RuntimeError('fmt chunk not found')
+
+          for opt,pitch in OPTIONS:
+              factor=2**(pitch/12)
+              generation_speed=FINAL_SPEED/factor
+              r=requests.post(BASE,json={"data":[TEXT,generation_speed,VOICE]},timeout=90); r.raise_for_status()
+              event_id=r.json().get('event_id')
+              rr=requests.get(f"{BASE}/{event_id}",headers={"Accept":"text/event-stream"},timeout=240); rr.raise_for_status()
+              url=find_url(parse_complete(rr.text))
+              ar=requests.get(url,timeout=120); ar.raise_for_status()
+              audio=pitch_header(ar.content,pitch)
+              pathlib.Path(f"sonoko-amia-r2/SONOKO_Amia_Pitched_Option_{opt}.wav").write_bytes(audio)
+          PY
+
+      - name: Upload Amia refinements
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-amia-pitch-refinement-round2
+          path: sonoko-amia-r2/*.wav
+          retention-days: 7
