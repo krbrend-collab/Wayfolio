@@ -1,0 +1,46 @@
+name: SONOKO Pudding-Chan auditions round 1
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-puddingchan-auditions-round1.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Pudding-Chan auditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+          mkdir -p sonoko-puddingchan-r1
+          python - <<'PY'
+          import soundfile as sf
+          from kokoro import KPipeline
+          pipeline=KPipeline(lang_code='a')
+          text="I found it! I found the good one. Look, look—this part is colder. No, wait. This part. Definitely this part. I knew it. I could feel it in my whole body. Can we keep it? Please? I promise I will be extremely responsible. Probably."
+          options=[
+            ('af_sky',1.08),
+            ('af_nova',1.075),
+            ('af_bella',1.085),
+            ('af_jessica',1.08),
+          ]
+          for i,(voice,speed) in enumerate(options,1):
+              audio=[]
+              for r in pipeline(text,voice=voice,speed=speed): audio.extend(r.audio.tolist())
+              sf.write(f'sonoko-puddingchan-r1/SONOKO_PuddingChan_Option_{i}.wav',audio,24000)
+          PY
+      - name: Upload auditions
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-puddingchan-round1
+          path: sonoko-puddingchan-r1/*.wav
+          retention-days: 7
