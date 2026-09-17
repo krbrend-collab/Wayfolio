@@ -1,0 +1,73 @@
+name: SONOKO Puchii auditions round 1
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-puchii-auditions-round1.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Puchii auditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+          mkdir -p sonoko-puchii-r1
+          python - <<'PY'
+          import struct, shutil
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          pipeline=KPipeline(lang_code='a')
+          text="Wait—wait, I have an idea. No, a better idea. We should absolutely go that way. Why? Because I already started walking. Come on! If it explodes, we'll know not to do it twice. Probably."
+
+          def pitch_wav(src,dst,semitones):
+              shutil.copyfile(src,dst)
+              factor=2**(semitones/12)
+              with open(dst,'r+b') as f:
+                  data=f.read()
+                  i=data.find(b'fmt ')
+                  sr_off=i+12; br_off=i+16
+                  sr=struct.unpack('<I',data[sr_off:sr_off+4])[0]
+                  br=struct.unpack('<I',data[br_off:br_off+4])[0]
+                  f.seek(sr_off); f.write(struct.pack('<I',round(sr*factor)))
+                  f.seek(br_off); f.write(struct.pack('<I',round(br*factor)))
+
+          configs=[
+              ('af_bella',1.10,1.55,None),
+              ('af_jessica',1.115,1.25,None),
+              ('af_kore',1.095,1.45,None),
+              ('blend',1.11,1.40,('af_bella','af_jessica',0.58,0.42)),
+          ]
+
+          for i,(voice,final_speed,pitch,blend) in enumerate(configs,1):
+              factor=2**(pitch/12)
+              gen_speed=final_speed/factor
+              v=voice
+              if blend:
+                  a,b,wa,wb=blend
+                  v=pipeline.load_voice(a)*wa + pipeline.load_voice(b)*wb
+              audio=[]
+              for r in pipeline(text,voice=v,speed=gen_speed):
+                  audio.extend(r.audio.tolist())
+              raw=f'sonoko-puchii-r1/raw_{i}.wav'
+              out=f'sonoko-puchii-r1/SONOKO_Puchii_Option_{i}.wav'
+              sf.write(raw,audio,24000)
+              pitch_wav(raw,out,pitch)
+          PY
+          rm sonoko-puchii-r1/raw_*.wav
+      - name: Upload Puchii auditions
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-puchii-round1
+          path: sonoko-puchii-r1/*.wav
+          retention-days: 7
