@@ -1,0 +1,80 @@
+name: SONOKO Sonoyama-sama auditions round 1
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-sonoyama-sama-auditions-round1.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Sonoyama-sama auditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+          mkdir -p sonoko-sonoyama-sama-r1
+          python - <<'PY'
+          import struct, shutil
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          pipeline=KPipeline(lang_code='a')
+          text=(
+              "The Fox of Tremendous Seriousness. "
+              "No, no. That's their required morning announcement. If a crow doesn't shout at least once, they lose their union membership. "
+              "For crows. Foxes would talk too much during the meetings. "
+              "A guide, not a shout. That is your strength. "
+              "And paths become choices. Choices become stories. "
+              "That happens."
+          )
+
+          def pitch_wav(src,dst,semitones):
+              shutil.copyfile(src,dst)
+              factor=2**(semitones/12)
+              with open(dst,'r+b') as f:
+                  data=f.read()
+                  i=data.find(b'fmt ')
+                  sr_off=i+12; br_off=i+16
+                  sr=struct.unpack('<I',data[sr_off:sr_off+4])[0]
+                  br=struct.unpack('<I',data[br_off:br_off+4])[0]
+                  f.seek(sr_off); f.write(struct.pack('<I',round(sr*factor)))
+                  f.seek(br_off); f.write(struct.pack('<I',round(br*factor)))
+
+          configs=[
+              ('af_aoede',1.025,-0.10,None),
+              ('af_sarah',1.035,0.05,None),
+              ('af_river',1.025,-0.20,None),
+              ('blend',1.030,-0.05,('af_aoede','af_sarah',0.72,0.28)),
+          ]
+
+          for i,(voice,final_speed,pitch,blend) in enumerate(configs,1):
+              factor=2**(pitch/12)
+              gen_speed=final_speed/factor
+              v=voice
+              if blend:
+                  a,b,wa,wb=blend
+                  v=pipeline.load_voice(a)*wa + pipeline.load_voice(b)*wb
+              audio=[]
+              for r in pipeline(text,voice=v,speed=gen_speed):
+                  audio.extend(r.audio.tolist())
+              raw=f'sonoko-sonoyama-sama-r1/raw_{i}.wav'
+              out=f'sonoko-sonoyama-sama-r1/SONOKO_SonoyamaSama_Option_{i}.wav'
+              sf.write(raw,audio,24000)
+              pitch_wav(raw,out,pitch)
+          PY
+          rm sonoko-sonoyama-sama-r1/raw_*.wav
+      - name: Upload Sonoyama-sama auditions
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-sonoyama-sama-round1
+          path: sonoko-sonoyama-sama-r1/*.wav
+          retention-days: 7
