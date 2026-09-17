@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<title>SONOKO Narrator Auditions</title>
+<style>
+:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}*{box-sizing:border-box}body{margin:0;padding:24px 18px 48px;background:#111;color:#f3f3f3}main{max-width:720px;margin:0 auto}h1{font-size:1.45rem;line-height:1.2;margin:0 0 18px}.passage{font-size:1rem;line-height:1.55;color:#ddd;padding:15px 16px;border-left:4px solid #666;background:#171717;border-radius:10px;margin:0 0 20px}.card{border:1px solid #353535;border-radius:16px;padding:16px;margin:14px 0;background:#1a1a1a}.top{display:flex;align-items:center;justify-content:space-between;gap:12px}.label{font-weight:800;font-size:1.08rem}.status{font-size:.88rem;color:#aaa;text-align:right}.status.ok{color:#a8d8b0}.status.working{color:#e1cd84}.status.error{color:#ff9d9d}button{width:100%;min-height:52px;margin-top:12px;border:0;border-radius:13px;padding:12px 16px;font-size:1rem;font-weight:750;background:#f2f2f2;color:#111}button:disabled{opacity:.5}audio{width:100%;margin-top:12px}.note{color:#888;font-size:.85rem;line-height:1.45;margin-top:18px}.errorbox{white-space:pre-wrap;word-break:break-word;color:#ff9d9d;font-size:.82rem;margin-top:8px}.hidden{display:none}
+</style>
+</head>
+<body>
+<main>
+<h1>SONOKO — Narrator Casting, Round 1</h1>
+<p class="passage">“Three decades had passed since Sonoyama-sama’s footsteps last touched the hill. Early spring had come to Sonoyama. Snow still clung to the shadows, but the air was softer now. Koori padded up the path he knew by heart.”</p>
+<div id="cards"></div>
+<p class="note">Each option uses Kokoro. Generate one at a time, then compare the finished audio players.</p>
+</main>
+<script>
+const PROXY='https://wayfolio-voice-proxy-wxlq.vercel.app/api/speech';
+const NYMBO='https://nymbo-tools.hf.space/gradio_api/call/Generate_Speech';
+const TEXT='Three decades had passed since Sonoyama-sama’s footsteps last touched the hill. Early spring had come to Sonoyama. Snow still clung to the shadows, but the air was softer now. Koori padded up the path he knew by heart.';
+const OPTIONS=[
+ {n:1,voice:'af_river',speed:.98,pitch:-.7},
+ {n:2,voice:'bf_emma',speed:.98,pitch:-.7},
+ {n:3,voice:'am_echo',speed:.99,pitch:-.6},
+ {n:4,voice:'bm_fable',speed:.98,pitch:-.8}
+];
+const cache=new Map();
+function semitoneRate(s){return Math.pow(2,s/12)}
+function pitchWav(bytes,rate){
+ const b=new Uint8Array(bytes.slice(0)); const v=new DataView(b.buffer);
+ const str=(o,n)=>String.fromCharCode(...b.slice(o,o+n));
+ if(b.length<44||str(0,4)!=='RIFF'||str(8,4)!=='WAVE'||Math.abs(rate-1)<.0001)return b.buffer;
+ let off=12;
+ while(off+8<=b.length){
+  const id=str(off,4), size=v.getUint32(off+4,true), d=off+8;
+  if(id==='fmt '&&size>=16&&d+16<=b.length){
+   const sr=v.getUint32(d+4,true), br=v.getUint32(d+8,true);
+   v.setUint32(d+4,Math.max(1,Math.round(sr*rate)),true);
+   v.setUint32(d+8,Math.max(1,Math.round(br*rate)),true);
+   return b.buffer;
+  }
+  off=d+size+(size%2);
+ }
+ return b.buffer;
+}
+function parseComplete(text){
+ for(const block of text.replace(/\r\n/g,'\n').split('\n\n')){
+  const lines=block.split('\n'); let event=''; const data=[];
+  for(const line of lines){if(line.startsWith('event:'))event=line.slice(6).trim(); else if(line.startsWith('data:'))data.push(line.slice(5).trim())}
+  if(event==='error'&&data.length)throw new Error('Nymbo error: '+data.join('\n'));
+  if(event==='complete'&&data.length)return JSON.parse(data.join('\n'));
+ }
+ throw new Error('Nymbo stream ended without a complete event.');
+}
+function findUrl(v){
+ if(!v)return null;
+ if(typeof v==='string')return /^https?:\/\//i.test(v)?v:null;
+ if(Array.isArray(v)){for(const x of v){const u=findUrl(x);if(u)return u}}
+ else if(typeof v==='object'){if(typeof v.url==='string'&&/^https?:\/\//i.test(v.url))return v.url;for(const x of Object.values(v)){const u=findUrl(x);if(u)return u}}
+ return null;
+}
+async function viaProxy(o){
+ const r=await fetch(PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:TEXT,voice:o.voice,speed:o.speed,pitch_delta_semitones:o.pitch})});
+ if(!r.ok)throw new Error('Proxy '+r.status+': '+(await r.text()).slice(0,300));
+ return {blob:await r.blob(),source:'Wayfolio proxy'};
+}
+async function viaNymbo(o){
+ const pr=semitoneRate(o.pitch); const generationSpeed=o.speed/pr;
+ const s=await fetch(NYMBO,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:[TEXT,generationSpeed,o.voice]})});
+ if(!s.ok)throw new Error('Nymbo submit '+s.status+': '+(await s.text()).slice(0,300));
+ const sj=await s.json(); if(!sj.event_id)throw new Error('Nymbo did not return an event_id.');
+ const rr=await fetch(NYMBO+'/'+encodeURIComponent(sj.event_id),{headers:{Accept:'text/event-stream'}});
+ if(!rr.ok)throw new Error('Nymbo result '+rr.status+': '+(await rr.text()).slice(0,300));
+ const complete=parseComplete(await rr.text()); const url=findUrl(complete); if(!url)throw new Error('Nymbo returned no audio URL.');
+ const ar=await fetch(url); if(!ar.ok)throw new Error('Audio download '+ar.status);
+ const raw=await ar.arrayBuffer(); const shifted=pitchWav(raw,pr);
+ return {blob:new Blob([shifted],{type:ar.headers.get('content-type')||'audio/wav'}),source:'direct Nymbo fallback'};
+}
+async function generate(o,els){
+ if(cache.has(o.n)){els.audio.src=cache.get(o.n);els.audio.play().catch(()=>{});return}
+ els.btn.disabled=true; els.status.className='status working'; els.status.textContent='Generating…'; els.err.textContent='';
+ try{
+  let result;
+  try{result=await viaProxy(o)}catch(proxyErr){console.warn(proxyErr);result=await viaNymbo(o)}
+  const url=URL.createObjectURL(result.blob); cache.set(o.n,url); els.audio.src=url; els.audio.load();
+  els.status.className='status ok'; els.status.textContent='Ready'; els.btn.textContent='Play again'; els.btn.disabled=false;
+  try{await els.audio.play()}catch{}
+ }catch(e){
+  els.status.className='status error'; els.status.textContent='Generation failed'; els.btn.textContent='Retry'; els.btn.disabled=false; els.err.textContent=e?.message||String(e);
+ }
+}
+const cards=document.getElementById('cards');
+for(const o of OPTIONS){
+ const card=document.createElement('section'); card.className='card';
+ card.innerHTML=`<div class="top"><div class="label">Option ${o.n}</div><div class="status">Not generated</div></div><button type="button">Generate & Play</button><audio controls playsinline preload="none"></audio><div class="errorbox"></div>`;
+ cards.appendChild(card);
+ const els={status:card.querySelector('.status'),btn:card.querySelector('button'),audio:card.querySelector('audio'),err:card.querySelector('.errorbox')};
+ els.btn.addEventListener('click',()=>generate(o,els));
+}
+</script>
+</body>
+</html>
