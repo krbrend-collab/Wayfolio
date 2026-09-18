@@ -1,0 +1,89 @@
+name: SONOKO younger boy age-five auditions round 2
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-younger-boy-age-five-round2.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate age-five boy auditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+          mkdir -p sonoko-younger-boy-r2
+          python - <<'PY'
+          import struct, shutil
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          pipeline = KPipeline(lang_code='a')
+          text = (
+              "They're not different. They're a story. "
+              "The mountains want to see the stars, and the stars want to sit on the mountains. "
+              "So they work together. They make each other better. "
+              "Is this the fox story? "
+              "I'm writing notes. "
+              "About storms dragons would respect. "
+              "Can a fox really help a whole town?"
+          )
+
+          def pitch_wav(src, dst, semitones):
+              shutil.copyfile(src, dst)
+              factor = 2**(semitones/12)
+              with open(dst, 'r+b') as f:
+                  data = f.read()
+                  i = data.find(b'fmt ')
+                  sr_off = i + 12
+                  br_off = i + 16
+                  sr = struct.unpack('<I', data[sr_off:sr_off+4])[0]
+                  br = struct.unpack('<I', data[br_off:br_off+4])[0]
+                  f.seek(sr_off); f.write(struct.pack('<I', round(sr*factor)))
+                  f.seek(br_off); f.write(struct.pack('<I', round(br*factor)))
+
+          # A five-year-old boy is better approached from a light, youthful
+          # feminine/androgynous base than by pitching adult male voices upward.
+          # Keep him natural and childlike rather than cartoon-shrill.
+          configs = [
+              ('af_alloy', 1.075, +3.35, None),
+              ('af_alloy', 1.090, +3.85, None),
+              ('blend',    1.085, +3.65, ('af_alloy','af_sky',0.86,0.14)),
+              ('blend',    1.080, +3.50, ('af_alloy','af_river',0.90,0.10)),
+          ]
+
+          for idx, (voice_name, final_speed, pitch, blend) in enumerate(configs, 1):
+              factor = 2**(pitch/12)
+              gen_speed = final_speed / factor
+              if blend:
+                  a,b,wa,wb = blend
+                  voice = pipeline.load_voice(a)*wa + pipeline.load_voice(b)*wb
+              else:
+                  voice = voice_name
+
+              audio = []
+              for r in pipeline(text, voice=voice, speed=gen_speed):
+                  audio.extend(r.audio.tolist())
+
+              raw = f'sonoko-younger-boy-r2/raw_{idx}.wav'
+              out = f'sonoko-younger-boy-r2/SONOKO_YoungerBoy_Age5_R2_Option_{idx}.wav'
+              sf.write(raw, audio, 24000)
+              pitch_wav(raw, out, pitch)
+          PY
+          rm sonoko-younger-boy-r2/raw_*.wav
+
+      - name: Upload age-five boy auditions
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-younger-boy-age5-round2
+          path: sonoko-younger-boy-r2/*.wav
+          retention-days: 7
