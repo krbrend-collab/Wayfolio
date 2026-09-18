@@ -1,0 +1,103 @@
+name: SONOKO recurring children auditions round 1
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-recurring-children-auditions-round1.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate recurring children auditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+          mkdir -p sonoko-recurring-children-r1
+          python - <<'PY'
+          import struct, shutil
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          pipeline = KPipeline(lang_code='a')
+
+          girl_text = (
+              "You know those are different, right? "
+              "They're just mismatched. "
+              "The one from Sonoyama. "
+              "About dragons?"
+          )
+
+          boy_text = (
+              "They're not different. They're a story. "
+              "The mountains want to see the stars, and the stars want to sit on the mountains. "
+              "So they work together. They make each other better. "
+              "Is this the fox story? "
+              "I'm writing notes. "
+              "About storms dragons would respect. "
+              "Can a fox really help a whole town?"
+          )
+
+          def pitch_wav(src, dst, semitones):
+              shutil.copyfile(src, dst)
+              factor = 2**(semitones/12)
+              with open(dst, 'r+b') as f:
+                  data = f.read()
+                  i = data.find(b'fmt ')
+                  sr_off = i + 12
+                  br_off = i + 16
+                  sr = struct.unpack('<I', data[sr_off:sr_off+4])[0]
+                  br = struct.unpack('<I', data[br_off:br_off+4])[0]
+                  f.seek(sr_off); f.write(struct.pack('<I', round(sr*factor)))
+                  f.seek(br_off); f.write(struct.pack('<I', round(br*factor)))
+
+          girl_configs = [
+              ('af_alloy', 1.055, +1.20, None),
+              ('af_bella', 1.050, +1.05, None),
+              ('blend',    1.052, +1.12, ('af_alloy','af_bella',0.72,0.28)),
+          ]
+
+          boy_configs = [
+              ('am_liam', 1.070, +2.10, None),
+              ('am_adam', 1.065, +2.35, None),
+              ('blend',   1.068, +2.20, ('am_liam','am_adam',0.68,0.32)),
+          ]
+
+          def render(prefix, text, configs):
+              for idx, (voice_name, final_speed, pitch, blend) in enumerate(configs, 1):
+                  factor = 2**(pitch/12)
+                  gen_speed = final_speed / factor
+                  if blend:
+                      a,b,wa,wb = blend
+                      voice = pipeline.load_voice(a)*wa + pipeline.load_voice(b)*wb
+                  else:
+                      voice = voice_name
+
+                  audio = []
+                  for r in pipeline(text, voice=voice, speed=gen_speed):
+                      audio.extend(r.audio.tolist())
+
+                  raw = f'sonoko-recurring-children-r1/raw_{prefix}_{idx}.wav'
+                  out = f'sonoko-recurring-children-r1/SONOKO_{prefix}_Option_{idx}.wav'
+                  sf.write(raw, audio, 24000)
+                  pitch_wav(raw, out, pitch)
+
+          render('OlderGirl', girl_text, girl_configs)
+          render('YoungerBoy', boy_text, boy_configs)
+          PY
+          rm sonoko-recurring-children-r1/raw_*.wav
+
+      - name: Upload recurring children auditions
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-recurring-children-round1
+          path: sonoko-recurring-children-r1/*.wav
+          retention-days: 7
