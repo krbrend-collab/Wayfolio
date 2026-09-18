@@ -1,0 +1,84 @@
+name: SONOKO Kashi-san auditions round 1
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-kashi-san-auditions-round1.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Kashi-san auditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+          mkdir -p sonoko-kashi-san-r1
+          python - <<'PY'
+          import struct, shutil
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          pipeline = KPipeline(lang_code='a')
+          text = (
+              "Good afternoon, dears. "
+              "You'd tease me for letting the jars get this low. "
+              "Just the right amount of squish. "
+              "Oh. I don't remember straightening these. "
+              "You're right... it does."
+          )
+
+          def pitch_wav(src, dst, semitones):
+              shutil.copyfile(src, dst)
+              factor = 2**(semitones/12)
+              with open(dst, 'r+b') as f:
+                  data = f.read()
+                  i = data.find(b'fmt ')
+                  sr_off = i + 12
+                  br_off = i + 16
+                  sr = struct.unpack('<I', data[sr_off:sr_off+4])[0]
+                  br = struct.unpack('<I', data[br_off:br_off+4])[0]
+                  f.seek(sr_off); f.write(struct.pack('<I', round(sr*factor)))
+                  f.seek(br_off); f.write(struct.pack('<I', round(br*factor)))
+
+          configs = [
+              ('af_sarah',   1.015, -0.15, None),
+              ('af_river',   1.005, -0.20, None),
+              ('af_jessica', 1.020, -0.35, None),
+              ('blend',      1.010, -0.18, ('af_sarah','af_river',0.68,0.32)),
+          ]
+
+          for idx, (voice_name, final_speed, pitch, blend) in enumerate(configs, 1):
+              factor = 2**(pitch/12)
+              gen_speed = final_speed / factor
+              if blend:
+                  a,b,wa,wb = blend
+                  voice = pipeline.load_voice(a)*wa + pipeline.load_voice(b)*wb
+              else:
+                  voice = voice_name
+
+              audio = []
+              for r in pipeline(text, voice=voice, speed=gen_speed):
+                  audio.extend(r.audio.tolist())
+
+              raw = f'sonoko-kashi-san-r1/raw_{idx}.wav'
+              out = f'sonoko-kashi-san-r1/SONOKO_KashiSan_Option_{idx}.wav'
+              sf.write(raw, audio, 24000)
+              pitch_wav(raw, out, pitch)
+
+          PY
+          rm sonoko-kashi-san-r1/raw_*.wav
+      - name: Upload Kashi-san auditions
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-kashi-san-round1
+          path: sonoko-kashi-san-r1/*.wav
+          retention-days: 7
