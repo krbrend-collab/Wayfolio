@@ -1,0 +1,96 @@
+name: SONOKO incidental replacements round 2
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-incidental-replacements-round2.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate replacement incidental voices
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+          mkdir -p sonoko-incidental-replacements-r2
+          python - <<'PY'
+          import struct, shutil
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          pipeline = KPipeline(lang_code='a')
+          text = (
+              "Morning. You're early. "
+              "The market won't get busy for another hour. "
+              "If you're looking for the festival road, keep left at the bridge. "
+              "Someone moved the sign again. Happens every year. "
+              "No harm done. You'll find it."
+          )
+
+          def pitch_wav(src, dst, semitones):
+              shutil.copyfile(src, dst)
+              factor = 2**(semitones/12)
+              with open(dst, 'r+b') as f:
+                  data = f.read()
+                  i = data.find(b'fmt ')
+                  sr_off = i + 12
+                  br_off = i + 16
+                  sr = struct.unpack('<I', data[sr_off:sr_off+4])[0]
+                  br = struct.unpack('<I', data[br_off:br_off+4])[0]
+                  f.seek(sr_off); f.write(struct.pack('<I', round(sr*factor)))
+                  f.seek(br_off); f.write(struct.pack('<I', round(br*factor)))
+
+          # Replacement Adult Woman: intentionally more textured and characterful,
+          # avoiding the plain af_river lane.
+          women = [
+              ("WomanDistinct_1", 1.015, -0.45, [('af_kore',0.84),('af_sarah',0.16)]),
+              ("WomanDistinct_2", 1.020, -0.30, [('af_jessica',0.76),('af_kore',0.24)]),
+              ("WomanDistinct_3", 1.010, -0.50, [('af_kore',0.70),('af_aoede',0.30)]),
+          ]
+
+          # Replacement Young Adult: more specific personality and less generic.
+          # Use mixed/androgynous blends so these do not read as another stock adult male.
+          young = [
+              ("YoungAdultDistinct_1", 1.050, +0.65, [('am_liam',0.72),('af_alloy',0.28)]),
+              ("YoungAdultDistinct_2", 1.055, +0.85, [('am_michael',0.62),('af_alloy',0.38)]),
+              ("YoungAdultDistinct_3", 1.045, +0.45, [('am_liam',0.68),('af_sky',0.32)]),
+          ]
+
+          def render(configs):
+              for label, final_speed, pitch, parts in configs:
+                  factor = 2**(pitch/12)
+                  gen_speed = final_speed / factor
+                  voice = None
+                  for name, weight in parts:
+                      emb = pipeline.load_voice(name) * weight
+                      voice = emb if voice is None else voice + emb
+
+                  audio = []
+                  for r in pipeline(text, voice=voice, speed=gen_speed):
+                      audio.extend(r.audio.tolist())
+
+                  raw = f"sonoko-incidental-replacements-r2/raw_{label}.wav"
+                  out = f"sonoko-incidental-replacements-r2/SONOKO_Incidental_{label}.wav"
+                  sf.write(raw, audio, 24000)
+                  pitch_wav(raw, out, pitch)
+
+          render(women)
+          render(young)
+          PY
+          rm sonoko-incidental-replacements-r2/raw_*.wav
+
+      - name: Upload replacement incidental voices
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-incidental-replacements-round2
+          path: sonoko-incidental-replacements-r2/*.wav
+          retention-days: 7
