@@ -1,0 +1,101 @@
+name: SONOKO generic child pool round 1
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-generic-child-pool-round1.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate generic child voice auditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+          mkdir -p sonoko-generic-child-pool-r1
+          python - <<'PY'
+          import struct, shutil
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          pipeline = KPipeline(lang_code='a')
+
+          girl_text = (
+              "Do you think they still have some left? "
+              "I only need a little. "
+              "No, not that one—the round one. "
+              "Thank you. Come on, we're going to be late."
+          )
+
+          child_text = (
+              "I saw it first. "
+              "You always say that. "
+              "Wait—look at this one. "
+              "Do you think it's supposed to glow? "
+              "We should ask before we touch it."
+          )
+
+          def pitch_wav(src, dst, semitones):
+              shutil.copyfile(src, dst)
+              factor = 2**(semitones/12)
+              with open(dst, 'r+b') as f:
+                  data = f.read()
+                  i = data.find(b'fmt ')
+                  sr_off = i + 12
+                  br_off = i + 16
+                  sr = struct.unpack('<I', data[sr_off:sr_off+4])[0]
+                  br = struct.unpack('<I', data[br_off:br_off+4])[0]
+                  f.seek(sr_off); f.write(struct.pack('<I', round(sr*factor)))
+                  f.seek(br_off); f.write(struct.pack('<I', round(br*factor)))
+
+          girl_configs = [
+              ('af_jessica', 1.070, +1.85, None),
+              ('blend',      1.065, +2.05, ('af_jessica','af_sarah',0.78,0.22)),
+              ('af_sarah',   1.060, +2.15, None),
+          ]
+
+          flex_configs = [
+              ('blend', 1.075, +2.35, ('af_sarah','am_liam',0.68,0.32)),
+              ('blend', 1.080, +2.55, ('af_jessica','am_liam',0.62,0.38)),
+              ('am_liam',1.085,+2.75, None),
+          ]
+
+          def render(prefix, text, configs):
+              for idx, (voice_name, final_speed, pitch, blend) in enumerate(configs, 1):
+                  factor = 2**(pitch/12)
+                  gen_speed = final_speed / factor
+                  if blend:
+                      a,b,wa,wb = blend
+                      voice = pipeline.load_voice(a)*wa + pipeline.load_voice(b)*wb
+                  else:
+                      voice = voice_name
+
+                  audio = []
+                  for r in pipeline(text, voice=voice, speed=gen_speed):
+                      audio.extend(r.audio.tolist())
+
+                  raw = f'sonoko-generic-child-pool-r1/raw_{prefix}_{idx}.wav'
+                  out = f'sonoko-generic-child-pool-r1/SONOKO_Generic{prefix}_Option_{idx}.wav'
+                  sf.write(raw, audio, 24000)
+                  pitch_wav(raw, out, pitch)
+
+          render('Girl', girl_text, girl_configs)
+          render('Child', child_text, flex_configs)
+          PY
+          rm sonoko-generic-child-pool-r1/raw_*.wav
+
+      - name: Upload generic child pool auditions
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-generic-child-pool-round1
+          path: sonoko-generic-child-pool-r1/*.wav
+          retention-days: 7
