@@ -1,0 +1,131 @@
+name: SONOKO revisit Koori Maro Puchii round 1
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-revisit-koori-maro-puchii-r1.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate revised auditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng ffmpeg >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+          mkdir -p sonoko-revisit-kmp-r1
+          python - <<'PY'
+          import struct, shutil, subprocess
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          pipeline = KPipeline(lang_code='a')
+
+          texts = {
+              "Koori": (
+                  "I know, I know. I was supposed to wait. "
+                  "But you saw it too, right? The light moved. "
+                  "Come on—just a little farther. "
+                  "If this is a terrible idea, we can agree it was your idea."
+              ),
+              "Maro": (
+                  "I wasn't hiding. I was standing somewhere unusually difficult to notice. "
+                  "There is a difference. A very important difference. "
+                  "Probably. "
+                  "You can laugh. I already did, internally."
+              ),
+              "Puchii": (
+                  "Wait, wait, wait—look! "
+                  "I found it first. That means I get to name it. "
+                  "No, I already have three names. "
+                  "Come on! If we're going to do something ridiculous, we should at least do it quickly."
+              ),
+          }
+
+          def pitch_wav(src, dst, semitones):
+              shutil.copyfile(src, dst)
+              factor = 2**(semitones/12)
+              with open(dst, 'r+b') as f:
+                  data = f.read()
+                  i = data.find(b'fmt ')
+                  sr_off = i + 12
+                  br_off = i + 16
+                  sr = struct.unpack('<I', data[sr_off:sr_off+4])[0]
+                  br = struct.unpack('<I', data[br_off:br_off+4])[0]
+                  f.seek(sr_off); f.write(struct.pack('<I', round(sr*factor)))
+                  f.seek(br_off); f.write(struct.pack('<I', round(br*factor)))
+
+          def blend(parts):
+              v = None
+              for name, weight in parts:
+                  emb = pipeline.load_voice(name) * weight
+                  v = emb if v is None else v + emb
+              return v
+
+          configs = {
+              "Koori": [
+                  (1.085, +1.85, [('am_eric',0.52),('am_michael',0.38),('af_alloy',0.10)]),
+                  (1.095, +2.05, [('am_eric',0.68),('am_michael',0.20),('af_alloy',0.12)]),
+                  (1.090, +1.95, [('am_eric',0.48),('am_michael',0.27),('af_alloy',0.25)]),
+              ],
+              "Maro": [
+                  (1.025, -0.75, [('af_nova',0.72),('am_echo',0.18),('af_bella',0.10)]),
+                  (1.020, -0.95, [('af_nova',0.64),('am_echo',0.28),('af_bella',0.08)]),
+                  (1.030, -0.65, [('af_nova',0.76),('am_eric',0.14),('af_bella',0.10)]),
+              ],
+              "Puchii": [
+                  (1.110, +2.25, [('af_kore',0.88),('af_sky',0.12)]),
+                  (1.120, +2.45, [('af_kore',0.82),('af_bella',0.18)]),
+                  (1.115, +2.30, [('af_kore',0.74),('af_sky',0.18),('af_bella',0.08)]),
+              ],
+          }
+
+          for char, char_configs in configs.items():
+              for idx, (final_speed, pitch, parts) in enumerate(char_configs, 1):
+                  factor = 2**(pitch/12)
+                  gen_speed = final_speed / factor
+                  voice = blend(parts)
+
+                  audio = []
+                  for r in pipeline(texts[char], voice=voice, speed=gen_speed):
+                      audio.extend(r.audio.tolist())
+
+                  raw = f'sonoko-revisit-kmp-r1/raw_{char}_{idx}.wav'
+                  pitched = f'sonoko-revisit-kmp-r1/pitched_{char}_{idx}.wav'
+                  out = f'sonoko-revisit-kmp-r1/SONOKO_{char}_Revisit_R1_Option_{idx}.wav'
+                  sf.write(raw, audio, 24000)
+                  pitch_wav(raw, pitched, pitch)
+
+                  if char == "Puchii":
+                      # Clean single-voice spectral shaping only: no phase-vocoder/time-stretch.
+                      filt = (
+                          "equalizer=f=350:t=q:w=1.0:g=-1.5,"
+                          "equalizer=f=1450:t=q:w=1.1:g=2.4,"
+                          "equalizer=f=2200:t=q:w=1.2:g=2.0,"
+                          "equalizer=f=3300:t=q:w=1.3:g=0.8,"
+                          "lowpass=f=9000,alimiter=limit=0.97"
+                      )
+                      subprocess.run([
+                          "ffmpeg","-y","-loglevel","error","-i",pitched,
+                          "-af",filt,out
+                      ], check=True)
+                  else:
+                      shutil.copyfile(pitched, out)
+
+          PY
+          rm sonoko-revisit-kmp-r1/raw_*.wav sonoko-revisit-kmp-r1/pitched_*.wav
+
+      - name: Upload revised auditions
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-revisit-koori-maro-puchii-r1
+          path: sonoko-revisit-kmp-r1/*.wav
+          retention-days: 7
