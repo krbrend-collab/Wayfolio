@@ -1,0 +1,336 @@
+name: SONOKO Chapter 32 Full Cast Audio
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-ch32-full-cast-audio.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Chapter 32 full-cast audio
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng ffmpeg >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile numpy
+          mkdir -p sonoko-ch32/segments
+
+          python - <<'PY'
+          import os, math, struct, shutil, subprocess, re
+          from pathlib import Path
+          import numpy as np
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          OUT = Path("sonoko-ch32")
+          SEG = OUT / "segments"
+          pipeline = KPipeline(lang_code='a')
+
+          # Current selected/canonical SONOKO voices.
+          voices = {
+              "Narrator": {
+                  "parts": [("am_echo", 1.0)],
+                  "speed": 0.990,
+                  "pitch": -0.60,
+              },
+              "Koori": {
+                  # Selected diverse recast R2 Option 4
+                  "parts": [("af_alloy", 0.72), ("am_eric", 0.28)],
+                  "speed": 1.090,
+                  "pitch": 1.90,
+              },
+              "Amia": {
+                  "parts": [("af_heart", 1.0)],
+                  "speed": 1.035,
+                  "pitch": 1.25,
+              },
+              "Maro": {
+                  # Diverse R2 Option 4, then user's final pitch/speed refinements.
+                  "parts": [("af_aoede", 0.45), ("af_nova", 0.45), ("am_echo", 0.10)],
+                  "speed": 1.188624944,
+                  "pitch": -0.95,
+              },
+              "Pudding-Chan": {
+                  "parts": [("af_sky", 0.81), ("af_bella", 0.19)],
+                  "speed": 1.1125,
+                  "pitch": 3.20,
+              },
+              "Enishi": {
+                  # Canonical single-voice am_echo; matched to accepted finalist's
+                  # clean, measured delivery and +0.45 header pitch.
+                  "parts": [("am_echo", 1.0)],
+                  "speed": 0.866,
+                  "pitch": 0.45,
+              },
+              "Puchii": {
+                  # Selected diverse R2 Option 3
+                  "parts": [("af_bella", 0.46), ("af_sky", 0.38), ("af_kore", 0.16)],
+                  "speed": 1.125,
+                  "pitch": 2.80,
+                  "puchii_eq": True,
+              },
+          }
+
+          segments = [
+              ("Narrator", "Sugar Maple Kakigori. Chapter thirty-two. Under the Sugar Maple.", 650),
+              ("Narrator", "The Sugar Maple knew when it was time for something good.", 260),
+              ("Narrator", "Its roots curved outward in wide arcs at the edge of town, forming natural seats where the road softened and the hill path toward Sonoyama-sama Shrine began. Light filtered through the leaves in loose, golden patches across the ring of water. Laughter, spoons tapping, and the soft fizz of popping candy filled the air.", 260),
+              ("Narrator", "They gathered as friends, bowls settling wherever hands, paws, and flippers found space.", 220),
+              ("Narrator", "Koori paused before sitting and placed one paw lightly against the bark. The maple had a comforting warmth beneath his pads. He smiled and joined them.", 320),
+
+              ("Narrator", "Maro leaned back first, already suspiciously pleased with himself. His kakigōri glowed deep green beneath a glossy pour of matcha syrup, steam spreading faintly where it touched the ice. A single marshmallow sat proudly on top.", 150),
+              ("Maro", "Observe.", 180),
+              ("Narrator", "Before anyone could ask, he reached into his bag and produced a small kitchen blowtorch. Koori’s ears flicked up.", 100),
+              ("Koori", "Why do you have that?", 140),
+              ("Narrator", "Maro flicked it on—fwoom—toasting the marshmallow to a perfect golden crust.", 90),
+              ("Maro", "For emergencies,", 70),
+              ("Narrator", "he said, dead serious.", 60),
+              ("Maro", "And texture.", 160),
+              ("Narrator", "Amia laughed as the sugar caramelized.", 50),
+              ("Amia", "You carry that around?", 90),
+              ("Maro", "Only on days that deserve it,", 60),
+              ("Narrator", "Maro replied, clicking it off and bowing to his dessert.", 100),
+              ("Narrator", "Puchii clapped once.", 40),
+              ("Puchii", "That was a performance!", 200),
+
+              ("Narrator", "Amia turned to her own bowl—soft green matcha layered with fresh strawberry slices that glistened against the ice, ramune candies nestled throughout like tiny glass beads. As she stirred, they clicked gently together.", 90),
+              ("Amia", "It tastes like summer,", 70),
+              ("Narrator", "she decided.", 100),
+              ("Narrator", "Pudding-Chan leaned in to examine it closely.", 50),
+              ("Pudding-Chan", "Very social flavor,", 60),
+              ("Narrator", "he decided.", 70),
+              ("Narrator", "She blinked.", 40),
+              ("Amia", "Social?", 80),
+              ("Pudding-Chan", "Yes,", 40),
+              ("Narrator", "he said, nodding.", 40),
+              ("Pudding-Chan", "Good for sitting and talking. Not a run-away snack.", 150),
+
+              ("Narrator", "Puchii burst out laughing and tipped his own bowl forward. His shaved ice crackled with popping candy, red bean paste folded thickly through the center, kinako dusted warm and nutty across the top.", 80),
+              ("Puchii", "Mine is loud. But also comforting.", 100),
+              ("Maro", "It sounds like it’s applauding itself.", 80),
+              ("Puchii", "It deserves it.", 170),
+
+              ("Narrator", "Enishi lifted his bowl next. Black sesame syrup darkened the ice into something rich and grounding, kompeitō scattered across the surface like tiny stars caught mid-fall. He tasted it once.", 100),
+              ("Enishi", "Balanced.", 120),
+              ("Narrator", "Then, after a pause,", 100),
+              ("Enishi", "And cute.", 200),
+
+              ("Narrator", "Pudding-Chan looked at his own bowl, then brightened. His melon syrup shone translucent green over gently wobbling cucumber jelly.", 80),
+              ("Pudding-Chan", "See,", 50),
+              ("Narrator", "he said, tapping it once.", 50),
+              ("Pudding-Chan", "This is refreshing. But also friendly. You don’t rush with this one.", 160),
+
+              ("Narrator", "Koori finally lifted his—yuzu folded cleanly into cream, a careful pinch of salt catching the light like frost. He smiled softly to himself and took a quiet bite. The sharpness bloomed, then softened. He exhaled without realizing he’d been holding his breath.", 130),
+              ("Koori", "Yes,", 80),
+              ("Narrator", "he said. And after a moment, softer,", 110),
+              ("Koori", "This is right.", 260),
+
+              ("Narrator", "They ate and reminisced, talking about vending machines near the bridge that somehow always had the right drink, the cherry-and-plum stream, and how blossoms would drift there again. Pudding-Chan was already planning winter snacks that involved warm places and sitting very still.", 180),
+              ("Pudding-Chan", "At some point,", 70),
+              ("Narrator", "Pudding-Chan said thoughtfully,", 60),
+              ("Pudding-Chan", "people need somewhere to put their bowls down.", 120),
+              ("Narrator", "Maro froze.", 50),
+              ("Maro", "That’s it.", 90),
+              ("Amia", "That’s… what?", 100),
+              ("Maro", "Why we keep ending up here,", 50),
+              ("Narrator", "Maro said, licking matcha from his thumb.", 50),
+              ("Maro", "We gather. We snack. We linger.", 110),
+              ("Narrator", "Puchii nodded.", 40),
+              ("Puchii", "Lingering is important.", 80),
+              ("Pudding-Chan", "It’s the best part.", 70),
+              ("Narrator", "Pudding-Chan agreed.", 150),
+
+              ("Narrator", "Koori looked toward the slope beneath the torii, where the road trailed off and the shrine path continued upward. From here, the vermilion gate framed the town just enough to remind it where it came from.", 90),
+              ("Koori", "A place,", 70),
+              ("Narrator", "he said gently,", 50),
+              ("Koori", "where this doesn’t stop when we stand up.", 130),
+              ("Narrator", "Amia followed his gaze.", 50),
+              ("Amia", "A place that holds people when they arrive.", 100),
+              ("Pudding-Chan", "And sends them back a little better fed.", 90),
+              ("Narrator", "Pudding-Chan added.", 130),
+
+              ("Narrator", "Maro snapped open his folding chalkboard, chalk squeaking immediately.", 60),
+              ("Puchii", "Oh no,", 45),
+              ("Narrator", "Puchii said.", 45),
+              ("Puchii", "It’s happening.", 140),
+              ("Narrator", "Maro began sketching—fast, confident lines. A small building. Wide windows. Light that spilled outward instead of trapping itself inside.", 70),
+              ("Maro", "No steps to hesitate on,", 50),
+              ("Narrator", "he said.", 50),
+              ("Maro", "You just… enter.", 120),
+              ("Narrator", "Pudding-Chan pointed.", 50),
+              ("Pudding-Chan", "Counter there. Jars where you can see the colors.", 90),
+              ("Narrator", "Puchii tapped the board rhythmically.", 50),
+              ("Puchii", "It should hum when people are nearby.", 100),
+              ("Narrator", "Enishi stepped closer, gaze thoughtful.", 60),
+              ("Enishi", "And before the door,", 60),
+              ("Narrator", "he said,", 40),
+              ("Enishi", "a threshold. Something that lets attention align.", 150),
+
+              ("Narrator", "Maro drew a simple gate—small, vermilion, placed with care. They all went quiet for a moment. Amia tilted her head.", 80),
+              ("Amia", "Something about care,", 55),
+              ("Narrator", "she said.", 40),
+              ("Amia", "A place that’s watched over.", 110),
+              ("Enishi", "Or named for who walked here first,", 60),
+              ("Narrator", "Enishi added.", 40),
+              ("Enishi", "Sonoyama-sama left places behind so others could rest.", 140),
+              ("Narrator", "Pudding-Chan nodded slowly.", 50),
+              ("Pudding-Chan", "A name that feels like being remembered.", 100),
+              ("Narrator", "Puchii grinned.", 40),
+              ("Puchii", "Short,", 45),
+              ("Narrator", "he said.", 40),
+              ("Puchii", "Easy to say. Easy to come back to.", 100),
+
+              ("Koori", "And easy to find,", 50),
+              ("Narrator", "Koori said. His gaze moved to the path below the maple—the one he’d traveled and tended for three centuries.", 70),
+              ("Koori", "The path should be the invitation.", 140),
+              ("Narrator", "Koori listened, tails tucked loosely around himself. The idea settled in his chest—steady and familiar, like a path he’d walked before and forgotten how to find again. A small smirk lifted the corner of his mouth.", 100),
+              ("Koori", "We can build it,", 60),
+              ("Narrator", "he said.", 50),
+              ("Koori", "Tomorrow.", 650),
+          ]
+
+          # Pronunciation substitutions affect synthesis only, not manuscript content.
+          substitutions = [
+              (r"Sonoyama-sama", "Soh-noh-yah-mah sah-mah"),
+              (r"kakigōri", "kah-kee-GOH-ree"),
+              (r"Kakigori", "kah-kee-GOH-ree"),
+              (r"ramune", "rah-moo-neh"),
+              (r"kinako", "kee-NAH-koh"),
+              (r"kompeitō", "kohn-peh-TOH"),
+              (r"yuzu", "YOO-zoo"),
+              (r"torii", "TOH-ree-ee"),
+              (r"Enishi", "eh-NEE-shee"),
+              (r"Puchii", "poo-chee"),
+              (r"Pudding-Chan", "Pudding chahn"),
+          ]
+
+          def synth_text(text):
+              t = text
+              for pat, repl in substitutions:
+                  t = re.sub(pat, repl, t, flags=re.IGNORECASE)
+              return t
+
+          voice_cache = {}
+          def get_voice(parts):
+              key = tuple(parts)
+              if key in voice_cache:
+                  return voice_cache[key]
+              v = None
+              for name, w in parts:
+                  e = pipeline.load_voice(name) * w
+                  v = e if v is None else v + e
+              voice_cache[key] = v
+              return v
+
+          def header_pitch(src, dst, semitones):
+              shutil.copyfile(src, dst)
+              factor = 2 ** (semitones / 12)
+              with open(dst, "r+b") as f:
+                  data = f.read()
+                  i = data.find(b"fmt ")
+                  if i < 0:
+                      raise RuntimeError("WAV fmt chunk not found")
+                  sr_off = i + 12
+                  br_off = i + 16
+                  sr = struct.unpack("<I", data[sr_off:sr_off+4])[0]
+                  br = struct.unpack("<I", data[br_off:br_off+4])[0]
+                  f.seek(sr_off); f.write(struct.pack("<I", round(sr * factor)))
+                  f.seek(br_off); f.write(struct.pack("<I", round(br * factor)))
+
+          rendered = []
+          manifest = []
+
+          for idx, (speaker, text, pause_ms) in enumerate(segments, 1):
+              cfg = voices[speaker]
+              factor = 2 ** (cfg["pitch"] / 12)
+              gen_speed = cfg["speed"] / factor
+              voice = get_voice(cfg["parts"])
+              tts = synth_text(text)
+
+              chunks = []
+              for r in pipeline(tts, voice=voice, speed=gen_speed):
+                  chunks.append(np.asarray(r.audio, dtype=np.float32))
+              if not chunks:
+                  raise RuntimeError(f"No audio for segment {idx}")
+              audio = np.concatenate(chunks)
+
+              raw = SEG / f"{idx:03d}_raw.wav"
+              pitched = SEG / f"{idx:03d}_pitched.wav"
+              final = SEG / f"{idx:03d}_{speaker.replace(' ','_')}.wav"
+              sf.write(raw, audio, 24000)
+              header_pitch(raw, pitched, cfg["pitch"])
+
+              filters = []
+              if cfg.get("puchii_eq"):
+                  filters += [
+                      "equalizer=f=450:t=q:w=1.0:g=-1.8",
+                      "equalizer=f=1550:t=q:w=1.1:g=3.0",
+                      "equalizer=f=2400:t=q:w=1.2:g=2.4",
+                      "equalizer=f=3500:t=q:w=1.2:g=1.0",
+                      "lowpass=f=9000",
+                  ]
+              filters += ["alimiter=limit=0.95"]
+              subprocess.run([
+                  "ffmpeg","-y","-loglevel","error","-i",str(pitched),
+                  "-af", ",".join(filters),
+                  "-ar","24000","-ac","1","-c:a","pcm_s16le",str(final)
+              ], check=True)
+
+              rendered.append((final, pause_ms))
+              manifest.append(f"{idx:03d}\t{speaker}\t{text}")
+              raw.unlink(missing_ok=True)
+              pitched.unlink(missing_ok=True)
+
+          # Build one continuous full-cast WAV with natural inter-line pauses.
+          all_audio = []
+          for f, pause_ms in rendered:
+              y, sr = sf.read(f, dtype="float32")
+              if y.ndim > 1:
+                  y = y.mean(axis=1)
+              all_audio.append(y)
+              if pause_ms:
+                  all_audio.append(np.zeros(int(24000 * pause_ms / 1000), dtype=np.float32))
+          mix = np.concatenate(all_audio)
+          peak = float(np.max(np.abs(mix))) if len(mix) else 1.0
+          if peak > 0.95:
+              mix *= 0.95 / peak
+
+          wav_out = OUT / "SONOKO_Chapter_32_Under_the_Sugar_Maple_Full_Cast.wav"
+          sf.write(wav_out, mix, 24000, subtype="PCM_16")
+
+          # Phone-friendly AAC/M4A and MP3 copies.
+          subprocess.run([
+              "ffmpeg","-y","-loglevel","error","-i",str(wav_out),
+              "-af","loudnorm=I=-18:TP=-2:LRA=9",
+              "-c:a","aac","-b:a","192k",
+              str(OUT / "SONOKO_Chapter_32_Under_the_Sugar_Maple_Full_Cast.m4a")
+          ], check=True)
+          subprocess.run([
+              "ffmpeg","-y","-loglevel","error","-i",str(wav_out),
+              "-af","loudnorm=I=-18:TP=-2:LRA=9",
+              "-c:a","libmp3lame","-b:a","192k",
+              str(OUT / "SONOKO_Chapter_32_Under_the_Sugar_Maple_Full_Cast.mp3")
+          ], check=True)
+
+          (OUT / "segment_manifest.tsv").write_text("\n".join(manifest), encoding="utf-8")
+          PY
+
+      - name: Upload chapter audio
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-ch32-full-cast-audio
+          path: |
+            sonoko-ch32/SONOKO_Chapter_32_Under_the_Sugar_Maple_Full_Cast.wav
+            sonoko-ch32/SONOKO_Chapter_32_Under_the_Sugar_Maple_Full_Cast.m4a
+            sonoko-ch32/SONOKO_Chapter_32_Under_the_Sugar_Maple_Full_Cast.mp3
+            sonoko-ch32/segment_manifest.tsv
+          retention-days: 7
