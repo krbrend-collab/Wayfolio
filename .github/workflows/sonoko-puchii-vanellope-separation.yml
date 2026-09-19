@@ -1,0 +1,104 @@
+name: SONOKO Puchii Vanellope separation round
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-puchii-vanellope-separation.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Puchii and Pudding-Chan separation samples
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng ffmpeg >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile
+          mkdir -p sonoko-puchii-separation
+          python - <<'PY'
+          import struct, shutil, subprocess
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          p = KPipeline(lang_code='a')
+
+          texts = {
+            "Puchii": (
+              "Wait, wait, wait—look! I found it first. That means I get to name it. "
+              "No, I already have three names. Come on! If we're going to do something ridiculous, "
+              "we should at least do it quickly."
+            ),
+            "PuddingChan": (
+              "See? This is refreshing, but also friendly. You don't rush with this one. "
+              "People need somewhere to put their bowls down. It's the best part."
+            )
+          }
+
+          def blend(parts):
+              v = None
+              for name,w in parts:
+                  e = p.load_voice(name) * w
+                  v = e if v is None else v + e
+              return v
+
+          def header_pitch(src,dst,semitones):
+              shutil.copyfile(src,dst)
+              factor=2**(semitones/12)
+              with open(dst,'r+b') as f:
+                  data=f.read()
+                  i=data.find(b'fmt ')
+                  sr_off=i+12; br_off=i+16
+                  sr=struct.unpack('<I',data[sr_off:sr_off+4])[0]
+                  br=struct.unpack('<I',data[br_off:br_off+4])[0]
+                  f.seek(sr_off); f.write(struct.pack('<I',round(sr*factor)))
+                  f.seek(br_off); f.write(struct.pack('<I',round(br*factor)))
+
+          # Puchii: faster, dry, nasal/congested, slightly husky; lower and less candy-bright than Pudding-Chan.
+          puchii = [
+            ("Puchii_Vanellope_A", 1.145, 1.85, [('af_kore',0.60),('af_jessica',0.25),('am_puck',0.15)],
+             "highpass=f=110,equalizer=f=500:t=q:w=1.0:g=-1.5,equalizer=f=1350:t=q:w=1.0:g=3.4,equalizer=f=2050:t=q:w=1.1:g=2.4,equalizer=f=4200:t=q:w=1.2:g=-1.0,lowpass=f=8500,acompressor=threshold=-18dB:ratio=2.0:attack=8:release=70,alimiter=limit=0.96"),
+            ("Puchii_Vanellope_B", 1.155, 1.55, [('af_jessica',0.55),('af_kore',0.30),('am_liam',0.15)],
+             "highpass=f=110,equalizer=f=450:t=q:w=1.0:g=-1.2,equalizer=f=1450:t=q:w=1.0:g=3.0,equalizer=f=2300:t=q:w=1.2:g=1.8,equalizer=f=5000:t=q:w=1.2:g=-1.2,lowpass=f=8500,acompressor=threshold=-18dB:ratio=2.2:attack=7:release=65,alimiter=limit=0.96"),
+            ("Puchii_Vanellope_C", 1.150, 2.05, [('af_kore',0.48),('af_alloy',0.32),('am_puck',0.20)],
+             "highpass=f=110,equalizer=f=520:t=q:w=1.0:g=-1.6,equalizer=f=1250:t=q:w=0.9:g=3.6,equalizer=f=1900:t=q:w=1.1:g=2.8,equalizer=f=3800:t=q:w=1.2:g=-0.8,lowpass=f=8200,acompressor=threshold=-19dB:ratio=2.1:attack=7:release=65,alimiter=limit=0.96")
+          ]
+
+          # Pudding-Chan: rounder, slightly slower, honky/duck-like rather than congested.
+          pudding = [
+            ("PuddingChan_Duck_A", 1.090, 2.75, [('af_sky',0.72),('af_bella',0.18),('af_jessica',0.10)],
+             "highpass=f=100,equalizer=f=650:t=q:w=1.0:g=-1.0,equalizer=f=950:t=q:w=1.0:g=3.2,equalizer=f=1250:t=q:w=1.0:g=2.4,equalizer=f=2300:t=q:w=1.1:g=-1.2,lowpass=f=7200,acompressor=threshold=-18dB:ratio=2.4:attack=10:release=90,alimiter=limit=0.96"),
+            ("PuddingChan_Duck_B", 1.085, 2.55, [('af_sky',0.64),('af_bella',0.16),('af_nova',0.20)],
+             "highpass=f=100,equalizer=f=700:t=q:w=1.0:g=-1.0,equalizer=f=900:t=q:w=0.9:g=3.5,equalizer=f=1150:t=q:w=1.0:g=2.8,equalizer=f=2100:t=q:w=1.2:g=-1.4,lowpass=f=6800,acompressor=threshold=-18dB:ratio=2.5:attack=10:release=95,alimiter=limit=0.96")
+          ]
+
+          for char, configs in [('Puchii',puchii),('PuddingChan',pudding)]:
+              for name, final_speed, pitch, parts, filt in configs:
+                  factor=2**(pitch/12)
+                  gen_speed=final_speed/factor
+                  audio=[]
+                  for r in p(texts[char], voice=blend(parts), speed=gen_speed):
+                      audio.extend(r.audio.tolist())
+                  raw=f"sonoko-puchii-separation/{name}_raw.wav"
+                  pitched=f"sonoko-puchii-separation/{name}_pitched.wav"
+                  out=f"sonoko-puchii-separation/SONOKO_{name}.wav"
+                  sf.write(raw,audio,24000)
+                  header_pitch(raw,pitched,pitch)
+                  subprocess.run([
+                    'ffmpeg','-y','-loglevel','error','-i',pitched,
+                    '-af',filt,'-ar','24000','-ac','1','-c:a','pcm_s16le',out
+                  ],check=True)
+                  shutil.os.remove(raw); shutil.os.remove(pitched)
+          PY
+      - name: Upload samples
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-puchii-pudding-separation
+          path: sonoko-puchii-separation/*.wav
+          retention-days: 7
