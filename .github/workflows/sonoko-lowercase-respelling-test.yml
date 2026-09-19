@@ -1,0 +1,63 @@
+name: SONOKO lowercase respelling verification
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-lowercase-respelling-test.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify lowercase respellings
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile numpy
+          mkdir -p out
+          python - <<'PY'
+          from kokoro import KPipeline
+          import numpy as np, soundfile as sf, json
+          from pathlib import Path
+
+          p=KPipeline(lang_code='a')
+          rows=[
+            ("yōkai","yo kai","jˈO kI"),
+            ("kakigōri","kah kee go ree","kɑkiɡˈOɹi"),
+            ("Enishi","eh nee shee","ɛnˈiʃi"),
+            ("kinako","kee nah koh","kinˈɑkO"),
+            ("konpeitō","kohn peh toh","kOnpɛtˈO"),
+            ("kitsune","kee tsoo neh","kitsˈunɛ"),
+            ("matsuri","mah tsoo ree","mɑtsˈuɹi"),
+            ("Sonoko","soh noh koh","sˈOnOkO"),
+            ("torii","toh ree ee","tˈOɹiˌi"),
+            ("yuzu","yoo zoo","jˈuzu"),
+          ]
+          report=[]
+          for w,cue,target in rows:
+              ps,_=p.g2p(cue)
+              report.append({"word":w,"respelling":cue,"g2p":ps,"target":target})
+
+          text=". ".join(x[1] for x in rows)+"."
+          chunks=[]
+          phon=[]
+          for r in p(text, voice='am_echo', speed=1.0):
+              chunks.append(np.asarray(r.audio,dtype=np.float32))
+              phon.append(r.phonemes)
+          audio=np.concatenate(chunks)
+          sf.write("out/04_pronunciation_RESPELLED_LOWERCASE.wav",audio,24000,subtype="PCM_16")
+          Path("out/lowercase_respelling_report.json").write_text(json.dumps(report,indent=2,ensure_ascii=False),encoding="utf-8")
+          Path("out/lowercase_respelling_report.txt").write_text("\n".join(f"{x['word']}: {x['respelling']} -> {x['g2p']} | target {x['target']}" for x in report),encoding="utf-8")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-lowercase-respelling-test
+          path: out/*
+          retention-days: 7
