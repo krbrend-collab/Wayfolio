@@ -1,0 +1,301 @@
+name: SONOKO Chapter 32 Rebuild Final Voices and TTS Prep
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-ch32-rebuild-final-voices.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate rebuilt Chapter 32
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng ffmpeg >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile numpy
+          mkdir -p sonoko-ch32-rebuild/segments
+
+          python - <<'PY'
+          import re, struct, shutil, subprocess, json
+          from pathlib import Path
+          import numpy as np
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          OUT = Path("sonoko-ch32-rebuild")
+          SEG = OUT / "segments"
+          pipeline = KPipeline(lang_code='a')
+
+          voices = {
+              "Narrator": {"parts":[("am_echo",1.0)],"speed":1.0239075,"pitch":-0.60,"filters":"alimiter=limit=0.96"},
+              "Koori": {"parts":[("af_alloy",0.72),("am_eric",0.28)],"speed":1.090,"pitch":1.90,"filters":"alimiter=limit=0.96"},
+              "Amia": {"parts":[("af_heart",1.0)],"speed":1.035,"pitch":1.25,"filters":"alimiter=limit=0.96"},
+              "Maro": {"parts":[("af_aoede",0.45),("af_nova",0.45),("am_echo",0.10)],"speed":1.188624944,"pitch":-0.95,"filters":"alimiter=limit=0.96"},
+              "Pudding-Chan": {
+                  "parts":[("af_sky",0.81),("af_bella",0.19)],"speed":1.095,"pitch":3.25,
+                  "filters":"equalizer=f=820:t=q:w=0.8:g=1.8,equalizer=f=1250:t=q:w=0.9:g=2.4,equalizer=f=2050:t=q:w=1.1:g=0.8,equalizer=f=2600:t=q:w=1.2:g=0.8,equalizer=f=3300:t=q:w=1.2:g=-0.8,lowpass=f=8000,acompressor=threshold=-21dB:ratio=2.0:attack=10:release=75,alimiter=limit=0.96"
+              },
+              "Enishi": {"parts":[("am_echo",1.0)],"speed":0.990,"pitch":0.70,"filters":"alimiter=limit=0.96"},
+              "Puchii": {
+                  "parts":[("af_kore",0.68),("am_liam",0.32)],"speed":1.17935,"pitch":2.10,
+                  "filters":"highpass=f=105,equalizer=f=1150:t=q:w=0.9:g=3.0,equalizer=f=1750:t=q:w=1.0:g=2.0,equalizer=f=2900:t=q:w=1.2:g=0.8,equalizer=f=420:t=q:w=1.0:g=-1.5,acompressor=threshold=-20dB:ratio=2.2:attack=8:release=65,lowpass=f=8500,alimiter=limit=0.96"
+              },
+          }
+
+          S = []
+          def add(speaker, text, pause=180, tts=None):
+              S.append({"speaker":speaker,"text":text,"pause":pause,"tts":tts or text})
+
+          add("Narrator","Chapter 32. Under the Sugar Maple.",650,"Chapter thirty-two. Under the Sugar Maple.")
+          add("Narrator","The Sugar Maple knew when it was time for something good.",300)
+          add("Narrator","Its roots curved outward in wide arcs at the edge of town, forming natural seats where the road softened and the hill path toward Sonoyama-sama Shrine began.",180)
+          add("Narrator","Light filtered through the leaves in loose, golden patches across the ring of water.",130)
+          add("Narrator","Laughter, spoons tapping, and the soft fizz of popping candy filled the air.",300)
+          add("Narrator","They gathered as friends, bowls settling wherever hands, paws, and flippers found space.",250)
+          add("Narrator","Koori paused before sitting and placed one paw lightly against the bark.",110)
+          add("Narrator","The maple had a comforting warmth beneath his pads.",120)
+          add("Narrator","He smiled and joined them.",360)
+
+          add("Narrator","Maro leaned back first, already suspiciously pleased with himself.",90)
+          add("Narrator","His kakigōri glowed deep green beneath a glossy pour of matcha syrup, steam spreading faintly where it touched the ice.",90)
+          add("Narrator","A single marshmallow sat proudly on top.",170)
+          add("Maro","Observe,",90,"Observe.")
+          add("Narrator","he said.",220)
+          add("Narrator","Before anyone could ask, he reached into his bag and produced a small kitchen blowtorch.",130)
+          add("Narrator","Koori’s ears flicked up.",110)
+          add("Koori","Why do you have that?",210)
+          add("Narrator","Maro flicked it on—fwoom—toasting the marshmallow to a perfect golden crust.",130)
+          add("Maro","For emergencies,",75,"For emergencies—")
+          add("Narrator","he said, dead serious.",75)
+          add("Maro","And texture.",260)
+          add("Narrator","Amia laughed as the sugar caramelized.",70)
+          add("Amia","You carry that around?",170)
+          add("Maro","Only on days that deserve it,",65,"Only on days that deserve it—")
+          add("Narrator","Maro replied, clicking it off and bowing to his dessert.",210)
+          add("Narrator","Puchii clapped once.",55)
+          add("Puchii","That was a performance!",330)
+
+          add("Narrator","Amia turned to her own bowl—soft green matcha layered with fresh strawberry slices that glistened against the ice, ramune candies nestled throughout like tiny glass beads.",100)
+          add("Narrator","As she stirred, they clicked gently together.",90)
+          add("Amia","It tastes like summer,",70,"It tastes like summer—")
+          add("Narrator","she decided.",260)
+          add("Narrator","Pudding-Chan leaned in to examine it closely.",70)
+          add("Pudding-Chan","Very social flavor,",70,"Very social flavor—")
+          add("Narrator","he decided.",130)
+          add("Narrator","She blinked.",50)
+          add("Amia","Social?",160)
+          add("Pudding-Chan","Yes,",45,"Yes—")
+          add("Narrator","he said, nodding.",45)
+          add("Pudding-Chan","Good for sitting and talking. Not a ‘run-away’ snack.",320)
+
+          add("Narrator","Puchii burst out laughing and tipped his own bowl forward.",60)
+          add("Narrator","His shaved ice crackled with popping candy, red bean paste folded thickly through the center, kinako dusted warm and nutty across the top.",110)
+          add("Puchii","Mine is loud,",45,"Mine is loud—")
+          add("Narrator","he said proudly.",45)
+          add("Puchii","But also comforting.",180)
+          add("Maro","It sounds like it’s applauding itself,",55,"It sounds like it’s applauding itself—")
+          add("Narrator","Maro said.",100)
+          add("Puchii","It deserves it,",45,"It deserves it—")
+          add("Narrator","Puchii replied.",310)
+
+          add("Narrator","Enishi lifted his bowl next.",70)
+          add("Narrator","Black sesame syrup darkened the ice into something rich and grounding, kompeitō scattered across the surface like tiny stars caught mid-fall.",95)
+          add("Narrator","He tasted it once.",230)
+          add("Enishi","Balanced,",70,"Balanced.")
+          add("Narrator","he said.",250)
+          add("Narrator","Then, after a pause,",260)
+          add("Enishi","And cute.",340)
+
+          add("Narrator","Pudding-Chan looked at his own bowl, then brightened.",65)
+          add("Narrator","His melon syrup shone translucent green over gently wobbling cucumber jelly.",90)
+          add("Pudding-Chan","See,",45,"See—")
+          add("Narrator","he said, tapping it once.",45)
+          add("Pudding-Chan","This is refreshing. But also friendly. You don’t rush with this one.",340)
+
+          add("Narrator","Koori finally lifted his—yuzu folded cleanly into cream, a careful pinch of salt catching the light like frost.",100)
+          add("Narrator","He smiled softly to himself and took a quiet bite.",180)
+          add("Narrator","The sharpness bloomed, then softened.",120)
+          add("Narrator","He exhaled without realizing he’d been holding his breath.",220)
+          add("Koori","Yes,",55,"Yes—")
+          add("Narrator","he said.",110)
+          add("Narrator","And after a moment, softer,",260)
+          add("Koori","This is right.",420)
+
+          add("Narrator","They ate and reminisced, talking about vending machines near the bridge that somehow always had the right drink, the cherry-and-plum stream, and how blossoms would drift there again.",150)
+          add("Narrator","Pudding-Chan was already planning winter snacks that involved warm places and sitting very still.",320)
+          add("Pudding-Chan","At some point,",70,"At some point—")
+          add("Narrator","Pudding-Chan said thoughtfully,",70)
+          add("Pudding-Chan","people need somewhere to put their bowls down.",230)
+          add("Narrator","Maro froze.",110)
+          add("Maro","That’s it.",150)
+          add("Amia","That’s… what?",170)
+          add("Maro","Why we keep ending up here,",45,"Why we keep ending up here—")
+          add("Narrator","Maro said, licking matcha from his thumb.",45)
+          add("Maro","We gather. We snack. We linger.",210)
+          add("Narrator","Puchii nodded.",45)
+          add("Puchii","Lingering is important.",120)
+          add("Pudding-Chan","It’s the best part,",45,"It’s the best part—")
+          add("Narrator","Pudding-Chan agreed.",310)
+
+          add("Narrator","Koori looked toward the slope beneath the torii, where the road trailed off and the shrine path continued upward.",110)
+          add("Narrator","From here, the vermilion gate framed the town just enough to remind it where it came from.",180)
+          add("Koori","A place,",50,"A place—")
+          add("Narrator","he said gently,",55)
+          add("Koori","where this doesn’t stop when we stand up.",180)
+          add("Narrator","Amia followed his gaze.",65)
+          add("Amia","A place that holds people when they arrive.",150)
+          add("Pudding-Chan","And sends them back a little better fed,",45,"And sends them back a little better fed—")
+          add("Narrator","Pudding-Chan added.",280)
+
+          add("Narrator","Maro snapped open his folding chalkboard, chalk squeaking immediately.",75)
+          add("Puchii","Oh no,",45,"Oh no—")
+          add("Narrator","Puchii said.",45)
+          add("Puchii","It’s happening.",180)
+          add("Narrator","Maro began sketching—fast, confident lines.",70)
+          add("Narrator","A small building. Wide windows. Light that spilled outward instead of trapping itself inside.",130)
+          add("Maro","No steps to hesitate on,",45,"No steps to hesitate on—")
+          add("Narrator","he said.",45)
+          add("Maro","You just… enter.",160)
+          add("Narrator","Pudding-Chan pointed.",45)
+          add("Pudding-Chan","Counter there. Jars where you can see the colors.",150)
+          add("Narrator","Puchii tapped the board rhythmically.",45)
+          add("Puchii","It should hum when people are nearby.",170)
+          add("Narrator","Enishi stepped closer, gaze thoughtful.",60)
+          add("Enishi","And before the door,",45,"And before the door—")
+          add("Narrator","he said,",45)
+          add("Enishi","a threshold. Something that lets attention align.",230)
+
+          add("Narrator","Maro drew a simple gate—small, vermilion, placed with care.",120)
+          add("Narrator","They all went quiet for a moment.",310)
+          add("Narrator","Amia tilted her head.",55)
+          add("Amia","Something about care,",45,"Something about care—")
+          add("Narrator","she said.",45)
+          add("Amia","A place that’s watched over.",160)
+          add("Enishi","Or named for who walked here first,",45,"Or named for who walked here first—")
+          add("Narrator","Enishi added.",45)
+          add("Enishi","Sonoyama-sama left places behind so others could rest.",200)
+          add("Narrator","Pudding-Chan nodded slowly.",70)
+          add("Pudding-Chan","A name that feels like being remembered.",160)
+          add("Narrator","Puchii grinned.",45)
+          add("Puchii","Short,",45,"Short—")
+          add("Narrator","he said.",45)
+          add("Puchii","Easy to say. Easy to come back to.",180)
+
+          add("Koori","And easy to find,",45,"And easy to find—")
+          add("Narrator","Koori said.",50)
+          add("Narrator","His gaze moved to the path below the maple—the one he’d traveled and tended for three centuries.",95)
+          add("Koori","The path should be the invitation.",230)
+          add("Narrator","Koori listened, tails tucked loosely around himself.",90)
+          add("Narrator","The idea settled in his chest—steady and familiar, like a path he’d walked before and forgotten how to find again.",150)
+          add("Narrator","A small smirk lifted the corner of his mouth.",170)
+          add("Koori","We can build it,",55,"We can build it—")
+          add("Narrator","he said.",70)
+          add("Koori","Tomorrow.",800)
+
+          terms = [
+              (r"Sonoyama-sama","[Sonoyama-sama](/sˈOnOjɑmɑ sˈɑmɑ/)"),
+              (r"kakigōri","[kakigōri](/kɑkiɡˈOɹi/)"),
+              (r"matcha","[matcha](/mˈɑtʃɑ/)"),
+              (r"ramune","[ramune](/ɹɑmˈunɛ/)"),
+              (r"kinako","[kinako](/kinˈɑkO/)"),
+              (r"kompeitō","[kompeitō](/kOnpɛtˈO/)"),
+              (r"yuzu","[yuzu](/jˈuzu/)"),
+              (r"torii","[torii](/tˈOɹiˌi/)"),
+              (r"Enishi","[Enishi](/ɛnˈiʃi/)"),
+              (r"Pudding-Chan","[Pudding-Chan](/pˈʊdɪŋ tʃˈɑn/)"),
+              (r"Puchii","[Puchii](/pˈutʃi/)"),
+              (r"Koori","[Koori](/kˈuɹi/)"),
+              (r"Amia","[Amia](/ˈɑmiɑ/)"),
+              (r"Maro","[Maro](/mˈɑɹO/)"),
+              (r"fwoom","[fwoom](/fwˈum/)"),
+          ]
+
+          def prep(text):
+              t = text.replace("’","'").replace("‘","'").replace("“",'"').replace("”",'"')
+              for pat,repl in terms:
+                  t = re.sub(pat,repl,t)
+              return t
+
+          voice_cache = {}
+          def get_voice(parts):
+              k = tuple(parts)
+              if k in voice_cache:
+                  return voice_cache[k]
+              v = None
+              for name,w in parts:
+                  e = pipeline.load_voice(name) * w
+                  v = e if v is None else v + e
+              voice_cache[k] = v
+              return v
+
+          def pitch_wav(src,dst,semitones):
+              shutil.copyfile(src,dst)
+              factor = 2 ** (semitones/12)
+              with open(dst,"r+b") as f:
+                  data=f.read()
+                  i=data.find(b"fmt ")
+                  if i < 0: raise RuntimeError("WAV fmt chunk not found")
+                  sr_off=i+12; br_off=i+16
+                  sr=struct.unpack("<I",data[sr_off:sr_off+4])[0]
+                  br=struct.unpack("<I",data[br_off:br_off+4])[0]
+                  f.seek(sr_off); f.write(struct.pack("<I",round(sr*factor)))
+                  f.seek(br_off); f.write(struct.pack("<I",round(br*factor)))
+
+          rendered=[]; manifest=[]
+          for idx,seg in enumerate(S,1):
+              cfg=voices[seg["speaker"]]
+              factor=2**(cfg["pitch"]/12)
+              gen_speed=cfg["speed"]/factor
+              voice=get_voice(cfg["parts"])
+              tts=prep(seg["tts"])
+              chunks=[]
+              for r in pipeline(tts,voice=voice,speed=gen_speed):
+                  chunks.append(np.asarray(r.audio,dtype=np.float32))
+              if not chunks: raise RuntimeError(f"No audio for segment {idx}")
+              audio=np.concatenate(chunks)
+              raw=SEG/f"{idx:03d}_raw.wav"
+              pitched=SEG/f"{idx:03d}_pitched.wav"
+              final=SEG/f"{idx:03d}_{seg['speaker'].replace(' ','_')}.wav"
+              sf.write(raw,audio,24000,subtype="PCM_16")
+              pitch_wav(raw,pitched,cfg["pitch"])
+              subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(pitched),"-af",cfg["filters"],"-ar","24000","-ac","1","-c:a","pcm_s16le",str(final)],check=True)
+              raw.unlink(missing_ok=True); pitched.unlink(missing_ok=True)
+              rendered.append((final,seg["pause"]))
+              manifest.append({"index":idx,"speaker":seg["speaker"],"manuscript_text":seg["text"],"tts_prepared":tts,"pause_after_ms":seg["pause"]})
+
+          pieces=[]
+          for f,pause_ms in rendered:
+              y,sr=sf.read(f,dtype="float32")
+              if y.ndim>1: y=y.mean(axis=1)
+              pieces.append(y)
+              if pause_ms: pieces.append(np.zeros(int(24000*pause_ms/1000),dtype=np.float32))
+          mix=np.concatenate(pieces)
+          peak=float(np.max(np.abs(mix))) if len(mix) else 1.0
+          if peak>0.94: mix*=0.94/peak
+
+          wav=OUT/"SONOKO_Chapter_32_Under_the_Sugar_Maple_Rebuilt.wav"
+          sf.write(wav,mix,24000,subtype="PCM_16")
+          subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(wav),"-af","loudnorm=I=-18:TP=-2:LRA=9","-c:a","aac","-b:a","192k",str(OUT/"SONOKO_Chapter_32_Under_the_Sugar_Maple_Rebuilt.m4a")],check=True)
+          subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(wav),"-af","loudnorm=I=-18:TP=-2:LRA=9","-c:a","libmp3lame","-b:a","192k",str(OUT/"SONOKO_Chapter_32_Under_the_Sugar_Maple_Rebuilt.mp3")],check=True)
+          (OUT/"chapter32_tts_manifest.json").write_text(json.dumps(manifest,indent=2,ensure_ascii=False),encoding="utf-8")
+          PY
+
+      - name: Upload rebuilt chapter
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-ch32-rebuilt-final
+          path: |
+            sonoko-ch32-rebuild/SONOKO_Chapter_32_Under_the_Sugar_Maple_Rebuilt.wav
+            sonoko-ch32-rebuild/SONOKO_Chapter_32_Under_the_Sugar_Maple_Rebuilt.m4a
+            sonoko-ch32-rebuild/SONOKO_Chapter_32_Under_the_Sugar_Maple_Rebuilt.mp3
+            sonoko-ch32-rebuild/chapter32_tts_manifest.json
+          retention-days: 7
