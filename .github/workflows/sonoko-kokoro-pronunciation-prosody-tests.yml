@@ -1,0 +1,199 @@
+name: SONOKO Kokoro pronunciation and prosody research verification
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-kokoro-pronunciation-prosody-tests.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate pronunciation and prosody verification pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng ffmpeg >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile numpy
+          mkdir -p sonoko-kokoro-tests
+
+          python - <<'PY'
+          from pathlib import Path
+          import numpy as np
+          import soundfile as sf
+          import hashlib, json
+          from kokoro import KPipeline
+
+          OUT = Path("sonoko-kokoro-tests")
+          p = KPipeline(lang_code='a')
+          voice = 'am_echo'
+          speed = 1.0
+
+          pronunciation_entries = [
+              # display, intended cue, direct Misaki/Kokoro phoneme override
+              ("yōkai", "YOH kai", "jˈO kI"),
+              ("kakigōri", "kah kee GO ree", "kɑkiɡˈOɹi"),
+              ("Enishi", "eh NEE shee", "ɛnˈiʃi"),
+              ("kinako", "kee NAH koh", "kinˈɑkO"),
+              ("konpeitō", "kohn peh TOH", "kOnpɛtˈO"),
+              ("kitsune", "kee TSOO neh", "kitsˈunɛ"),
+              ("matsuri", "mah TSOO ree", "mɑtsˈuɹi"),
+              ("Sonoko", "SOH noh koh", "sˈOnOkO"),
+              ("torii", "TOH ree ee", "tˈOɹiˌi"),
+              ("yuzu", "YOO zoo", "jˈuzu"),
+          ]
+
+          def render(text, filename):
+              chunks = []
+              phoneme_chunks = []
+              token_rows = []
+              for r in p(text, voice=voice, speed=speed):
+                  phoneme_chunks.append(r.phonemes)
+                  if r.tokens:
+                      for t in r.tokens:
+                          token_rows.append({
+                              "text": t.text,
+                              "phonemes": t.phonemes,
+                              "start": t.start_ts,
+                              "end": t.end_ts,
+                          })
+                  chunks.append(np.asarray(r.audio, dtype=np.float32))
+              if not chunks:
+                  raise RuntimeError(f"No audio for: {text}")
+              audio = np.concatenate(chunks)
+              sf.write(OUT / filename, audio, 24000, subtype='PCM_16')
+              return {
+                  "text": text,
+                  "phonemes": " | ".join(phoneme_chunks),
+                  "duration_s": round(len(audio)/24000, 4),
+                  "tokens": token_rows,
+                  "sha256_audio_float": hashlib.sha256(audio.tobytes()).hexdigest(),
+              }
+
+          # ----- Pronunciation: raw vs respelling vs official inline phoneme override -----
+          raw_text = ". ".join(x[0] for x in pronunciation_entries) + "."
+          respelled_text = ". ".join(x[1] for x in pronunciation_entries) + "."
+          override_text = ". ".join(f"[{display}](/" + phones + "/)" for display, cue, phones in pronunciation_entries) + "."
+
+          results = {"pronunciation": {}, "prosody": {}, "stress": {}, "segmentation": {}}
+          results["pronunciation"]["raw"] = render(raw_text, "01_pronunciation_RAW.wav")
+          results["pronunciation"]["respelled"] = render(respelled_text, "02_pronunciation_RESPELLED.wav")
+          results["pronunciation"]["phoneme_override"] = render(override_text, "03_pronunciation_INLINE_PHONEMES.wav")
+
+          # Directly verify the G2P layer sees the override as the specified phoneme string.
+          per_word = []
+          for display, cue, phones in pronunciation_entries:
+              raw_ps, _ = p.g2p(display)
+              respell_ps, _ = p.g2p(cue)
+              override_ps, _ = p.g2p(f"[{display}](/" + phones + "/)")
+              per_word.append({
+                  "word": display,
+                  "cue": cue,
+                  "specified_override": phones,
+                  "raw_g2p": raw_ps,
+                  "respelled_g2p": respell_ps,
+                  "override_g2p": override_ps,
+                  "override_exact_match": override_ps.strip() == phones.strip(),
+              })
+          results["pronunciation"]["per_word_verification"] = per_word
+
+          # ----- Punctuation / prosody: exact same words, punctuation only differs -----
+          prosody_variants = {
+              "minimal": "I thought you were coming with us but then you stopped and looked back",
+              "standard": "I thought you were coming with us, but then you stopped and looked back.",
+              "emdash_ellipsis": "I thought you were coming with us—but then you stopped… and looked back.",
+              "semicolon": "I thought you were coming with us; but then you stopped and looked back.",
+              "curly_quotes": "“I thought you were coming with us—but then you stopped… and looked back.”",
+          }
+          for key, text in prosody_variants.items():
+              results["prosody"][key] = render(text, f"prosody_{key}.wav")
+
+          # ----- Official stress markup test -----
+          results["stress"]["plain"] = render(
+              "I really meant that.",
+              "stress_plain.wav"
+          )
+          results["stress"]["plus2"] = render(
+              "I [really](+2) meant that.",
+              "stress_plus2.wav"
+          )
+          results["stress"]["minus1"] = render(
+              "I [really](-1) meant that.",
+              "stress_minus1.wav"
+          )
+
+          # ----- Structural pause control: same words, exact inserted silence -----
+          sentence_a = "The light moved."
+          sentence_b = "Koori looked back."
+          sentence_c = "Nobody said anything."
+
+          single = render(
+              f"{sentence_a} {sentence_b} {sentence_c}",
+              "structure_single_call.wav"
+          )
+          results["segmentation"]["single_call"] = single
+
+          # Render each separately, splice exact silences. This verifies deterministic pause control.
+          pieces = []
+          seg_details = []
+          for i, txt in enumerate([sentence_a, sentence_b, sentence_c], 1):
+              item = render(txt, f"_tmp_structure_{i}.wav")
+              y, sr = sf.read(OUT / f"_tmp_structure_{i}.wav", dtype='float32')
+              pieces.append(y)
+              seg_details.append(item)
+              if i < 3:
+                  pieces.append(np.zeros(int(0.35 * 24000), dtype=np.float32))
+          joined = np.concatenate(pieces)
+          sf.write(OUT / "structure_exact_350ms_gaps.wav", joined, 24000, subtype='PCM_16')
+          results["segmentation"]["exact_350ms"] = {
+              "text_words_unchanged": True,
+              "inserted_gap_ms": 350,
+              "duration_s": round(len(joined)/24000, 4),
+              "parts": seg_details,
+          }
+          for i in range(1,4):
+              (OUT / f"_tmp_structure_{i}.wav").unlink(missing_ok=True)
+
+          # Human-readable reports
+          (OUT / "verification_results.json").write_text(
+              json.dumps(results, indent=2, ensure_ascii=False),
+              encoding="utf-8"
+          )
+
+          lines = []
+          lines.append("SONOKO / Kokoro verification report")
+          lines.append("")
+          lines.append("PRONUNCIATION OVERRIDES")
+          for row in per_word:
+              lines.append(
+                  f"{row['word']}: raw={row['raw_g2p']} | respelled={row['respelled_g2p']} | "
+                  f"override={row['override_g2p']} | exact={row['override_exact_match']}"
+              )
+          lines.append("")
+          lines.append("PROSODY DURATIONS")
+          for key, r in results["prosody"].items():
+              lines.append(f"{key}: {r['duration_s']} s | phonemes={r['phonemes']}")
+          lines.append("")
+          lines.append("STRESS MARKUP")
+          for key, r in results["stress"].items():
+              lines.append(f"{key}: {r['duration_s']} s | phonemes={r['phonemes']} | hash={r['sha256_audio_float'][:16]}")
+          lines.append("")
+          lines.append("STRUCTURAL PAUSE")
+          lines.append(f"single call: {single['duration_s']} s")
+          lines.append(f"exact gap render: {results['segmentation']['exact_350ms']['duration_s']} s; inserted 350 ms between segments")
+          (OUT / "verification_report.txt").write_text("\n".join(lines), encoding="utf-8")
+          PY
+
+      - name: Upload verification pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-kokoro-pronunciation-prosody-tests
+          path: sonoko-kokoro-tests/*
+          retention-days: 7
