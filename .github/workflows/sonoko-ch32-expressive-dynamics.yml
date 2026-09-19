@@ -1,9 +1,9 @@
-name: SONOKO Chapter 32 Expressive Dynamics
+name: SONOKO Chapter 32 Dramatic Cartoon Dynamics V2
 
 on:
   push:
     branches: [sonoko-auditions-host]
-    paths: [.github/workflows/sonoko-ch32-expressive-dynamics.yml]
+    paths: [.github/workflows/sonoko-ch32-dramatic-cartoon-v2.yml]
   workflow_dispatch:
 
 permissions:
@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate expressive-dynamics Chapter 32
+      - name: Generate dramatic cartoon Chapter 32 V2
         shell: bash
         run: |
           set -euo pipefail
@@ -79,7 +79,7 @@ jobs:
           add("Narrator","Koori’s ears flicked up.",110,focus=[("flicked up",0.6)])
           add("Koori","Why do you have that?",210,focus=[("why",0.6)])
           add("Narrator","Maro flicked it on—fwoom—toasting the marshmallow to a perfect golden crust.",130,focus=[("fwoom",1.5),("perfect golden crust",0.8)])
-          add("Maro","For emergencies,",75,"For emergencies—",gain=-0.1,focus=[("emergencies",0.7)])
+          add("Maro","For emergencies,",75,"For emergencies—",gain=-0.8,pace=0.96,focus=[("emergencies",0.7)])
           add("Narrator","he said, dead serious.",75,role="tag",focus=[("dead serious",0.4)])
           add("Maro","And texture.",260,focus=[("texture",1.0)])
           add("Narrator","Amia laughed as the sugar caramelized.",70,soft=[("laughed",0.4)])
@@ -99,7 +99,7 @@ jobs:
           add("Narrator","She blinked.",50)
           add("Amia","Social?",160,focus=[("Social",0.7)])
           add("Pudding-Chan","Yes,",45,"Yes—",gain=0.3,focus=[("Yes",0.7)])
-          add("Narrator","he said, nodding.",45,role="tag")
+          add("Narrator","he said, nodding.",45,role="action_tag")
           add("Pudding-Chan","Good for sitting and talking. Not a ‘run-away’ snack.",320,focus=[("sitting and talking",0.8),("Not",0.7)],soft=[("run-away",0.3)])
 
           add("Narrator","Puchii burst out laughing and tipped his own bowl forward.",60,focus=[("burst out laughing",0.7)])
@@ -117,13 +117,13 @@ jobs:
           add("Narrator","He tasted it once.",230,soft=[("once",0.4)])
           add("Enishi","Balanced,",70,"Balanced.",soft=[("Balanced",0.4)])
           add("Narrator","he said.",170,role="tag")
-          add("Narrator","Then, after a pause,",260,soft=[("after a pause",0.8)])
-          add("Enishi","And cute.",340,focus=[("cute",0.7)])
+          add("Narrator","Then, after a pause,",260,role="tag")
+          add("Enishi","And cute.",340,gain=-0.5,pace=0.96,focus=[("cute",0.7)])
 
           add("Narrator","Pudding-Chan looked at his own bowl, then brightened.",65,focus=[("brightened",0.6)])
           add("Narrator","His melon syrup shone translucent green over gently wobbling cucumber jelly.",90,focus=[("gently wobbling",0.6)])
           add("Pudding-Chan","See,",45,"See—",gain=0.3,focus=[("See",0.7)])
-          add("Narrator","he said, tapping it once.",45,role="tag")
+          add("Narrator","he said, tapping it once.",45,role="action_tag")
           add("Pudding-Chan","This is refreshing. But also friendly. You don’t rush with this one.",340,focus=[("refreshing",0.7),("friendly",1.0)],soft=[("don’t rush",0.5)])
 
           add("Narrator","Koori finally lifted his—yuzu folded cleanly into cream, a careful pinch of salt catching the light like frost.",100,focus=[("light like frost",0.7)])
@@ -132,14 +132,14 @@ jobs:
           add("Narrator","He exhaled without realizing he’d been holding his breath.",220,soft=[("exhaled",0.6)])
           add("Koori","Yes,",55,"Yes—",soft=[("Yes",0.5)])
           add("Narrator","he said.",90,role="tag")
-          add("Narrator","And after a moment, softer,",260,soft=[("softer",1.0)])
-          add("Koori","This is right.",420,gain=-0.4,focus=[("right",0.6)])
+          add("Narrator","And after a moment, softer,",260,role="tag")
+          add("Koori","This is right.",420,gain=-1.2,pace=0.95,focus=[("right",0.6)])
 
           add("Narrator","They ate and reminisced, talking about vending machines near the bridge that somehow always had the right drink, the cherry-and-plum stream, and how blossoms would drift there again.",150,focus=[("right drink",0.5),("blossoms",0.5)])
           add("Narrator","Pudding-Chan was already planning winter snacks that involved warm places and sitting very still.",320,soft=[("warm places",0.5),("very still",0.6)])
           add("Pudding-Chan","At some point,",70,"At some point—",soft=[("At some point",0.4)])
           add("Narrator","Pudding-Chan said thoughtfully,",70,role="tag")
-          add("Pudding-Chan","people need somewhere to put their bowls down.",230,focus=[("somewhere",0.7),("bowls down",0.5)])
+          add("Pudding-Chan","people need somewhere to put their bowls down.",230,gain=-0.7,pace=0.94,focus=[("somewhere",0.7),("bowls down",0.5)])
           add("Narrator","Maro froze.",110,focus=[("froze",0.8)])
           add("Maro","That’s it.",150,gain=0.4,focus=[("it",1.1)])
           add("Amia","That’s… what?",170,soft=[("what",0.2)])
@@ -155,7 +155,7 @@ jobs:
           add("Narrator","From here, the vermilion gate framed the town just enough to remind it where it came from.",180,focus=[("remind it",0.5)])
           add("Koori","A place,",50,"A place—",soft=[("A place",0.3)])
           add("Narrator","he said gently,",55,role="tag")
-          add("Koori","where this doesn’t stop when we stand up.",180,focus=[("doesn’t stop",0.8)])
+          add("Koori","where this doesn’t stop when we stand up.",180,gain=-0.5,pace=0.97,focus=[("doesn’t stop",0.8)])
           add("Narrator","Amia followed his gaze.",65,soft=[("followed his gaze",0.4)])
           add("Amia","A place that holds people when they arrive.",150,focus=[("holds people",0.8)])
           add("Pudding-Chan","And sends them back a little better fed,",45,"And sends them back a little better fed—",focus=[("better fed",0.9)])
@@ -271,30 +271,53 @@ jobs:
                   env[-ramp:]=np.linspace(target,1.0,ramp,dtype=np.float32)
               audio[start:end]*=env
 
-          def phrase_contour(audio,role):
+          def phrase_contour_post(audio, role, speaker, punct="", unit_index=0):
+              """Post-filter dynamics so voice compressors cannot flatten the acting."""
               n=len(audio)
-              if n < int(0.7*SR): return
+              if n < int(0.20*SR): return
               x=np.linspace(0,1,n,dtype=np.float32)
-              if role=="tag":
-                  db=-4.2 + 0.15*np.sin(np.pi*x)
-              elif role=="action_tag":
-                  db=-2.7 + 0.20*np.sin(np.pi*x)
+
+              if speaker=="Narrator":
+                  if role=="action_tag":
+                      db=-1.8 + 0.25*np.sin(np.pi*x)
+                  else:
+                      # Narrator remains comparatively restrained.
+                      db=-0.15 + 0.35*np.sin(np.pi*x) - 0.30*np.clip((x-0.84)/0.16,0,1)
               else:
-                  # Subtle spoken contour: slight support in the body of the phrase,
-                  # gentle release at the end instead of flat synthetic loudness.
-                  db=(-0.20 + 0.45*np.sin(np.pi*x) - 0.35*np.clip((x-0.82)/0.18,0,1))
+                  # Cartoon-character delivery: substantially wider loudness motion.
+                  phase=(unit_index % 3)*0.75
+                  db=(-0.45
+                      + 1.55*np.sin(np.pi*x)
+                      + 0.50*np.sin(2*np.pi*x + phase)
+                      - 1.00*np.clip((x-0.82)/0.18,0,1))
+                  if punct=="?":
+                      # Questions visibly rise in energy into the end.
+                      db += -0.45 + 2.65*(x**2)
+                  elif punct=="!":
+                      # Exclamations attack hard, then release.
+                      db += 1.85*(1.0 - 0.70*x)
+                  elif punct=="…":
+                      # Ellipses visibly fall away.
+                      db += -1.70*x
+                  elif punct=="—":
+                      db += 0.65*(1.0-x) - 0.35*x
+                  elif punct==",":
+                      db += 0.30*np.sin(np.pi*x)
               audio *= np.power(10.0,db/20.0).astype(np.float32)
 
-          def apply_word_dynamics(audio,tokens,items,sign=1):
-              if not tokens or not items: return
+          def apply_word_dynamics_post(audio, token_rows, items, sign, speaker, time_scale=1.0):
+              if not token_rows or not items: return
               toks=[]
-              for t in tokens:
-                  txt=getattr(t,"text","") or ""
-                  st=getattr(t,"start_ts",None); en=getattr(t,"end_ts",None)
-                  if st is None or en is None: continue
+              for txt,st,en in token_rows:
                   nw=norm_token(txt)
-                  if nw: toks.append((nw,float(st),float(en)))
+                  if nw:
+                      toks.append((nw,float(st)*time_scale,float(en)*time_scale))
               words=[x[0] for x in toks]
+              if speaker=="Narrator":
+                  strength=0.70
+              else:
+                  # Much stronger than the prior pass, and applied after compression.
+                  strength=2.80 if sign>0 else 2.15
               for phrase,mag in items:
                   target=[norm_token(w) for w in re.findall(r"[A-Za-z0-9’'-]+",phrase) if norm_token(w)]
                   if not target: continue
@@ -302,73 +325,173 @@ jobs:
                   for i in range(0,len(words)-m+1):
                       if words[i:i+m]==target:
                           s=int(toks[i][1]*SR); e=int(toks[i+m-1][2]*SR)
-                          smooth_gain(audio,s,e,sign*float(mag))
+                          smooth_gain(audio,s,e,sign*float(mag)*strength,ramp_ms=18)
+
+          def split_dialogue_units(text):
+              """Keep punctuation attached to each spoken unit so Kokoro hears it."""
+              text=text.strip()
+              if not text: return []
+              parts=re.findall(r".*?(?:…|[.!?;:,—]|$)",text,flags=re.S)
+              return [p.strip() for p in parts if p and p.strip()]
+
+          def final_punct(text):
+              t=text.rstrip()
+              m=re.search(r"(…|[.!?;:,—])(?:['\"])?$",t)
+              return m.group(1) if m else ""
+
+          def dramatic_params(punct, unit_index, total_units):
+              pitch=0.0; speed=1.0
+              if punct=="?":
+                  pitch += 0.38; speed *= 0.985
+              elif punct=="!":
+                  pitch += 0.28; speed *= 1.035
+              elif punct=="…":
+                  pitch -= 0.28; speed *= 0.925
+              elif punct=="—":
+                  pitch += 0.10; speed *= 0.975
+              elif punct==",":
+                  pitch += 0.05
+              elif punct==".":
+                  pitch -= 0.10; speed *= 0.99
+              if total_units>1:
+                  pitch += (0.10 if unit_index % 2 == 0 else -0.08)
+              return pitch,speed
+
+          def punctuation_pause_ms(punct):
+              return {
+                  ",": 95,
+                  "—": 175,
+                  ";": 170,
+                  ":": 150,
+                  "…": 360,
+                  "?": 235,
+                  "!": 180,
+                  ".": 190,
+              }.get(punct,80)
 
           rendered=[]; manifest=[]
           for idx,seg in enumerate(S,1):
-              cfg=voices[seg["speaker"]]
-              factor=2**(cfg["pitch"]/12)
-              final_speed=cfg["speed"]*seg["pace"]
-              if seg["role"]=="tag": final_speed*=1.105
-              elif seg["role"]=="action_tag": final_speed*=1.055
-              gen_speed=final_speed/factor
-              voice=get_voice(cfg["parts"])
-              tts=prep(seg["tts"])
+              # Pure speech-attribution / vocal-direction text is performed, not spoken.
+              if seg["role"]=="tag":
+                  rendered.append((None,seg["pause"]))
+                  manifest.append({
+                      "index":idx,"speaker":seg["speaker"],"role":seg["role"],
+                      "manuscript_text":seg["text"],"spoken":False,
+                      "performance_direction_absorbed":True,
+                      "pause_after_ms":seg["pause"]
+                  })
+                  continue
 
-              chunks=[]; token_groups=[]
-              for r in pipeline(tts,voice=voice,speed=gen_speed):
-                  y=np.asarray(r.audio,dtype=np.float32)
-                  phrase_contour(y,seg["role"])
+              cfg=voices[seg["speaker"]]
+              voice=get_voice(cfg["parts"])
+              is_character=seg["speaker"]!="Narrator"
+              source_units=split_dialogue_units(seg["tts"]) if is_character else [seg["tts"]]
+              seg_pieces=[]
+              unit_manifest=[]
+
+              for uidx,unit_text in enumerate(source_units):
+                  punct=final_punct(unit_text)
+                  total_units=len(source_units)
+                  local_pitch=0.0
+                  local_speed=1.0
+                  if is_character:
+                      local_pitch,local_speed=dramatic_params(punct,uidx,total_units)
+
+                  total_pitch=cfg["pitch"]+local_pitch
+                  factor=2**(total_pitch/12)
+                  final_speed=cfg["speed"]*seg["pace"]*local_speed
+                  if seg["role"]=="action_tag":
+                      final_speed*=1.045
+                  gen_speed=final_speed/factor
+
+                  tts=prep(unit_text)
+                  chunks=[]
+                  token_rows=[]
+                  pre_offset=0.0
+                  for r in pipeline(tts,voice=voice,speed=gen_speed):
+                      y=np.asarray(r.audio,dtype=np.float32)
+                      for tok in (getattr(r,"tokens",None) or []):
+                          st=getattr(tok,"start_ts",None); en=getattr(tok,"end_ts",None)
+                          if st is not None and en is not None:
+                              token_rows.append((getattr(tok,"text","") or "",float(st)+pre_offset,float(en)+pre_offset))
+                      chunks.append(y)
+                      pre_offset += len(y)/SR
+                  if not chunks: raise RuntimeError(f"No audio for segment {idx} unit {uidx}")
+                  audio=np.concatenate(chunks)
+
+                  raw=SEG/f"{idx:03d}_{uidx:02d}_raw.wav"
+                  pitched=SEG/f"{idx:03d}_{uidx:02d}_pitched.wav"
+                  filtered=SEG/f"{idx:03d}_{uidx:02d}_filtered.wav"
+                  sf.write(raw,audio,SR,subtype="PCM_16")
+                  pitch_wav(raw,pitched,total_pitch)
+                  subprocess.run([
+                      "ffmpeg","-y","-loglevel","error","-i",str(pitched),
+                      "-af",cfg["filters"],"-ar",str(SR),"-ac","1","-c:a","pcm_s16le",str(filtered)
+                  ],check=True)
+
+                  y,sr=sf.read(filtered,dtype="float32")
+                  if y.ndim>1: y=y.mean(axis=1)
+
+                  # Acting dynamics happen AFTER the voice's compressor/EQ.
+                  phrase_contour_post(y,seg["role"],seg["speaker"],punct,uidx)
                   if seg["gain"]:
                       y*=db_to_amp(seg["gain"])
-                  apply_word_dynamics(y,getattr(r,"tokens",None),seg["focus"],+1)
-                  apply_word_dynamics(y,getattr(r,"tokens",None),seg["soft"],-1)
-                  chunks.append(y)
-              if not chunks: raise RuntimeError(f"No audio for segment {idx}")
-              audio=np.concatenate(chunks)
+                  apply_word_dynamics_post(y,token_rows,seg["focus"],+1,seg["speaker"],1.0/factor)
+                  apply_word_dynamics_post(y,token_rows,seg["soft"],-1,seg["speaker"],1.0/factor)
 
-              raw=SEG/f"{idx:03d}_raw.wav"
-              pitched=SEG/f"{idx:03d}_pitched.wav"
+                  peak=float(np.max(np.abs(y))) if len(y) else 0.0
+                  if peak>0.975:
+                      y*=0.975/peak
+                  seg_pieces.append(y)
+
+                  # Make punctuation audible as timing, not merely a glyph Kokoro may glide over.
+                  if is_character and uidx < total_units-1:
+                      seg_pieces.append(np.zeros(int(SR*punctuation_pause_ms(punct)/1000),dtype=np.float32))
+
+                  unit_manifest.append({
+                      "unit":uidx+1,"text":unit_text,"tts_prepared":tts,
+                      "punctuation":punct,"local_pitch_semitones":local_pitch,
+                      "local_speed_multiplier":local_speed
+                  })
+                  raw.unlink(missing_ok=True); pitched.unlink(missing_ok=True); filtered.unlink(missing_ok=True)
+
+              audio=np.concatenate(seg_pieces) if seg_pieces else np.zeros(1,dtype=np.float32)
               final=SEG/f"{idx:03d}_{seg['speaker'].replace(' ','_')}.wav"
-              sf.write(raw,audio,SR,subtype="PCM_16")
-              pitch_wav(raw,pitched,cfg["pitch"])
-              subprocess.run([
-                  "ffmpeg","-y","-loglevel","error","-i",str(pitched),
-                  "-af",cfg["filters"],"-ar",str(SR),"-ac","1","-c:a","pcm_s16le",str(final)
-              ],check=True)
-              raw.unlink(missing_ok=True); pitched.unlink(missing_ok=True)
+              sf.write(final,audio,SR,subtype="PCM_16")
               rendered.append((final,seg["pause"]))
               manifest.append({
                   "index":idx,"speaker":seg["speaker"],"role":seg["role"],
-                  "manuscript_text":seg["text"],"tts_prepared":tts,
+                  "manuscript_text":seg["text"],"spoken":True,
                   "pause_after_ms":seg["pause"],"gain_db":seg["gain"],
-                  "pace_multiplier":seg["pace"],"focus":seg["focus"],"soft":seg["soft"]
+                  "pace_multiplier":seg["pace"],"focus":seg["focus"],"soft":seg["soft"],
+                  "units":unit_manifest
               })
 
           pieces=[]
           for f,pause_ms in rendered:
-              y,sr=sf.read(f,dtype="float32")
-              if y.ndim>1: y=y.mean(axis=1)
-              pieces.append(y)
+              if f is not None:
+                  y,sr=sf.read(f,dtype="float32")
+                  if y.ndim>1: y=y.mean(axis=1)
+                  pieces.append(y)
               if pause_ms: pieces.append(np.zeros(int(SR*pause_ms/1000),dtype=np.float32))
           mix=np.concatenate(pieces)
           peak=float(np.max(np.abs(mix))) if len(mix) else 1.0
           if peak>0.94: mix*=0.94/peak
 
-          wav=OUT/"SONOKO_Chapter_32_Expressive_Dynamics.wav"
+          wav=OUT/"SONOKO_Chapter_32_Dramatic_Cartoon_v2.wav"
           sf.write(wav,mix,SR,subtype="PCM_16")
-          subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(wav),"-af","loudnorm=I=-18:TP=-2:LRA=11","-c:a","aac","-b:a","192k",str(OUT/"SONOKO_Chapter_32_Expressive_Dynamics.m4a")],check=True)
-          subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(wav),"-af","loudnorm=I=-18:TP=-2:LRA=11","-c:a","libmp3lame","-b:a","192k",str(OUT/"SONOKO_Chapter_32_Expressive_Dynamics.mp3")],check=True)
-          (OUT/"chapter32_expressive_manifest.json").write_text(json.dumps(manifest,indent=2,ensure_ascii=False),encoding="utf-8")
+          subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(wav),"-af","loudnorm=I=-18:TP=-2:LRA=15","-c:a","aac","-b:a","192k",str(OUT/"SONOKO_Chapter_32_Dramatic_Cartoon_v2.m4a")],check=True)
+          subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(wav),"-af","loudnorm=I=-18:TP=-2:LRA=15","-c:a","libmp3lame","-b:a","192k",str(OUT/"SONOKO_Chapter_32_Dramatic_Cartoon_v2.mp3")],check=True)
+          (OUT/"chapter32_dramatic_cartoon_v2_manifest.json").write_text(json.dumps(manifest,indent=2,ensure_ascii=False),encoding="utf-8")
           PY
 
-      - name: Upload expressive chapter
+      - name: Upload dramatic cartoon chapter V2
         uses: actions/upload-artifact@v4
         with:
-          name: sonoko-ch32-expressive-dynamics
+          name: sonoko-ch32-dramatic-cartoon-v2
           path: |
-            sonoko-ch32-dynamics/SONOKO_Chapter_32_Expressive_Dynamics.wav
-            sonoko-ch32-dynamics/SONOKO_Chapter_32_Expressive_Dynamics.m4a
-            sonoko-ch32-dynamics/SONOKO_Chapter_32_Expressive_Dynamics.mp3
-            sonoko-ch32-dynamics/chapter32_expressive_manifest.json
+            sonoko-ch32-dynamics/SONOKO_Chapter_32_Dramatic_Cartoon_v2.wav
+            sonoko-ch32-dynamics/SONOKO_Chapter_32_Dramatic_Cartoon_v2.m4a
+            sonoko-ch32-dynamics/SONOKO_Chapter_32_Dramatic_Cartoon_v2.mp3
+            sonoko-ch32-dynamics/chapter32_dramatic_cartoon_v2_manifest.json
           retention-days: 7
