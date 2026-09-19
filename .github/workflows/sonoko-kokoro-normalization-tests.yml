@@ -1,0 +1,88 @@
+name: SONOKO Kokoro text-normalization verification
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-kokoro-normalization-tests.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate normalization tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile numpy
+          mkdir -p sonoko-kokoro-normalization
+          python - <<'PY'
+          from pathlib import Path
+          import json, hashlib
+          import numpy as np
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          out = Path("sonoko-kokoro-normalization")
+          p = KPipeline(lang_code='a')
+          voice = 'am_echo'
+
+          cases = {
+            "pronunciation_raw":
+              "yōkai. kakigōri. kitsune. konpeitō. Sonoko.",
+            "pronunciation_lowercase_respell":
+              "yo kai. kah kee go ree. kee tsoo neh. kohn peh toe. soh noh koh.",
+            "pronunciation_hyphen_respell":
+              "yo-kai. kah-kee-go-ree. kee-tsoo-neh. kohn-peh-toe. soh-noh-koh.",
+            "pronunciation_inline_phonemes":
+              "[yōkai](/jˈO kI/). [kakigōri](/kɑkiɡˈOɹi/). [kitsune](/kitsˈunɛ/). [konpeitō](/kOnpɛtˈO/). [Sonoko](/sˈOnOkO/).",
+            "apostrophes_ascii":
+              "I'm here. It's ready. It doesn't matter. They're coming. You've seen it.",
+            "apostrophes_curly":
+              "I’m here. It’s ready. It doesn’t matter. They’re coming. You’ve seen it.",
+            "ellipsis_three_dots":
+              "I thought I knew... but then I looked again.",
+            "ellipsis_single_glyph":
+              "I thought I knew… but then I looked again.",
+            "quote_straight":
+              '"I thought you were coming with us," she said.',
+            "quote_curly":
+              '“I thought you were coming with us,” she said.',
+          }
+
+          report = {}
+          for i,(name,text) in enumerate(cases.items(),1):
+            chunks=[]; ps=[]
+            for r in p(text, voice=voice, speed=1.0):
+              chunks.append(np.asarray(r.audio,dtype=np.float32))
+              ps.append(r.phonemes)
+            audio=np.concatenate(chunks)
+            fn=out/f"{i:02d}_{name}.wav"
+            sf.write(fn,audio,24000,subtype="PCM_16")
+            report[name]={
+              "text":text,
+              "phonemes":" | ".join(ps),
+              "duration_s":round(len(audio)/24000,4),
+              "sha256":hashlib.sha256(audio.tobytes()).hexdigest()
+            }
+
+          (out/"normalization_results.json").write_text(
+            json.dumps(report,indent=2,ensure_ascii=False),encoding="utf-8"
+          )
+          lines=[]
+          for name,v in report.items():
+            lines += [name, f"text: {v['text']}", f"phonemes: {v['phonemes']}", f"duration: {v['duration_s']}", f"hash: {v['sha256'][:16]}", ""]
+          (out/"normalization_report.txt").write_text("\n".join(lines),encoding="utf-8")
+          PY
+      - name: Upload test pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-kokoro-normalization-tests
+          path: sonoko-kokoro-normalization/*
+          retention-days: 7
