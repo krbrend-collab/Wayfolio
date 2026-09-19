@@ -3,7 +3,7 @@ name: SONOKO Chapter 32 Dramatic Cartoon Dynamics V2
 on:
   push:
     branches: [sonoko-auditions-host]
-    paths: [.github/workflows/sonoko-ch32-dramatic-cartoon-v2.yml]
+    paths: [.github/workflows/sonoko-ch32-expressive-dynamics.yml]
   workflow_dispatch:
 
 permissions:
