@@ -1,4 +1,4 @@
-name: SONOKO Chapter 32 Dramatic Cartoon Dynamics V2
+name: SONOKO Chapter 32 Dramatic Cartoon Dynamics V3 Koori Maro Swap
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate dramatic cartoon Chapter 32 V2
+      - name: Generate Chapter 32 V3 with Koori and Maro voices swapped
         shell: bash
         run: |
           set -euo pipefail
@@ -38,9 +38,9 @@ jobs:
 
           voices = {
               "Narrator": {"parts":[("am_echo",1.0)],"speed":1.0239075,"pitch":-0.60,"filters":"alimiter=limit=0.96"},
-              "Koori": {"parts":[("af_alloy",0.72),("am_eric",0.28)],"speed":1.090,"pitch":1.90,"filters":"alimiter=limit=0.96"},
+              "Koori": {"parts":[("af_aoede",0.45),("af_nova",0.45),("am_echo",0.10)],"speed":1.188624944,"pitch":-0.95,"filters":"alimiter=limit=0.96"},
               "Amia": {"parts":[("af_heart",1.0)],"speed":1.035,"pitch":1.25,"filters":"alimiter=limit=0.96"},
-              "Maro": {"parts":[("af_aoede",0.45),("af_nova",0.45),("am_echo",0.10)],"speed":1.188624944,"pitch":-0.95,"filters":"alimiter=limit=0.96"},
+              "Maro": {"parts":[("af_alloy",0.72),("am_eric",0.28)],"speed":1.090,"pitch":1.90,"filters":"alimiter=limit=0.96"},
               "Pudding-Chan": {
                   "parts":[("af_sky",0.81),("af_bella",0.19)],"speed":1.095,"pitch":3.25,
                   "filters":"equalizer=f=820:t=q:w=0.8:g=1.8,equalizer=f=1250:t=q:w=0.9:g=2.4,equalizer=f=2050:t=q:w=1.1:g=0.8,equalizer=f=2600:t=q:w=1.2:g=0.8,equalizer=f=3300:t=q:w=1.2:g=-0.8,lowpass=f=8000,acompressor=threshold=-21dB:ratio=2.0:attack=10:release=75,alimiter=limit=0.96"
@@ -478,20 +478,20 @@ jobs:
           peak=float(np.max(np.abs(mix))) if len(mix) else 1.0
           if peak>0.94: mix*=0.94/peak
 
-          wav=OUT/"SONOKO_Chapter_32_Dramatic_Cartoon_v2.wav"
+          wav=OUT/"SONOKO_Chapter_32_Dramatic_Cartoon_v3_Koori_Maro_Swap.wav"
           sf.write(wav,mix,SR,subtype="PCM_16")
-          subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(wav),"-af","loudnorm=I=-18:TP=-2:LRA=15","-c:a","aac","-b:a","192k",str(OUT/"SONOKO_Chapter_32_Dramatic_Cartoon_v2.m4a")],check=True)
-          subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(wav),"-af","loudnorm=I=-18:TP=-2:LRA=15","-c:a","libmp3lame","-b:a","192k",str(OUT/"SONOKO_Chapter_32_Dramatic_Cartoon_v2.mp3")],check=True)
-          (OUT/"chapter32_dramatic_cartoon_v2_manifest.json").write_text(json.dumps(manifest,indent=2,ensure_ascii=False),encoding="utf-8")
+          subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(wav),"-af","loudnorm=I=-18:TP=-2:LRA=15","-c:a","aac","-b:a","192k",str(OUT/"SONOKO_Chapter_32_Dramatic_Cartoon_v3_Koori_Maro_Swap.m4a")],check=True)
+          subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(wav),"-af","loudnorm=I=-18:TP=-2:LRA=15","-c:a","libmp3lame","-b:a","192k",str(OUT/"SONOKO_Chapter_32_Dramatic_Cartoon_v3_Koori_Maro_Swap.mp3")],check=True)
+          (OUT/"chapter32_dramatic_cartoon_v3_swap_manifest.json").write_text(json.dumps(manifest,indent=2,ensure_ascii=False),encoding="utf-8")
           PY
 
-      - name: Upload dramatic cartoon chapter V2
+      - name: Upload Chapter 32 V3 swapped voices
         uses: actions/upload-artifact@v4
         with:
-          name: sonoko-ch32-dramatic-cartoon-v2
+          name: sonoko-ch32-dramatic-cartoon-v3-swap
           path: |
-            sonoko-ch32-dynamics/SONOKO_Chapter_32_Dramatic_Cartoon_v2.wav
-            sonoko-ch32-dynamics/SONOKO_Chapter_32_Dramatic_Cartoon_v2.m4a
-            sonoko-ch32-dynamics/SONOKO_Chapter_32_Dramatic_Cartoon_v2.mp3
-            sonoko-ch32-dynamics/chapter32_dramatic_cartoon_v2_manifest.json
+            sonoko-ch32-dynamics/SONOKO_Chapter_32_Dramatic_Cartoon_v3_Koori_Maro_Swap.wav
+            sonoko-ch32-dynamics/SONOKO_Chapter_32_Dramatic_Cartoon_v3_Koori_Maro_Swap.m4a
+            sonoko-ch32-dynamics/SONOKO_Chapter_32_Dramatic_Cartoon_v3_Koori_Maro_Swap.mp3
+            sonoko-ch32-dynamics/chapter32_dramatic_cartoon_v3_swap_manifest.json
           retention-days: 7
