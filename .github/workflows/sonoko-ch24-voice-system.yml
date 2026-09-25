@@ -1,0 +1,380 @@
+name: SONOKO Chapter 24 Voice System
+
+on:
+  push:
+    branches: [sonoko-auditions-host]
+    paths: [.github/workflows/sonoko-ch24-voice-system.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Chapter 24
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq espeak-ng ffmpeg >/dev/null
+          python -m pip install --quiet 'kokoro>=0.9.4' soundfile numpy
+          mkdir -p sonoko-ch24/segments
+
+          python - <<'PY'
+          import re, struct, shutil, subprocess, json
+          from pathlib import Path
+          import numpy as np
+          import soundfile as sf
+          from kokoro import KPipeline
+
+          OUT = Path("sonoko-ch24")
+          SEG = OUT / "segments"
+          SR = 24000
+          pipeline = KPipeline(lang_code='a')
+
+          # Current approved system. Koori uses the post-swap voice.
+          voices = {
+              "Narrator": {
+                  "parts":[("am_echo",1.0)],
+                  "speed":1.0239075,
+                  "pitch":-0.60,
+                  "filters":"alimiter=limit=0.97"
+              },
+              "Koori": {
+                  "parts":[("af_aoede",0.45),("af_nova",0.45),("am_echo",0.10)],
+                  "speed":1.188624944,
+                  "pitch":-0.95,
+                  "filters":"alimiter=limit=0.97"
+              },
+              "Enishi": {
+                  "parts":[("am_echo",1.0)],
+                  "speed":0.990,
+                  "pitch":0.70,
+                  "filters":"alimiter=limit=0.97"
+              },
+          }
+
+          S=[]
+          def add(speaker,text,pause=160,tts=None,gain=0.0,pace=1.0,focus=None,soft=None):
+              S.append({
+                  "speaker":speaker,"text":text,"pause":pause,"tts":tts or text,
+                  "gain":gain,"pace":pace,"focus":focus or [],"soft":soft or []
+              })
+
+          add("Narrator","Chapter 24. The Steps Between Sun and Moon.",650,
+              "Chapter twenty-four. The Steps Between Sun and Moon.")
+
+          add("Narrator","Before dawn, Koori sat halfway up the shrine steps, one paw pressed to the cold stone.",180,soft=[("Before dawn",0.4)])
+          add("Narrator","Below him, a few rooftops had begun to show their edges. Farther out, a thin silver line marked the sea. Above the cedars, the moon was still visible.",220,focus=[("thin silver line",0.5),("moon was still visible",0.5)])
+          add("Narrator","As a kitsune, Koori could feel when someone was no longer among the living. Two days earlier, from these same steps, he had felt the old man leave—and the deep change his leaving had made in someone who remained in the house near the maple path.",220,soft=[("no longer among the living",0.5)],focus=[("deep change",0.6)])
+          add("Narrator","Nothing in the town had looked different afterward.",130)
+          add("Narrator","Still, Koori knew the world had changed.",260,focus=[("world had changed",0.7)])
+          add("Narrator","He pressed his paw harder against the stone. The cold stayed in the step.",180,focus=[("cold stayed",0.5)])
+
+          add("Koori","That was unnecessary.",120,focus=[("unnecessary",1.1)])
+          add("Koori","I’m aware you can’t help it.",210,soft=[("can’t help it",0.3)])
+          add("Narrator","Near the torii gate behind him, Enishi made a small sound in amusement.",150,soft=[("small sound in amusement",0.4)])
+          add("Narrator","Koori kept his gaze on the town.",100)
+          add("Koori","You were near.",120,focus=[("near",0.6)])
+          add("Enishi","I was.",120,soft=[("I was",0.3)])
+          add("Koori","I thought so.",110)
+          add("Enishi","You usually do.",130,focus=[("usually",0.5)])
+          add("Narrator","Koori’s ears angled back.",80)
+          add("Koori","That’s because I’m usually correct.",130,focus=[("usually correct",1.0)])
+          add("Enishi","Usually.",130,focus=[("Usually",0.7)])
+          add("Koori","That was unnecessary too.",240,focus=[("unnecessary",0.9)])
+
+          add("Narrator","Enishi leaned against one of the torii posts, one mittened hand tucked into his sleeve.",100)
+          add("Narrator","In the hour before sunrise, his bright cloak looked quieter than usual, the colors gathered close around him. Moonlight rested along the edge of his skull mask.",180,soft=[("quieter than usual",0.5),("Moonlight rested",0.4)])
+          add("Narrator","A cyan butterfly drifted near the shimenawa rope, its blue light moving slowly through the hour before sunrise—a spirit guide, one of the small beings that moved easily along the boundary between the living world and the spirit world.",250,focus=[("cyan butterfly",0.5),("spirit guide",0.6)],soft=[("moving slowly",0.4)])
+          add("Narrator","Koori watched it pass beneath the gate.",120)
+          add("Koori","He went lightly.",120,soft=[("lightly",0.5)])
+          add("Enishi","He did.",120,soft=[("He did",0.3)])
+          add("Koori","People think crossing should feel heavier.",120,focus=[("heavier",0.7)])
+          add("Enishi","The weight often remains with those who stay.",220,focus=[("those who stay",0.7)])
+
+          add("Narrator","Koori looked down toward the house near the maple path. He could still feel the change there.",140,soft=[("change there",0.4)])
+          add("Koori","That part was heavy.",130,focus=[("heavy",0.8)])
+          add("Enishi","For her.",180,soft=[("For her",0.5)])
+          add("Narrator","Koori’s tails drew closer. He understood the ones who stayed. That kind of continuing made sense to him: a safer step, a small light, a sign seen at the right time, a path that could still be walked.",180,focus=[("safer step",0.4),("small light",0.4),("path that could still be walked",0.5)])
+          add("Narrator","But the old man had gone farther than that.",220,soft=[("farther than that",0.5)])
+          add("Narrator","The spirit guide passed through a stripe of moonlight, flashing pale before returning to cyan beneath the cedars.",140,focus=[("flashing pale",0.5)])
+          add("Narrator","Koori watched it move along the boundary between the two worlds they both knew, giving visible shape to something he had only felt.",160,focus=[("boundary between the two worlds",0.6),("visible shape",0.5)])
+          add("Narrator","Something could leave one form and still continue.",120,focus=[("still continue",0.7)])
+          add("Narrator","Something could cross and still belong to the same world.",120,focus=[("same world",0.7)])
+          add("Narrator","Not in the same way.",220,gain=-0.3,soft=[("same way",0.4)])
+          add("Narrator","Koori looked toward the gate.",100)
+          add("Koori","But my light couldn’t follow him there.",180,gain=-1.0,pace=0.95,soft=[("couldn’t follow him there",0.8)])
+          add("Narrator","Then he looked toward Enishi.",90)
+          add("Koori","Thank you.",260,gain=-1.0,pace=0.94,soft=[("Thank you",0.9)])
+          add("Narrator","Enishi let the words rest there.",180,soft=[("rest there",0.5)])
+          add("Narrator","The butterfly moved between them, blue light passing through the dim air.",150,soft=[("blue light",0.4)])
+          add("Enishi","You kept watch as far as your light could reach.",210,gain=-0.4,pace=0.97,focus=[("as far as your light could reach",0.6)])
+          add("Narrator","Koori looked back toward town.",100)
+          add("Koori","It must be hard at that limit.",120,soft=[("at that limit",0.4)])
+          add("Enishi","It is.",140,gain=-0.5,soft=[("It is",0.4)])
+          add("Koori","I don’t like limits.",110,focus=[("don’t like limits",1.0)])
+          add("Enishi","I noticed.",210,focus=[("noticed",0.5)])
+
+          add("Narrator","He wanted to argue with the limit, to find the better angle, the safer route, the hidden path.",130,focus=[("better angle",0.4),("safer route",0.4),("hidden path",0.5)])
+          add("Narrator","But the torii stood behind him where it had always stood.",100)
+          add("Narrator","The torii didn’t block the steps. It gave them somewhere to arrive.",230,focus=[("somewhere to arrive",0.7)])
+          add("Narrator","The first bird called from somewhere high in the cedars.",130,soft=[("first bird",0.4)])
+          add("Narrator","Koori looked toward the old shrine building.",100)
+          add("Koori","She used to sit there.",160,soft=[("sit there",0.5)])
+          add("Narrator","Enishi followed Koori’s gaze.",90)
+          add("Narrator","On the upper step near the offering box, the stone dipped slightly where people often paused before praying.",140,soft=[("paused before praying",0.4)])
+          add("Koori","Sonoyama-sama.",150,soft=[("Sonoyama-sama",0.4)])
+          add("Enishi","Yes.",110,soft=[("Yes",0.3)])
+          add("Koori","She always knew when the lanterns needed replacing.",110,focus=[("always knew",0.6)])
+          add("Enishi","She did.",110)
+          add("Koori","She pretended it was because she checked them every day.",120,focus=[("pretended",0.5)])
+          add("Enishi","It wasn’t.",110)
+          add("Koori","No. She just knew.",220,focus=[("just knew",0.8)])
+
+          add("Narrator","The quiet around Enishi felt familiar—not the shape of the old man’s crossing, but the presence beside it. Koori had felt that same presence once before, long ago.",180,soft=[("quiet around Enishi",0.5),("long ago",0.5)])
+          add("Koori","You were near then too.",140,focus=[("then too",0.6)])
+          add("Narrator","Enishi’s mittened hand rested against one fold of his cloak.",100)
+          add("Enishi","Yes.",120,soft=[("Yes",0.3)])
+          add("Narrator","Koori’s ears lowered.",90)
+          add("Koori","You never told me.",140,focus=[("never",0.8)])
+          add("Enishi","It was not mine to share.",220,gain=-0.4,pace=0.96,focus=[("not mine",0.6)])
+
+          add("Narrator","Koori wanted to be annoyed. The answer gave him very little to work with.",150,focus=[("very little",0.5)])
+          add("Narrator","He looked toward the place where Sonoyama-sama had once sat. Morning had begun to reach the steps now, touching one stone at a time.",180,soft=[("one stone at a time",0.5)])
+          add("Koori","I miss her.",180,gain=-1.1,pace=0.94,soft=[("miss her",0.9)])
+          add("Enishi","I do too.",220,gain=-0.8,pace=0.95,soft=[("do too",0.7)])
+          add("Narrator","One tail curled closer around Koori’s paws.",100)
+          add("Koori","She went where I could not guide her.",150,gain=-0.6,soft=[("could not guide her",0.6)])
+          add("Enishi","Yes.",100,soft=[("Yes",0.4)])
+          add("Koori","But she didn’t leave the world.",140,focus=[("didn’t leave the world",0.7)])
+          add("Enishi","No.",210,soft=[("No",0.4)])
+
+          add("Narrator","Koori breathed through his nose, and his tails loosened slightly around his paws.",130,soft=[("loosened slightly",0.4)])
+          add("Narrator","Enishi shifted beside the torii, just enough that the first light reached his cloak. A yellow patch brightened, then a curved pink stripe, then one small stitched star. The cheerful shapes softened the pale skull mask in the familiar way Enishi had chosen long ago.",180,focus=[("first light",0.5),("one small stitched star",0.5)],soft=[("softened",0.4)])
+          add("Narrator","Koori noticed.",80)
+          add("Koori","You made yourself approachable again.",130,focus=[("approachable",0.7)])
+          add("Enishi","I prefer adorable.",140,focus=[("adorable",0.9)])
+          add("Koori","It worked. Mostly.",150,focus=[("Mostly",0.8)])
+          add("Enishi","Mostly is generous.",120,focus=[("generous",0.7)])
+          add("Koori","It’s accurate.",220,focus=[("accurate",0.7)])
+
+          add("Narrator","Below them, the town grew clearer by degrees. First a roof, then a lane, then the maple path, and beyond it the river silvering between reeds.",180,soft=[("clearer by degrees",0.4),("river silvering",0.4)])
+          add("Narrator","The word rose in Enishi.",100)
+          add("Narrator","Complete.",230,gain=-0.8,soft=[("Complete",0.6)])
+          add("Narrator","The old man’s crossing had been. What remained on this side was still changing.",180,focus=[("still changing",0.6)])
+          add("Narrator","Enishi let the word stay unspoken.",180,soft=[("stay unspoken",0.6)])
+          add("Narrator","Above the cedars, the moon thinned into morning.",180,soft=[("thinned into morning",0.6)])
+          add("Narrator","Koori looked toward the gate once more.",100)
+          add("Koori","When something crosses, the way is still on both sides.",220,gain=-0.4,pace=0.97,focus=[("both sides",0.8)])
+          add("Narrator","Enishi leaned lightly against the torii.",100)
+          add("Enishi","Yes.",180,soft=[("Yes",0.4)])
+          add("Narrator","Koori looked toward the town again.",100)
+          add("Narrator","Enishi moved a little to the side, leaving the steps open.",700,soft=[("leaving the steps open",0.6)])
+
+          terms = [
+              (r"Sonoyama-sama","[Sonoyama-sama](/sˈOnOjɑmɑ sˈɑmɑ/)"),
+              (r"kitsune","[kitsune](/kitsˈunɛ/)"),
+              (r"torii","[torii](/tˈOɹiˌi/)"),
+              (r"shimenawa","[shimenawa](/ʃimɛnˈɑwɑ/)"),
+              (r"Koori","[Koori](/kˈuɹi/)"),
+              (r"Enishi","[Enishi](/ɛnˈiʃi/)"),
+          ]
+
+          def prep(text):
+              t=text.replace("’","'").replace("‘","'").replace("“",'"').replace("”",'"')
+              for pat,repl in terms:
+                  t=re.sub(pat,repl,t)
+              return t
+
+          voice_cache={}
+          def get_voice(parts):
+              k=tuple(parts)
+              if k in voice_cache: return voice_cache[k]
+              v=None
+              for name,w in parts:
+                  e=pipeline.load_voice(name)*w
+                  v=e if v is None else v+e
+              voice_cache[k]=v
+              return v
+
+          def pitch_wav(src,dst,semitones):
+              shutil.copyfile(src,dst)
+              factor=2**(semitones/12)
+              with open(dst,"r+b") as f:
+                  data=f.read(); i=data.find(b"fmt ")
+                  if i<0: raise RuntimeError("WAV fmt chunk not found")
+                  sr_off=i+12; br_off=i+16
+                  sr=struct.unpack("<I",data[sr_off:sr_off+4])[0]
+                  br=struct.unpack("<I",data[br_off:br_off+4])[0]
+                  f.seek(sr_off); f.write(struct.pack("<I",round(sr*factor)))
+                  f.seek(br_off); f.write(struct.pack("<I",round(br*factor)))
+
+          def db_to_amp(db): return 10**(db/20)
+          def norm_token(s): return re.sub(r"[^a-z0-9]+","",s.lower())
+
+          def smooth_gain(audio,start,end,db,ramp_ms=18):
+              start=max(0,int(start)); end=min(len(audio),int(end))
+              if end<=start: return
+              target=db_to_amp(db); n=end-start
+              ramp=min(int(SR*ramp_ms/1000),max(1,n//3))
+              env=np.full(n,target,dtype=np.float32)
+              if ramp>1:
+                  env[:ramp]=np.linspace(1.0,target,ramp,dtype=np.float32)
+                  env[-ramp:]=np.linspace(target,1.0,ramp,dtype=np.float32)
+              audio[start:end]*=env
+
+          def split_units(text):
+              parts=re.findall(r".*?(?:…|[.!?;:,—]|$)",text.strip(),flags=re.S)
+              return [p.strip() for p in parts if p and p.strip()]
+
+          def final_punct(text):
+              m=re.search(r"(…|[.!?;:,—])(?:['\"])?$",text.rstrip())
+              return m.group(1) if m else ""
+
+          def dramatic_params(punct,unit_index,total_units):
+              pitch=0.0; speed=1.0
+              if punct=="?":
+                  pitch+=0.38; speed*=0.985
+              elif punct=="!":
+                  pitch+=0.28; speed*=1.035
+              elif punct=="…":
+                  pitch-=0.28; speed*=0.925
+              elif punct=="—":
+                  pitch+=0.10; speed*=0.975
+              elif punct==",":
+                  pitch+=0.05
+              elif punct==".":
+                  pitch-=0.10; speed*=0.99
+              if total_units>1:
+                  pitch += (0.10 if unit_index%2==0 else -0.08)
+              return pitch,speed
+
+          def punct_pause(p):
+              return {",":95,"—":175,";":170,":":150,"…":360,"?":235,"!":180,".":190}.get(p,80)
+
+          def post_contour(audio,speaker,punct,unit_index):
+              n=len(audio)
+              if n<int(0.20*SR): return
+              x=np.linspace(0,1,n,dtype=np.float32)
+              if speaker=="Narrator":
+                  db=-0.15 + 0.32*np.sin(np.pi*x) - 0.25*np.clip((x-0.84)/0.16,0,1)
+              else:
+                  phase=(unit_index%3)*0.75
+                  db=(-0.45 + 1.55*np.sin(np.pi*x) + 0.50*np.sin(2*np.pi*x+phase)
+                      - 1.00*np.clip((x-0.82)/0.18,0,1))
+                  if punct=="?": db += -0.45 + 2.65*(x**2)
+                  elif punct=="!": db += 1.85*(1.0-0.70*x)
+                  elif punct=="…": db += -1.70*x
+                  elif punct=="—": db += 0.65*(1.0-x)-0.35*x
+                  elif punct==",": db += 0.30*np.sin(np.pi*x)
+              audio *= np.power(10.0,db/20.0).astype(np.float32)
+
+          def word_dynamics(audio,token_rows,items,sign,speaker,time_scale):
+              if not token_rows or not items: return
+              toks=[]
+              for txt,st,en in token_rows:
+                  nw=norm_token(txt)
+                  if nw: toks.append((nw,float(st)*time_scale,float(en)*time_scale))
+              words=[x[0] for x in toks]
+              strength=0.70 if speaker=="Narrator" else (2.80 if sign>0 else 2.15)
+              for phrase,mag in items:
+                  target=[norm_token(w) for w in re.findall(r"[A-Za-z0-9’'-]+",phrase) if norm_token(w)]
+                  m=len(target)
+                  if not m: continue
+                  for i in range(0,len(words)-m+1):
+                      if words[i:i+m]==target:
+                          smooth_gain(audio,int(toks[i][1]*SR),int(toks[i+m-1][2]*SR),sign*float(mag)*strength)
+
+          rendered=[]; manifest=[]
+          for idx,seg in enumerate(S,1):
+              cfg=voices[seg["speaker"]]
+              voice=get_voice(cfg["parts"])
+              is_char=seg["speaker"]!="Narrator"
+              units=split_units(seg["tts"]) if is_char else [seg["tts"]]
+              seg_audio=[]; uinfo=[]
+              for uidx,unit in enumerate(units):
+                  p=final_punct(unit)
+                  lp,ls=dramatic_params(p,uidx,len(units)) if is_char else (0.0,1.0)
+                  total_pitch=cfg["pitch"]+lp
+                  factor=2**(total_pitch/12)
+                  final_speed=cfg["speed"]*seg["pace"]*ls
+                  gen_speed=final_speed/factor
+                  tts=prep(unit)
+                  chunks=[]; token_rows=[]; offset=0.0
+                  for r in pipeline(tts,voice=voice,speed=gen_speed):
+                      y=np.asarray(r.audio,dtype=np.float32)
+                      for tok in (getattr(r,"tokens",None) or []):
+                          st=getattr(tok,"start_ts",None); en=getattr(tok,"end_ts",None)
+                          if st is not None and en is not None:
+                              token_rows.append((getattr(tok,"text","") or "",float(st)+offset,float(en)+offset))
+                      chunks.append(y); offset += len(y)/SR
+                  if not chunks: raise RuntimeError(f"No audio for {idx}:{uidx}")
+                  y=np.concatenate(chunks)
+
+                  raw=SEG/f"{idx:03d}_{uidx:02d}_raw.wav"
+                  pitched=SEG/f"{idx:03d}_{uidx:02d}_pitched.wav"
+                  filtered=SEG/f"{idx:03d}_{uidx:02d}_filtered.wav"
+                  sf.write(raw,y,SR,subtype="PCM_16")
+                  pitch_wav(raw,pitched,total_pitch)
+                  subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(pitched),"-af",cfg["filters"],"-ar",str(SR),"-ac","1","-c:a","pcm_s16le",str(filtered)],check=True)
+                  y,_=sf.read(filtered,dtype="float32")
+                  if y.ndim>1: y=y.mean(axis=1)
+                  post_contour(y,seg["speaker"],p,uidx)
+                  if seg["gain"]: y*=db_to_amp(seg["gain"])
+                  word_dynamics(y,token_rows,seg["focus"],+1,seg["speaker"],1.0/factor)
+                  word_dynamics(y,token_rows,seg["soft"],-1,seg["speaker"],1.0/factor)
+                  peak=float(np.max(np.abs(y))) if len(y) else 0
+                  if peak>0.975: y*=0.975/peak
+                  seg_audio.append(y)
+                  if is_char and uidx<len(units)-1:
+                      seg_audio.append(np.zeros(int(SR*punct_pause(p)/1000),dtype=np.float32))
+                  uinfo.append({"text":unit,"punctuation":p,"local_pitch":lp,"local_speed":ls})
+                  raw.unlink(missing_ok=True); pitched.unlink(missing_ok=True); filtered.unlink(missing_ok=True)
+
+              final=SEG/f"{idx:03d}_{seg['speaker'].replace(' ','_')}.wav"
+              audio=np.concatenate(seg_audio)
+              sf.write(final,audio,SR,subtype="PCM_16")
+              rendered.append((final,seg["pause"]))
+              manifest.append({
+                  "index":idx,"speaker":seg["speaker"],"manuscript_text":seg["text"],
+                  "pause_after_ms":seg["pause"],"gain_db":seg["gain"],
+                  "pace":seg["pace"],"focus":seg["focus"],"soft":seg["soft"],
+                  "units":uinfo
+              })
+
+          pieces=[]
+          for f,pause_ms in rendered:
+              y,_=sf.read(f,dtype="float32")
+              if y.ndim>1: y=y.mean(axis=1)
+              pieces.append(y)
+              if pause_ms:
+                  pieces.append(np.zeros(int(SR*pause_ms/1000),dtype=np.float32))
+          mix=np.concatenate(pieces)
+          peak=float(np.max(np.abs(mix)))
+          if peak>0.94: mix*=0.94/peak
+
+          wav=OUT/"SONOKO_Chapter_24_The_Steps_Between_Sun_and_Moon.wav"
+          m4a=OUT/"SONOKO_Chapter_24_The_Steps_Between_Sun_and_Moon.m4a"
+          sf.write(wav,mix,SR,subtype="PCM_16")
+          subprocess.run([
+              "ffmpeg","-y","-loglevel","error","-i",str(wav),
+              "-af","loudnorm=I=-18:TP=-2:LRA=15",
+              "-c:a","aac","-b:a","192k",str(m4a)
+          ],check=True)
+          (OUT/"chapter24_voice_manifest.json").write_text(json.dumps(manifest,indent=2,ensure_ascii=False),encoding="utf-8")
+          PY
+
+      - name: Upload Chapter 24
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoko-ch24-voice-system
+          path: |
+            sonoko-ch24/SONOKO_Chapter_24_The_Steps_Between_Sun_and_Moon.m4a
+            sonoko-ch24/SONOKO_Chapter_24_The_Steps_Between_Sun_and_Moon.wav
+            sonoko-ch24/chapter24_voice_manifest.json
+          retention-days: 7
